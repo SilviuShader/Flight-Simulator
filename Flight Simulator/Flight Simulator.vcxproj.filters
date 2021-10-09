@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\glad">
+      <UniqueIdentifier>{5979d3df-68c7-4833-b855-c36b99635077}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\KHR">
+      <UniqueIdentifier>{ec4eb56a-2cf9-4466-bd72-5953420211af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders">
+      <UniqueIdentifier>{14fbf4a0-b986-4ca6-b6a6-58d1dd257ef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets">
+      <UniqueIdentifier>{abb6cdb6-2e27-4c2c-a22c-8cd4dc361fbd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glad\glad.h">
+      <Filter>Header Files\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="KHR\khrplatform.h">
+      <Filter>Header Files\KHR</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="shaders\vertex.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="shaders\fragment.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\container.jpg">
+      <Filter>Resource Files\assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\awesomeface.png">
+      <Filter>Resource Files\assets</Filter>
+    </CopyFileToFolders>
+  </ItemGroup>
+</Project>
