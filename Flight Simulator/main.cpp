@@ -11,19 +11,40 @@
 
 #include "stb_image.h"
 #include "Shader.h"
+#include "Camera.h"
 
 using namespace std;
 using namespace glm;
+
+constexpr auto WINDOW_WIDTH = 800;
+constexpr auto WINDOW_HEIGHT = 600;
+
+float lastMouseX = WINDOW_WIDTH / 2.0f;
+float lastMouseY = WINDOW_HEIGHT / 2.0f;
+
+Camera* camera;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
+void mouse_callback(GLFWwindow* window, double posX, double posY)
+{
+    float diffX = posX - lastMouseX;
+    float diffY = posY - lastMouseY;
+    lastMouseX = posX;
+    lastMouseY = posY;
+
+    camera->ProcessMouseInput(diffX, diffY);
+}
+
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    camera->ProcessKeybaordInput(window);
 }
 
 int main(int argc, char const* argv[])
@@ -33,7 +54,7 @@ int main(int argc, char const* argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Flight Simulator", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flight Simulator", NULL, NULL);
 
     if (window == NULL)
     {
@@ -184,18 +205,26 @@ int main(int argc, char const* argv[])
         vec3(-1.3f,  1.0f, -1.5f)
     };
 
+    camera = new Camera();
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+
+    float previousTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(window))
     {
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - previousTime;
+
         processInput(window);
+        camera->Update(deltaTime);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         mat4 model = mat4(1.0f);
         model = rotate(model, (float)glfwGetTime() * radians(50.0f), vec3(0.5f, 1.0f, 0.0f));
-
-        mat4 view = mat4(1.0f);
-        view = translate(view, vec3(0.0f, 0.0f, -3.0f));
 
         mat4 projection;
         projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -213,7 +242,8 @@ int main(int argc, char const* argv[])
         shader->SetInt("texture1", 0);
         shader->SetInt("texture2", 1);
 
-        shader->SetMatrix4("view", value_ptr(view));
+        mat4 viewMatrix = camera->GetViewMatrix();
+        shader->SetMatrix4("view", value_ptr(viewMatrix));
         shader->SetMatrix4("projection", value_ptr(projection));
 
         for (unsigned int i = 0; i < 10; i++)
@@ -227,7 +257,12 @@ int main(int argc, char const* argv[])
         }
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        previousTime = currentTime;
     }
+
+    delete camera;
+    camera = NULL;
 
     delete shader;
     shader = NULL;
