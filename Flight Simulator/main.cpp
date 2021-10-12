@@ -10,7 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "stb_image.h"
-#include "Shader.h"
+#include "Terrain.h"
 #include "Camera.h"
 
 using namespace std;
@@ -75,69 +75,7 @@ int main(int argc, char const* argv[])
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-
-    glBindVertexArray(VAO);
-
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    Shader* shader = new Shader("shaders/vertex.glsl", "shaders/fragment.glsl");
-
+    /*
     stbi_set_flip_vertically_on_load(true);
 
     unsigned int texture;
@@ -189,8 +127,11 @@ int main(int argc, char const* argv[])
 
     stbi_image_free(data);
 
+    */
+
     glEnable(GL_DEPTH_TEST);
 
+    /*
     vec3 cubePositions[] = 
     {
         vec3(0.0f,  0.0f,  0.0f),
@@ -204,6 +145,7 @@ int main(int argc, char const* argv[])
         vec3(1.5f,  0.2f, -1.5f),
         vec3(-1.3f,  1.0f, -1.5f)
     };
+    */
 
     camera = new Camera();
 
@@ -211,6 +153,8 @@ int main(int argc, char const* argv[])
     glfwSetCursorPosCallback(window, mouse_callback);
 
     float previousTime = glfwGetTime();
+
+    Terrain* terrain = new Terrain();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -223,25 +167,32 @@ int main(int argc, char const* argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+        /*
         mat4 model = mat4(1.0f);
         model = rotate(model, (float)glfwGetTime() * radians(50.0f), vec3(0.5f, 1.0f, 0.0f));
+        */
 
+        mat4 view = camera->GetViewMatrix();
         mat4 projection;
         projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        shader->Use();
+        terrain->Draw(view, projection);
 
+        /*
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
 
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
+        /*
 
         glBindVertexArray(VAO);
 
         shader->SetInt("texture1", 0);
-        shader->SetInt("texture2", 1);
+        shader->SetInt("texture2", 1);*/
 
+        /*
         mat4 viewMatrix = camera->GetViewMatrix();
         shader->SetMatrix4("view", value_ptr(viewMatrix));
         shader->SetMatrix4("projection", value_ptr(projection));
@@ -255,17 +206,18 @@ int main(int argc, char const* argv[])
             shader->SetMatrix4("model", value_ptr(model));
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+        */
         glfwSwapBuffers(window);
         glfwPollEvents();
 
         previousTime = currentTime;
     }
 
-    delete camera;
-    camera = NULL;
+    delete terrain;
+    terrain = nullptr;
 
-    delete shader;
-    shader = NULL;
+    delete camera;
+    camera = nullptr;
 
     glfwTerminate();
 
