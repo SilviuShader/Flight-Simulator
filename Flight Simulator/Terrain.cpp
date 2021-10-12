@@ -1,14 +1,20 @@
 #include "glad/glad.h"
 
 #include "Terrain.h"
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace glm;
+
+Terrain::Vertex::Vertex(vec3 position, vec3 color) : 
+    Position(position),
+    Color(color)
+{
+}
 
 Terrain::Terrain() :
     m_vbo(0),
     m_ebo(0),
-    m_vao(0)
+    m_vao(0),
+    m_indicesCount(0)
 {
     CreateBuffers();
 
@@ -31,66 +37,68 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
     mat4 model = mat4(1.0f);
     
     m_shader->Use();
-    m_shader->SetMatrix4("model", value_ptr(model));
-    m_shader->SetMatrix4("view", value_ptr(viewMatrix));
-    m_shader->SetMatrix4("projection", value_ptr(projectionMatrix));
+    m_shader->SetMatrix4("Model", model);
+    m_shader->SetMatrix4("View", viewMatrix);
+    m_shader->SetMatrix4("Projection", projectionMatrix);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawElements(GL_TRIANGLES, m_indicesCount, GL_UNSIGNED_INT, 0);
 }
 
 void Terrain::CreateBuffers()
 {
-    float vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+    int verticesCount = 36;
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    Vertex vertices[] = 
+    {
+        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 0.0f, 1.0f)),
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
+        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f
+        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+
+        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
+        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f))
     };
 
-    int indicesCount = sizeof(vertices) / (sizeof(float) * 6);
+    m_indicesCount = verticesCount;
 
-    unsigned int* indices = new unsigned int[indicesCount];
+    unsigned int* indices = new unsigned int[m_indicesCount];
 
-    for (int i = 0; i < indicesCount; i++)
+    for (int i = 0; i < m_indicesCount; i++)
         indices[i] = i;
 
     glGenVertexArrays(1, &m_vao);
@@ -100,18 +108,18 @@ void Terrain::CreateBuffers()
     glGenBuffers(1, &m_vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verticesCount, vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
     glEnableVertexAttribArray(1);
 
     glGenBuffers(1, &m_ebo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indicesCount, indices, GL_STATIC_DRAW);;
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * m_indicesCount, indices, GL_STATIC_DRAW);;
 
     delete[] indices;
     indices = nullptr;

@@ -1,10 +1,12 @@
 #include <fstream>
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "glad/glad.h"
 #include "Shader.h"
 
 using namespace std;
+using namespace glm;
 
 Shader::Shader(const string vertexPath, const string fragmentPath)
 {
@@ -77,9 +79,10 @@ void Shader::SetFloat(const string& name, float value) const
     glUniform1f(glGetUniformLocation(m_programId, name.c_str()), value);
 }
 
-void Shader::SetMatrix4(const string name, float* value) const
+void Shader::SetMatrix4(const string name, mat4& value) const
 {
-    glUniformMatrix4fv(glGetUniformLocation(m_programId, name.c_str()), 1, GL_FALSE, value);
+    float* ptr = value_ptr(value);
+    glUniformMatrix4fv(glGetUniformLocation(m_programId, name.c_str()), 1, GL_FALSE, ptr);
 }
 
 string Shader::ReadFile(const string filename)
