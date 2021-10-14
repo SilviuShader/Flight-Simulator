@@ -121,6 +121,9 @@ void Terrain::CreateBuffers()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * m_indicesCount, indices, GL_STATIC_DRAW);;
 
+    delete[] vertices;
+    vertices = nullptr;
+
     delete[] indices;
     indices = nullptr;
 }
