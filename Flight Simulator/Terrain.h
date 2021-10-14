@@ -11,6 +11,7 @@ private:
     {
     public:
 
+        Vertex();
         Vertex(glm::vec3, glm::vec3);
 
     public:

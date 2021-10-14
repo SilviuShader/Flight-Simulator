@@ -4,7 +4,13 @@
 
 using namespace glm;
 
-Terrain::Vertex::Vertex(vec3 position, vec3 color) : 
+Terrain::Vertex::Vertex() :
+    Position(vec3(0.0f, 0.0f, 0.0f)),
+    Color(vec3(0.0f, 0.0f, 0.0f))
+{
+}
+
+Terrain::Vertex::Vertex(vec3 position, vec3 color) :
     Position(position),
     Color(color)
 {
@@ -34,6 +40,10 @@ Terrain::~Terrain()
 
 void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
 {
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     mat4 model = mat4(1.0f);
     
     m_shader->Use();
@@ -47,59 +57,49 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
 
 void Terrain::CreateBuffers()
 {
-    int verticesCount = 36;
+    int gridWidth = 256;
+    int gridHeight = 256;
+    int verticesCount = gridWidth * gridHeight;
 
-    Vertex vertices[] = 
+    float terrainSize = 100.0f;
+
+    Vertex* vertices = new Vertex[gridWidth * gridHeight];
+
+    for (int i = 0; i < gridHeight; i++)
     {
-        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+        for (int j = 0; j < gridWidth; j++)
+        {
+            float adjustedI = (i - ((float)(gridWidth - 1) / 2.0f)) / (float)(gridWidth - 1);
+            float adjustedJ = (j - ((float)(gridHeight - 1) / 2.0f)) / (float)(gridHeight - 1);
 
-        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
+            vertices[i * gridHeight + j] = Vertex(vec3(adjustedJ * terrainSize, 0.0f, adjustedI * terrainSize), vec3(1.0f, 1.0f, 1.0f));
+        }
+    }
 
-        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
-        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-
-        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-
-        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f, -0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(-0.5f, -0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
-        Vertex(vec3(-0.5f, -0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-
-        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f, -0.5f),  vec3(1.0f, 1.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(0.5f,  0.5f,  0.5f),  vec3(1.0f, 0.0f, 1.0f)),
-        Vertex(vec3(-0.5f,  0.5f,  0.5f),  vec3(0.0f, 0.0f, 1.0f)),
-        Vertex(vec3(-0.5f,  0.5f, -0.5f),  vec3(0.0f, 1.0f, 1.0f))
-    };
-
-    m_indicesCount = verticesCount;
+    m_indicesCount = (gridHeight - 1) * (gridWidth - 1) * 6;
 
     unsigned int* indices = new unsigned int[m_indicesCount];
 
-    for (int i = 0; i < m_indicesCount; i++)
-        indices[i] = i;
+    int indicesIndex = 0;
+
+    for (int i = 0; i < gridHeight - 1; i++)
+    {
+        for (int j = 0; j < gridWidth - 1; j++)
+        {
+            int pivot = i * gridWidth + j;
+            int right = i * gridWidth + j + 1;
+            int bottom = (i + 1) * gridWidth + j;
+            int bottomRight = (i + 1) * gridWidth + j + 1;
+
+            indices[indicesIndex++] = pivot;
+            indices[indicesIndex++] = bottom;
+            indices[indicesIndex++] = right;
+
+            indices[indicesIndex++] = right;
+            indices[indicesIndex++] = bottom;
+            indices[indicesIndex++] = bottomRight;
+        }
+    }
 
     glGenVertexArrays(1, &m_vao);
 
