@@ -1,7 +1,9 @@
+#include <memory>
 #include "glad/glad.h"
 
 #include "Terrain.h"
 
+using namespace std;
 using namespace glm;
 
 Terrain::Vertex::Vertex() :
@@ -63,48 +65,50 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
 
 void Terrain::CreateBuffers()
 {
-    int gridWidth = 256;
-    int gridHeight = 256;
-    int verticesCount = gridWidth * gridHeight;
+    int verticesWidth = TERRAIN_GRID_WIDTH + 1;
+    int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
 
-    float terrainSize = 50.0f;
+    int verticesCount = verticesWidth * verticesHeight;
 
-    Vertex* vertices = new Vertex[gridWidth * gridHeight];
+    unique_ptr<Vertex> vertices(new Vertex[verticesCount]);
 
-    for (int i = 0; i < gridHeight; i++)
+    for (int i = 0; i < verticesHeight; i++)
     {
-        for (int j = 0; j < gridWidth; j++)
+        for (int j = 0; j < verticesWidth; j++)
         {
-            float adjustedI = (i - ((float)(gridWidth - 1) / 2.0f)) / (float)(gridWidth - 1);
-            float adjustedJ = (j - ((float)(gridHeight - 1) / 2.0f)) / (float)(gridHeight - 1);
+            float adjustedI = (i - ((float)(verticesWidth - 1) / 2.0f)) / (float)(verticesWidth - 1);
+            float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
 
-            vertices[i * gridWidth + j] = Vertex(vec3(adjustedJ * terrainSize, 0.0f, adjustedI * terrainSize), vec3(1.0f, 1.0f, 1.0f));
-            vertices[i * gridWidth + j].Position.y = 10.0f * m_perlinNoise->GetCombinedValue(vec2(vertices[i * gridWidth + j].Position.x * 0.1f, vertices[i * gridWidth + j].Position.z * 0.1f));
+            vec2 planePosition = vec2(adjustedI * TERRAIN_WIDTH, adjustedJ * TERRAIN_WIDTH);
+            float height = m_perlinNoise->GetCombinedValue(planePosition) * TERRAIN_AMPLITUDE;
+
+            vertices.get()[i * verticesWidth + j].Position = vec3(planePosition.x, height, planePosition.y);
+            vertices.get()[i * verticesWidth + j].Color = vec3(1.0f, 1.0f, 1.0f);
         }
     }
 
-    m_indicesCount = (gridHeight - 1) * (gridWidth - 1) * 6;
+    m_indicesCount = TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT * 6;
 
-    unsigned int* indices = new unsigned int[m_indicesCount];
+    unique_ptr<unsigned int> indices(new unsigned int[m_indicesCount]);
 
     int indicesIndex = 0;
 
-    for (int i = 0; i < gridHeight - 1; i++)
+    for (int i = 0; i < TERRAIN_GRID_HEIGHT; i++)
     {
-        for (int j = 0; j < gridWidth - 1; j++)
+        for (int j = 0; j < TERRAIN_GRID_WIDTH; j++)
         {
-            int pivot = i * gridWidth + j;
-            int right = i * gridWidth + j + 1;
-            int bottom = (i + 1) * gridWidth + j;
-            int bottomRight = (i + 1) * gridWidth + j + 1;
+            int pivot = i * verticesWidth + j;
+            int right = i * verticesHeight + j + 1;
+            int bottom = (i + 1) * verticesWidth + j;
+            int bottomRight = (i + 1) * verticesHeight + j + 1;
 
-            indices[indicesIndex++] = pivot;
-            indices[indicesIndex++] = bottom;
-            indices[indicesIndex++] = right;
+            indices.get()[indicesIndex++] = pivot;
+            indices.get()[indicesIndex++] = right;
+            indices.get()[indicesIndex++] = bottom;
 
-            indices[indicesIndex++] = right;
-            indices[indicesIndex++] = bottom;
-            indices[indicesIndex++] = bottomRight;
+            indices.get()[indicesIndex++] = right;
+            indices.get()[indicesIndex++] = bottomRight;
+            indices.get()[indicesIndex++] = bottom;
         }
     }
 
@@ -115,7 +119,7 @@ void Terrain::CreateBuffers()
     glGenBuffers(1, &m_vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verticesCount, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verticesCount, vertices.get(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -126,13 +130,10 @@ void Terrain::CreateBuffers()
     glGenBuffers(1, &m_ebo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * m_indicesCount, indices, GL_STATIC_DRAW);;
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * m_indicesCount, indices.get(), GL_STATIC_DRAW);
 
-    delete[] vertices;
-    vertices = nullptr;
-
-    delete[] indices;
-    indices = nullptr;
+    indices.reset();
+    vertices.reset();
 }
 
 void Terrain::FreeBuffers()

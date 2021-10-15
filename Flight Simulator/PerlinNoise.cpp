@@ -1,4 +1,3 @@
-#include <random>
 #include <functional>
 #include <cmath>
 #include <fstream>
@@ -10,9 +9,10 @@
 using namespace std;
 using namespace glm;
 
-PerlinNoise::PerlinNoise()
+PerlinNoise::PerlinNoise(int seed)
 {
-    mt19937 generator(0);
+    mt19937 generator(seed);
+
     uniform_real_distribution<float> distribution(0.0f, 2.0f * pi<float>());
     auto random = bind(distribution, generator);
 
@@ -22,11 +22,7 @@ PerlinNoise::PerlinNoise()
         m_samples[i] = vec2(cosf(angle), sinf(angle));
     }
 
-    int permutationsMapSize = SAMPLES_COUNT << 1;
-    int mask = SAMPLES_COUNT - 1;
-
-    for (int i = 0; i < permutationsMapSize; i++)
-        m_permutationsMap[i] = i & mask;
+    CreatePermutationsMap(generator);
 
 #ifdef _DEBUG
     DebugNoise();
@@ -36,34 +32,42 @@ PerlinNoise::PerlinNoise()
 float PerlinNoise::GetValue(vec2 position)
 {
     int mask = SAMPLES_COUNT - 1;
-        
-    int left = ((int)(floor(position.x))) & mask;
+
+    position *= DEFAULT_FREQUENCY;
+
+    int left   = ((int)(floor(position.x))) & mask;
     int bottom = ((int)(floor(position.y))) & mask;
-    int right = (left + 1) & mask;
-    int top = (bottom + 1) & mask;
+    int right  =                 (left + 1) & mask;
+    int top    =               (bottom + 1) & mask;
 
     float dx = position.x - (int)(floor(position.x));
     float dy = position.y - (int)(floor(position.y));
 
-    vec2 bottomLeft = m_samples[m_permutationsMap[m_permutationsMap[left] + bottom]];
-    vec2 bottomRight = m_samples[m_permutationsMap[m_permutationsMap[right] + bottom]];
-    vec2 topLeft = m_samples[m_permutationsMap[m_permutationsMap[left] + top]];
-    vec2 topRight = m_samples[m_permutationsMap[m_permutationsMap[right] + top]];
+    vec2 bottomLeft  = m_samples[HashPermutationsMap(left,  bottom)];
+    vec2 bottomRight = m_samples[HashPermutationsMap(right, bottom)];
+    vec2 topLeft     = m_samples[HashPermutationsMap(left,  top)];
+    vec2 topRight    = m_samples[HashPermutationsMap(right, top)];
 
-    vec2 toBl = vec2(dx, dy);
-    vec2 toBr = vec2(toBl.x - 1.0f, dy);
-    vec2 toTl = vec2(dx, toBl.y - 1.0f);
-    vec2 toTr = vec2(toBl.x - 1.0f, toBl.y - 1.0f);
+    vec2 toBottomLeft  = vec2(dx,        dy);
+    vec2 toBottomRight = vec2(dx - 1.0f, dy);
+    vec2 toTopLeft     = vec2(dx,        dy - 1.0f);
+    vec2 toTopRight    = vec2(dx - 1.0f, dy - 1.0f);
 
-    float dotBl = dot(bottomLeft, toBl);
-    float dotBr = dot(bottomRight, toBr);
-    float dotTl = dot(topLeft, toTl);
-    float dotTr = dot(topRight, toTr);
+    float dotBottomLeft  = dot(bottomLeft,  toBottomLeft);
+    float dotBottomRight = dot(bottomRight, toBottomRight);
+    float dotTopLeft     = dot(topLeft,     toTopLeft);
+    float dotTopRight    = dot(topRight,    toTopRight);
 
-    float bottomVal = Lerp(dotBl, dotBr, Smoothstep(dx));
-    float topVal = Lerp(dotTl, dotTr, Smoothstep(dx));
+    float horizontalPercentage = Smoothstep(dx);
+    float verticalPercentage   = Smoothstep(dy);
+
+    float bottomValue = Lerp(dotBottomLeft, dotBottomRight, horizontalPercentage);
+    float topValue    = Lerp(dotTopLeft, dotTopRight, horizontalPercentage);
     
-    float result = Lerp(bottomVal, topVal, Smoothstep(dy));
+    float result = Lerp(bottomValue, topValue, verticalPercentage);
+
+    result *= 0.5f;
+    result += 0.5f;
 
     return result;
 }
@@ -84,19 +88,41 @@ float PerlinNoise::GetCombinedValue(vec2 position)
     return result;
 }
 
+int PerlinNoise::HashPermutationsMap(int val1, int val2)
+{
+    return m_permutationsMap[m_permutationsMap[val1] + val2];
+}
+
+void PerlinNoise::CreatePermutationsMap(mt19937& generator)
+{
+    int permutationsMapSize = SAMPLES_COUNT << 1;
+    int mask                = SAMPLES_COUNT - 1;
+
+    for (int i = 0; i < permutationsMapSize; i++)
+        m_permutationsMap[i] = i & mask;
+
+    for (int i = 0; i < permutationsMapSize; i++)
+    {
+        int swapIndex = generator() % permutationsMapSize;
+        swap(m_permutationsMap[i], m_permutationsMap[swapIndex]);
+    }
+}
+
 void PerlinNoise::DebugNoise()
 {
     ofstream ofs;
     ofs.open("./noise.ppm", ios::out | ios::binary);
-    int imageWidth = 1024;
-    int imageHeight = 1024;
-    ofs << "P6\n" << imageWidth << " " << imageHeight << "\n255\n";
-    for (unsigned k = 0; k < imageWidth * imageHeight; ++k)
+
+    ofs << "P6\n" << DEBUG_IMAGE_WIDTH << " " << DEBUG_IMAGE_HEIGHT << "\n255\n";
+
+    int debugImageSize = DEBUG_IMAGE_WIDTH * DEBUG_IMAGE_HEIGHT;
+
+    for (int i = 0; i < debugImageSize; i++)
     {
         int py, px;
-        py = k / imageWidth;
-        px = k % imageWidth;
-        unsigned char n = static_cast<unsigned char>(GetValue(vec2(px * 0.01f, py * 0.01f)) * 255);
+        py = i / DEBUG_IMAGE_WIDTH;
+        px = i % DEBUG_IMAGE_WIDTH;
+        unsigned char n = static_cast<unsigned char>(GetValue(vec2(px, py) * DEBUG_IMAGE_FREQUENCY) * 255);
         ofs << n << n << n;
     }
     ofs.close();
