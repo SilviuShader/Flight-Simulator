@@ -1,7 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
+
 #include "Shader.h"
+#include "PerlinNoise.h"
 
 class Terrain
 {
@@ -38,7 +40,8 @@ private:
     unsigned int m_ebo;
     unsigned int m_vao;
 
-    int m_indicesCount;
+    int          m_indicesCount;
 
-    Shader* m_shader;
+    Shader*      m_shader;
+    PerlinNoise* m_perlinNoise;
 };

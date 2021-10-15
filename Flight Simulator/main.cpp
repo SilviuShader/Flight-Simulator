@@ -156,6 +156,10 @@ int main(int argc, char const* argv[])
 
     Terrain* terrain = new Terrain();
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     while (!glfwWindowShouldClose(window))
     {
         float currentTime = glfwGetTime();

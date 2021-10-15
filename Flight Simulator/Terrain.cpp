@@ -20,8 +20,12 @@ Terrain::Terrain() :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
-    m_indicesCount(0)
+    m_indicesCount(0),
+    m_shader(nullptr),
+    m_perlinNoise(nullptr)
 {
+    m_perlinNoise = new PerlinNoise();
+
     CreateBuffers();
 
     m_shader = new Shader("shaders/vertex.glsl", "shaders/fragment.glsl");
@@ -29,21 +33,23 @@ Terrain::Terrain() :
 
 Terrain::~Terrain()
 {
-    FreeBuffers();
-
     if (m_shader)
     {
         delete m_shader;
         m_shader = nullptr;
     }
+
+    FreeBuffers();
+
+    if (m_perlinNoise)
+    {
+        delete m_perlinNoise;
+        m_perlinNoise = nullptr;
+    }
 }
 
 void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
 {
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     mat4 model = mat4(1.0f);
     
     m_shader->Use();
@@ -61,7 +67,7 @@ void Terrain::CreateBuffers()
     int gridHeight = 256;
     int verticesCount = gridWidth * gridHeight;
 
-    float terrainSize = 100.0f;
+    float terrainSize = 50.0f;
 
     Vertex* vertices = new Vertex[gridWidth * gridHeight];
 
@@ -72,7 +78,8 @@ void Terrain::CreateBuffers()
             float adjustedI = (i - ((float)(gridWidth - 1) / 2.0f)) / (float)(gridWidth - 1);
             float adjustedJ = (j - ((float)(gridHeight - 1) / 2.0f)) / (float)(gridHeight - 1);
 
-            vertices[i * gridHeight + j] = Vertex(vec3(adjustedJ * terrainSize, 0.0f, adjustedI * terrainSize), vec3(1.0f, 1.0f, 1.0f));
+            vertices[i * gridWidth + j] = Vertex(vec3(adjustedJ * terrainSize, 0.0f, adjustedI * terrainSize), vec3(1.0f, 1.0f, 1.0f));
+            vertices[i * gridWidth + j].Position.y = 10.0f * m_perlinNoise->GetCombinedValue(vec2(vertices[i * gridWidth + j].Position.x * 0.1f, vertices[i * gridWidth + j].Position.z * 0.1f));
         }
     }
 
