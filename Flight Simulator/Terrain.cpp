@@ -30,7 +30,8 @@ Terrain::Terrain() :
 
     CreateBuffers();
 
-    m_shader = new Shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+    m_shader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag", 
+        "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 }
 
 Terrain::~Terrain()
@@ -60,7 +61,7 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
     m_shader->SetMatrix4("Projection", projectionMatrix);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glDrawElements(GL_TRIANGLES, m_indicesCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_PATCHES, m_indicesCount, GL_UNSIGNED_INT, 0);
 }
 
 void Terrain::CreateBuffers()

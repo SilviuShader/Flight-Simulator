@@ -11,7 +11,7 @@ private:
 
 public:
 
-    Shader(const std::string, const std::string);
+    Shader(const std::string, const std::string, const std::string = "", const std::string = "");
 
     void Use();
 

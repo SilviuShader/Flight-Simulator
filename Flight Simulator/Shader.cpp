@@ -8,9 +8,13 @@
 using namespace std;
 using namespace glm;
 
-Shader::Shader(const string vertexPath, const string fragmentPath)
+Shader::Shader(const string vertexPath, const string fragmentPath, 
+    const string tessControlPath, const string tessEvaluationPath)
 {
     unsigned int vertex, fragment;
+    unsigned int tessControl, tessEvaluation;
+    bool addedTessControl = false;
+    bool addedTessEvaluation = false;
     int success;
     char infoLog[SHADER_COMPILE_LOG_LENGTH];
 
@@ -31,6 +35,44 @@ Shader::Shader(const string vertexPath, const string fragmentPath)
         cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
     }
 
+    if (tessControlPath.size() > 0)
+    {
+        string tcsString = ReadFile(tessControlPath);
+        const char* tessControlShaderSource = tcsString.c_str();
+
+        tessControl = glCreateShader(GL_TESS_CONTROL_SHADER);
+        glShaderSource(tessControl, 1, &tessControlShaderSource, NULL);
+        glCompileShader(tessControl);
+
+        glGetShaderiv(tessControl, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(tessControl, SHADER_COMPILE_LOG_LENGTH, NULL, infoLog);
+            cout << "ERROR::SHADER::TESS_CONTROL::COMPILATION_FAILED\n" << infoLog << endl;
+        }
+
+        addedTessControl = true;
+    }
+
+    if (tessEvaluationPath.size() > 0)
+    {
+        string tesString = ReadFile(tessEvaluationPath);
+        const char* tessEvaluationShaderSource = tesString.c_str();
+
+        tessEvaluation = glCreateShader(GL_TESS_EVALUATION_SHADER);
+        glShaderSource(tessEvaluation, 1, &tessEvaluationShaderSource, NULL);
+        glCompileShader(tessEvaluation);
+
+        glGetShaderiv(tessEvaluation, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(tessEvaluation, SHADER_COMPILE_LOG_LENGTH, NULL, infoLog);
+            cout << "ERROR::SHADER::TESS_EVALUATION::COMPILATION_FAILED\n" << infoLog << endl;
+        }
+
+        addedTessEvaluation = true;
+    }
+
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragment);
@@ -44,6 +86,12 @@ Shader::Shader(const string vertexPath, const string fragmentPath)
 
     m_programId = glCreateProgram();
     glAttachShader(m_programId, vertex);
+    
+    if (addedTessControl)
+        glAttachShader(m_programId, tessControl);
+    if (addedTessEvaluation)
+        glAttachShader(m_programId, tessEvaluation);
+
     glAttachShader(m_programId, fragment);
     glLinkProgram(m_programId);
 

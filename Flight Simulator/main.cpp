@@ -51,7 +51,7 @@ int main(int argc, char const* argv[])
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flight Simulator", NULL, NULL);
@@ -146,6 +146,19 @@ int main(int argc, char const* argv[])
         vec3(-1.3f,  1.0f, -1.5f)
     };
     */
+
+
+    int maxPatchVertices = 0;
+    glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
+    cout << "Max supported patch vertices: " << maxPatchVertices << endl;
+
+    if (maxPatchVertices < 3)
+    {
+        cout << "The GPU must support at least 3 verices per patch" << endl;
+        return 0;
+    }
+
+    glPatchParameteri(GL_PATCH_VERTICES, 3);
 
     camera = new Camera();
 
