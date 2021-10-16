@@ -51,7 +51,7 @@ PerlinNoise::PerlinNoise(int seed)
     {
         float angle = random();
         m_noiseValues.Samples[i] = vec4(cosf(angle), sinf(angle), 
-            i == 255 ? 1.0f : (float)permutationsMap[i], (float)permutationsMap[i & permutationsMask]);
+            (float)permutationsMap[i], (float)permutationsMap[i & permutationsMask]);
     }
 
 #ifdef _DEBUG
