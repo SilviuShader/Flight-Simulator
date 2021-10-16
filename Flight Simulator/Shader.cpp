@@ -127,10 +127,15 @@ void Shader::SetFloat(const string& name, float value) const
     glUniform1f(glGetUniformLocation(m_programId, name.c_str()), value);
 }
 
-void Shader::SetMatrix4(const string name, mat4& value) const
+void Shader::SetMatrix4(const string& name, mat4& value) const
 {
     float* ptr = value_ptr(value);
     glUniformMatrix4fv(glGetUniformLocation(m_programId, name.c_str()), 1, GL_FALSE, ptr);
+}
+
+void Shader::SetBlockBinding(const string& name, int binding) const
+{
+    glUniformBlockBinding(m_programId, glGetUniformBlockIndex(m_programId, name.c_str()), binding);
 }
 
 string Shader::ReadFile(const string filename)

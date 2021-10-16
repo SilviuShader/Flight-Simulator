@@ -56,6 +56,10 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
     mat4 model = mat4(1.0f);
     
     m_shader->Use();
+
+    m_shader->SetBlockBinding("NoiseValues", 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perlinNoise->GetNoiseValuesBuffer());
+
     m_shader->SetMatrix4("Model", model);
     m_shader->SetMatrix4("View", viewMatrix);
     m_shader->SetMatrix4("Projection", projectionMatrix);

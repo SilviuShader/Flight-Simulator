@@ -13,9 +13,9 @@ void main()
     TESInputPosition[gl_InvocationID] = TCSInputPosition[gl_InvocationID];
     TESInputColor[gl_InvocationID] = TCSInputColor[gl_InvocationID];
 
-    gl_TessLevelOuter[0] = 3.0;
-    gl_TessLevelOuter[1] = 3.0;
-    gl_TessLevelOuter[2] = 3.0;
-    gl_TessLevelInner[0] = 3.0;
+    gl_TessLevelOuter[0] = 2.0;
+    gl_TessLevelOuter[1] = 2.0;
+    gl_TessLevelOuter[2] = 2.0;
+    gl_TessLevelInner[0] = 2.0;
 
 }

@@ -1,13 +1,31 @@
 #include <functional>
 #include <cmath>
 #include <fstream>
+#include <iostream>
 
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "PerlinNoise.h"
+#include "glad/glad.h"
 
 using namespace std;
 using namespace glm;
+
+int PerlinNoise::NoiseValues::GetPermutation(int index) const
+{
+    int permutationsCount = SAMPLES_COUNT << 1;
+    if (index < 0 || index >= permutationsCount)
+    {
+        cout << "PERLIN::NOISE::INDEX_OUT_OF_BOUNDS\n" << endl;
+        return 0;
+    }
+
+    if (index < SAMPLES_COUNT)
+        return (int)Samples[index].z;
+
+    return (int)Samples[index - SAMPLES_COUNT].w;
+}
+
 
 PerlinNoise::PerlinNoise(int seed)
 {
@@ -16,17 +34,36 @@ PerlinNoise::PerlinNoise(int seed)
     uniform_real_distribution<float> distribution(0.0f, 2.0f * pi<float>());
     auto random = bind(distribution, generator);
 
+    const int permutationsSize = SAMPLES_COUNT << 1;
+    const int permutationsMask = permutationsSize - 1;
+    int permutationsMap[permutationsSize];
+
+    for (int i = 0; i < permutationsSize; i++)
+        permutationsMap[i] = i & permutationsMask;
+
+    for (int i = 0; i < permutationsSize; i++)
+    {
+        int swapIndex = permutationsMap[i];
+        swap(permutationsMap[i], permutationsMap[swapIndex]);
+    }
+
     for (int i = 0; i < SAMPLES_COUNT; i++)
     {
         float angle = random();
-        m_samples[i] = vec2(cosf(angle), sinf(angle));
+        m_noiseValues.Samples[i] = vec4(cosf(angle), sinf(angle), 
+            i == 255 ? 1.0f : (float)permutationsMap[i], (float)permutationsMap[i & permutationsMask]);
     }
-
-    CreatePermutationsMap(generator);
 
 #ifdef _DEBUG
     DebugNoise();
 #endif
+
+    CreateBuffer();
+}
+
+PerlinNoise::~PerlinNoise()
+{
+    FreeBuffer();
 }
 
 float PerlinNoise::GetValue(vec2 position)
@@ -43,10 +80,10 @@ float PerlinNoise::GetValue(vec2 position)
     float dx = position.x - (int)(floor(position.x));
     float dy = position.y - (int)(floor(position.y));
 
-    vec2 bottomLeft  = m_samples[HashPermutationsMap(left,  bottom)];
-    vec2 bottomRight = m_samples[HashPermutationsMap(right, bottom)];
-    vec2 topLeft     = m_samples[HashPermutationsMap(left,  top)];
-    vec2 topRight    = m_samples[HashPermutationsMap(right, top)];
+    vec2 bottomLeft  = m_noiseValues.Samples[HashPermutationsMap(left,  bottom)];
+    vec2 bottomRight = m_noiseValues.Samples[HashPermutationsMap(right, bottom)];
+    vec2 topLeft     = m_noiseValues.Samples[HashPermutationsMap(left,  top)];
+    vec2 topRight    = m_noiseValues.Samples[HashPermutationsMap(right, top)];
 
     vec2 toBottomLeft  = vec2(dx,        dy);
     vec2 toBottomRight = vec2(dx - 1.0f, dy);
@@ -88,24 +125,14 @@ float PerlinNoise::GetCombinedValue(vec2 position)
     return result;
 }
 
-int PerlinNoise::HashPermutationsMap(int val1, int val2)
+unsigned int PerlinNoise::GetNoiseValuesBuffer() const
 {
-    return m_permutationsMap[m_permutationsMap[val1] + val2];
+    return m_noiseValuesBuffer;
 }
 
-void PerlinNoise::CreatePermutationsMap(mt19937& generator)
+int PerlinNoise::HashPermutationsMap(int val1, int val2)
 {
-    int permutationsMapSize = SAMPLES_COUNT << 1;
-    int mask                = SAMPLES_COUNT - 1;
-
-    for (int i = 0; i < permutationsMapSize; i++)
-        m_permutationsMap[i] = i & mask;
-
-    for (int i = 0; i < permutationsMapSize; i++)
-    {
-        int swapIndex = generator() % permutationsMapSize;
-        swap(m_permutationsMap[i], m_permutationsMap[swapIndex]);
-    }
+    return m_noiseValues.GetPermutation(m_noiseValues.GetPermutation(val1) + val2);
 }
 
 void PerlinNoise::DebugNoise()
@@ -126,6 +153,20 @@ void PerlinNoise::DebugNoise()
         ofs << n << n << n;
     }
     ofs.close();
+}
+
+void PerlinNoise::CreateBuffer()
+{
+    glGenBuffers(1, &m_noiseValuesBuffer);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_noiseValuesBuffer);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(m_noiseValues), &m_noiseValues, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void PerlinNoise::FreeBuffer()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &m_noiseValuesBuffer);
 }
 
 float PerlinNoise::Smoothstep(float x) const

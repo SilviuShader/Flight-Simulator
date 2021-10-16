@@ -17,25 +17,43 @@ private:
 
     static const int   SAMPLES_COUNT         = 1 << 8; // must be a power of 2.
 
+private:
+
+    struct NoiseValues
+    {
+        glm::vec4 Samples[SAMPLES_COUNT]; // (x, y) components are for the vectors
+                                          // (z, w) are for the permutations map.
+
+    public:
+       
+        int  GetPermutation(int) const;
+    };
+
 public:
 
     PerlinNoise(int = 0);
+    ~PerlinNoise();
 
-    float GetValue(glm::vec2);
-    float GetCombinedValue(glm::vec2);
+    float        GetValue(glm::vec2);
+    float        GetCombinedValue(glm::vec2);
+
+    unsigned int GetNoiseValuesBuffer() const;
 
 private:
 
     int   HashPermutationsMap(int, int);
 
-    void  CreatePermutationsMap(std::mt19937&);
     void  DebugNoise();
+
+    void  CreateBuffer();
+    void  FreeBuffer();
 
     float Smoothstep(float)         const;
     float Lerp(float, float, float) const;
     
 private:
 
-    glm::vec2 m_samples[SAMPLES_COUNT];
-    int       m_permutationsMap[SAMPLES_COUNT << 1];
+    NoiseValues  m_noiseValues;
+
+    unsigned int m_noiseValuesBuffer;
 };

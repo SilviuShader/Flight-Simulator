@@ -15,10 +15,11 @@ public:
 
     void Use();
 
-    void SetBool(const std::string&, bool)         const;
-    void SetInt(const std::string&, int)           const;
-    void SetFloat(const std::string&, float)       const;
-    void SetMatrix4(const std::string, glm::mat4&) const;
+    void SetBool(const std::string&, bool)          const;
+    void SetInt(const std::string&, int)            const;
+    void SetFloat(const std::string&, float)        const;
+    void SetMatrix4(const std::string&, glm::mat4&) const;
+    void SetBlockBinding(const std::string&, int)   const;
 
 private:
 
