@@ -11,26 +11,11 @@
 using namespace std;
 using namespace glm;
 
-int PerlinNoise::NoiseValues::GetPermutation(int index) const
+const float PerlinNoise::DEFAULT_FREQUENCY = 0.1f;
+const int   PerlinNoise::OCTAVES_COUNT     = 4;
+
+void PerlinNoise::NoiseValues::GenerateSamples(std::mt19937& generator)
 {
-    int permutationsCount = SAMPLES_COUNT << 1;
-    if (index < 0 || index >= permutationsCount)
-    {
-        cout << "PERLIN::NOISE::INDEX_OUT_OF_BOUNDS\n" << endl;
-        return 0;
-    }
-
-    if (index < SAMPLES_COUNT)
-        return (int)Samples[index].z;
-
-    return (int)Samples[index - SAMPLES_COUNT].w;
-}
-
-
-PerlinNoise::PerlinNoise(int seed)
-{
-    mt19937 generator(seed);
-
     uniform_real_distribution<float> distribution(0.0f, 2.0f * pi<float>());
     auto random = bind(distribution, generator);
 
@@ -50,9 +35,42 @@ PerlinNoise::PerlinNoise(int seed)
     for (int i = 0; i < SAMPLES_COUNT; i++)
     {
         float angle = random();
-        m_noiseValues.Samples[i] = vec4(cosf(angle), sinf(angle), 
-            (float)permutationsMap[i], (float)permutationsMap[i & permutationsMask]);
+        m_samples[i] = vec4(cosf(angle), sinf(angle),
+           (float)permutationsMap[i], (float)permutationsMap[i & permutationsMask]);
     }
+}
+
+vec2 PerlinNoise::NoiseValues::GetSample(int index) const
+{
+    if (index < 0 || index >= SAMPLES_COUNT)
+    {
+        cout << "PERLIN::NOISE::INDEX_OUT_OF_BOUNDS\n" << endl;
+        return vec2(0.0f, 0.0f);
+    }
+
+    return vec2(m_samples[index].x, m_samples[index].y);
+}
+
+int PerlinNoise::NoiseValues::GetPermutation(int index) const
+{
+    int permutationsCount = SAMPLES_COUNT << 1;
+    if (index < 0 || index >= permutationsCount)
+    {
+        cout << "PERLIN::NOISE::INDEX_OUT_OF_BOUNDS\n" << endl;
+        return 0;
+    }
+
+    if (index < SAMPLES_COUNT)
+        return (int)m_samples[index].z;
+
+    return (int)m_samples[index - SAMPLES_COUNT].w;
+}
+
+PerlinNoise::PerlinNoise(int seed)
+{
+    mt19937 generator(seed);
+
+    m_noiseValues.GenerateSamples(generator);
 
 #ifdef _DEBUG
     DebugNoise();
@@ -80,10 +98,10 @@ float PerlinNoise::GetValue(vec2 position)
     float dx = position.x - (int)(floor(position.x));
     float dy = position.y - (int)(floor(position.y));
 
-    vec2 bottomLeft  = m_noiseValues.Samples[HashPermutationsMap(left,  bottom)];
-    vec2 bottomRight = m_noiseValues.Samples[HashPermutationsMap(right, bottom)];
-    vec2 topLeft     = m_noiseValues.Samples[HashPermutationsMap(left,  top)];
-    vec2 topRight    = m_noiseValues.Samples[HashPermutationsMap(right, top)];
+    vec2 bottomLeft  = m_noiseValues.GetSample(HashPermutationsMap(left,  bottom));
+    vec2 bottomRight = m_noiseValues.GetSample(HashPermutationsMap(right, bottom));
+    vec2 topLeft     = m_noiseValues.GetSample(HashPermutationsMap(left,  top));
+    vec2 topRight    = m_noiseValues.GetSample(HashPermutationsMap(right, top));
 
     vec2 toBottomLeft  = vec2(dx,        dy);
     vec2 toBottomRight = vec2(dx - 1.0f, dy);

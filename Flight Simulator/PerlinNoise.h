@@ -5,10 +5,12 @@
 
 class PerlinNoise
 {
-private:
+public:
 
-           const float DEFAULT_FREQUENCY     = 0.1f;
-           const int   OCTAVES_COUNT         = 4;
+    static const float DEFAULT_FREQUENCY;
+    static const int   OCTAVES_COUNT;
+
+private:
 
            const int   DEBUG_IMAGE_WIDTH     = 1024;
            const int   DEBUG_IMAGE_HEIGHT    = 1024;
@@ -21,12 +23,17 @@ private:
 
     struct NoiseValues
     {
-        glm::vec4 Samples[SAMPLES_COUNT]; // (x, y) components are for the vectors
-                                          // (z, w) are for the permutations map.
-
     public:
+
+        void GenerateSamples(std::mt19937&);
        
-        int  GetPermutation(int) const;
+        glm::vec2 GetSample(int)      const;
+        int       GetPermutation(int) const;
+
+    private:
+
+        glm::vec4 m_samples[SAMPLES_COUNT]; // (x, y) components are for the vectors
+                                            // (z, w) are for the permutations map.
     };
 
 public:
@@ -38,7 +45,7 @@ public:
     float        GetCombinedValue(glm::vec2);
 
     unsigned int GetNoiseValuesBuffer() const;
-
+    
 private:
 
     int   HashPermutationsMap(int, int);

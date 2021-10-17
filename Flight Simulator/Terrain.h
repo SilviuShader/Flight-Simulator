@@ -24,8 +24,8 @@ private:
 
 private:
 
-    const int   TERRAIN_GRID_WIDTH  = 256;
-    const int   TERRAIN_GRID_HEIGHT = 256;
+    const int   TERRAIN_GRID_WIDTH  = 128;
+    const int   TERRAIN_GRID_HEIGHT = 128;
 
     const float TERRAIN_WIDTH       = 64.0f;
     const float TERRAIN_AMPLITUDE   = 10.0f;

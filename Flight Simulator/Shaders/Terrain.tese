@@ -1,22 +1,25 @@
 #version 430 core
 
-#define NOISE_SAMPLES_COUNT     256
-#define NOISE_DEFAULT_FREQUENCY 0.1
-#define TERRAIN_AMPLITUDE       10.0
-#define DETAIL_OCTAVES_COUNT    4
+#define NOISE_SAMPLES_COUNT 256
 
 layout (triangles, equal_spacing, ccw) in;
 
-layout (std140, binding=2) uniform NoiseValues
+layout (std140, binding = 0) uniform NoiseValues
 {
     vec4 Samples[NOISE_SAMPLES_COUNT];
 };
 
+uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
 
+uniform float NoiseDefaultFrequency;
+uniform float TerrainAmplitude;
+
+uniform int StartOctave;
+uniform int OctavesAdd;
+
 in vec3 TESInputPosition[];
-in vec3 TESInputRawPosition[];
 in vec3 TESInputColor[];
 
 out vec3 FSInputColor;
@@ -54,7 +57,7 @@ float getNoiseValue(vec2 position)
 {
     int mask = NOISE_SAMPLES_COUNT - 1;
 
-    position *= NOISE_DEFAULT_FREQUENCY;
+    position *= NoiseDefaultFrequency;
 
     int left   = (int(floor(position.x))) & mask;
     int bottom = (int(floor(position.y))) & mask;
@@ -93,13 +96,13 @@ float getNoiseValue(vec2 position)
     return result;
 }
 
-float getCombinedNoiseValue(vec2 position, int startOctave)
+float getCombinedNoiseValue(vec2 position)
 {
-    float frequency = float(1 << startOctave);
+    float frequency = float(1 << StartOctave);
     float amplitude = 1.0 / frequency;
     float result = 0.0f;
 
-    for (int i = 0; i < DETAIL_OCTAVES_COUNT; i++)
+    for (int i = 0; i < OctavesAdd; i++)
     {
         result += getNoiseValue(position * frequency) * amplitude;
         frequency *= 2.0f;
@@ -111,11 +114,10 @@ float getCombinedNoiseValue(vec2 position, int startOctave)
 
 void main()
 {
-    vec3 rawPosition   = interpolate3D(TESInputRawPosition[0], TESInputRawPosition[1], TESInputRawPosition[2]);
-    float noise = getCombinedNoiseValue(rawPosition.xy, 4);
     vec3 worldPosition = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
-    worldPosition.y += noise * TERRAIN_AMPLITUDE;
+    float noise = getCombinedNoiseValue(worldPosition.xz);
+    worldPosition.y += noise * TerrainAmplitude;
 
-    FSInputColor = interpolate3D(TESInputColor[0], TESInputColor[1], TESInputColor[2]) * float(Samples[255].z);
-    gl_Position  = Projection * View * vec4(worldPosition, 1.0f);
+    FSInputColor = interpolate3D(TESInputColor[0], TESInputColor[1], TESInputColor[2]);
+    gl_Position  = Projection * View * Model * vec4(worldPosition, 1.0f);
 }
