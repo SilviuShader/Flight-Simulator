@@ -22,7 +22,6 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
-    m_indicesCount(0),
     m_shader(nullptr),
     m_perlinNoise(perlinNoise)
 {
@@ -82,36 +81,34 @@ void Terrain::Draw(Camera* camera)
     m_shader->SetTexture("TerrainTexture", m_texture, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glDrawElements(GL_PATCHES, m_indicesCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
 }
 
 void Terrain::CreateBuffers()
 {
-    int verticesWidth = TERRAIN_GRID_WIDTH + 1;
-    int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
+    constexpr int verticesWidth = TERRAIN_GRID_WIDTH + 1;
+    constexpr int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
 
-    int verticesCount = verticesWidth * verticesHeight;
+    constexpr int verticesCount = verticesWidth * verticesHeight;
 
-    unique_ptr<Vertex> vertices(new Vertex[verticesCount]);
+    MeshData* meshData = new MeshData[verticesCount];
+
+    FillMeshPositions(meshData);
+    FillMeshNormals(meshData);
+
+    Vertex* vertices = new Vertex[verticesCount];
 
     for (int i = 0; i < verticesHeight; i++)
     {
         for (int j = 0; j < verticesWidth; j++)
         {
-            float adjustedI = (i - ((float)(verticesWidth - 1) / 2.0f)) / (float)(verticesWidth - 1);
-            float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
-
-            vec2 planePosition = vec2(adjustedI * TERRAIN_WIDTH, adjustedJ * TERRAIN_WIDTH);
-            float height = m_perlinNoise->GetCombinedValue(planePosition) * TERRAIN_AMPLITUDE;
-
-            vertices.get()[i * verticesWidth + j].Position = vec3(planePosition.x, height, planePosition.y);
-            vertices.get()[i * verticesWidth + j].TexCoord = vec2(j % 2 == 0 ? 0.0f : 1.0f, i % 2 == 0 ? 0.0f : 1.0f);
+            vertices[i * verticesWidth + j].Position = meshData[i * verticesWidth + j].Position;
+            vertices[i * verticesWidth + j].TexCoord = vec2(j % 2 == 0 ? 0.0f : 1.0f, i % 2 == 0 ? 0.0f : 1.0f);
+            vertices[i * verticesWidth + j].Normal   = meshData[i * verticesWidth + j].Normal;
         }
     }
 
-    m_indicesCount = TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT * 6;
-
-    unique_ptr<unsigned int> indices(new unsigned int[m_indicesCount]);
+    unsigned int* indices = new unsigned int[INDICES_COUNT];
 
     int indicesIndex = 0;
 
@@ -124,13 +121,13 @@ void Terrain::CreateBuffers()
             int bottom = (i + 1) * verticesWidth + j;
             int bottomRight = (i + 1) * verticesHeight + j + 1;
 
-            indices.get()[indicesIndex++] = pivot;
-            indices.get()[indicesIndex++] = right;
-            indices.get()[indicesIndex++] = bottom;
+            indices[indicesIndex++] = pivot;
+            indices[indicesIndex++] = right;
+            indices[indicesIndex++] = bottom;
 
-            indices.get()[indicesIndex++] = right;
-            indices.get()[indicesIndex++] = bottomRight;
-            indices.get()[indicesIndex++] = bottom;
+            indices[indicesIndex++] = right;
+            indices[indicesIndex++] = bottomRight;
+            indices[indicesIndex++] = bottom;
         }
     }
 
@@ -141,7 +138,7 @@ void Terrain::CreateBuffers()
     glGenBuffers(1, &m_vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verticesCount, vertices.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verticesCount, vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -149,13 +146,31 @@ void Terrain::CreateBuffers()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
     glEnableVertexAttribArray(1);
 
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3) + sizeof(vec2)));
+    glEnableVertexAttribArray(2);
+
     glGenBuffers(1, &m_ebo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * m_indicesCount, indices.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * INDICES_COUNT, indices, GL_STATIC_DRAW);
 
-    indices.reset();
-    vertices.reset();
+    if (indices)
+    {
+        delete[] indices;
+        indices = nullptr;
+    }
+
+    if (vertices)
+    {
+        delete[] vertices;
+        vertices = nullptr;
+    }
+
+    if (meshData)
+    {
+        delete[] meshData;
+        meshData = nullptr;
+    }
 }
 
 void Terrain::FreeBuffers()
@@ -173,4 +188,78 @@ void Terrain::FreeBuffers()
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &m_vao);
+}
+
+void Terrain::FillMeshPositions(MeshData* meshData)
+{
+    int verticesWidth = TERRAIN_GRID_WIDTH + 1;
+    int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
+
+    for (int i = 0; i < verticesHeight; i++)
+    {
+        for (int j = 0; j < verticesWidth; j++)
+        {
+            float adjustedI = (i - ((float)(verticesWidth - 1) / 2.0f)) / (float)(verticesWidth - 1);
+            float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
+
+            vec2 planePosition = vec2(adjustedI * TERRAIN_WIDTH, adjustedJ * TERRAIN_WIDTH);
+            float height = m_perlinNoise->GetCombinedValue(planePosition) * TERRAIN_AMPLITUDE;
+
+            meshData[i * verticesWidth + j].Position = vec3(planePosition.x, height, planePosition.y);
+        }
+    }
+}
+
+void Terrain::FillMeshNormals(MeshData* meshData)
+{
+    int verticesWidth = TERRAIN_GRID_WIDTH + 1;
+    int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
+
+    vec3 faceNormals[TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT];
+
+    for (int i = 0; i < TERRAIN_GRID_HEIGHT; i++)
+    {
+        for (int j = 0; j < TERRAIN_GRID_WIDTH; j++)
+        {
+            vec3 bottomLeftPos = meshData[i * verticesWidth + j].Position;
+            vec3 topLeftPos = meshData[(i + 1) * verticesWidth + j].Position;
+            vec3 bottomRightPos = meshData[i * verticesWidth + j + 1].Position;
+
+            vec3 toTopLeft     = topLeftPos - bottomLeftPos;
+            vec3 toBottomRight = bottomRightPos - bottomLeftPos;
+
+            vec3 crossProduct = cross(toTopLeft, toBottomRight);
+
+            vec3 normal = normalize(crossProduct);
+
+            faceNormals[i * TERRAIN_GRID_WIDTH + j] = normal;
+        }
+    }
+
+    for (int i = 0; i < verticesHeight; i++)
+    {
+        for (int j = 0; j < verticesWidth; j++)
+        {
+            vec3 normalSum = vec3(0.0f, 0.0f, 0.0f);
+
+            // top-right face
+            if (i < TERRAIN_GRID_HEIGHT && j < TERRAIN_GRID_WIDTH)
+                normalSum = normalSum + faceNormals[i * TERRAIN_GRID_WIDTH + j];
+
+            // top-left face
+            if (i < TERRAIN_GRID_HEIGHT && j >= 1)
+                normalSum = normalSum + faceNormals[i * TERRAIN_GRID_WIDTH + j - 1];
+
+            // bottom-left face
+            if (i >= 1 && j >= 1)
+                normalSum = normalSum + faceNormals[(i - 1) * TERRAIN_GRID_WIDTH + j - 1];
+
+            // bottom-right face
+            if (i >= 1 && j < TERRAIN_GRID_WIDTH)
+                normalSum = normalSum + faceNormals[(i - 1) * TERRAIN_GRID_WIDTH + j];
+
+            vec3 normal = normalize(normalSum);
+            meshData[i * verticesWidth + j].Normal = normal;
+        }
+    }
 }

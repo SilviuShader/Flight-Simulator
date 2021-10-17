@@ -22,8 +22,10 @@ uniform int OctavesAdd;
 in vec3 TESInputWorldPosition[];
 in vec3 TESInputPosition[];
 in vec2 TESInputTexCoords[];
+in vec3 TESInputNormal[];
 
 out vec2 FSInputTexCoords;
+out vec3 FSInputNormal;
 
 vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
 {
@@ -122,10 +124,11 @@ void main()
 {
     vec3 rawPosition   = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
     vec3 worldPosition = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
-    FSInputTexCoords   = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
     float noise        = getCombinedNoiseValue(rawPosition.xz);
     
-    worldPosition.y += noise * TerrainAmplitude;
+    worldPosition.y   += noise * TerrainAmplitude;
 
-    gl_Position = Projection * View * vec4(worldPosition, 1.0);
+    FSInputTexCoords   = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
+    FSInputNormal      = interpolate3D(TESInputNormal[0], TESInputNormal[1], TESInputNormal[2]);
+    gl_Position        = Projection * View * vec4(worldPosition, 1.0);
 }
