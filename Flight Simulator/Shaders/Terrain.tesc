@@ -8,6 +8,9 @@ in vec3 TCSInputColor[];
 
 uniform vec3 CameraPosition;
 
+uniform float DistanceForDetails;
+uniform float TessellationLevel;
+
 out vec3 TESInputWorldPosition[];
 out vec3 TESInputPosition[];
 out vec3 TESInputColor[];
@@ -15,10 +18,10 @@ out vec3 TESInputColor[];
 float getTessLevel(vec3 world, vec3 camera)
 {
     float dist = distance(world, camera);
-    float percentage = clamp(dist / 25.0, 0.0, 1.0);
+    float percentage = clamp(dist / DistanceForDetails, 0.0, 1.0);
     percentage = 1.0f - percentage;
 
-    return mix(1.0f, 10.0f, percentage);
+    return mix(1.0f, TessellationLevel, percentage);
 }
 
 void main()

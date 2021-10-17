@@ -18,16 +18,14 @@ Terrain::Vertex::Vertex(vec3 position, vec3 color) :
 {
 }
 
-Terrain::Terrain() :
+Terrain::Terrain(PerlinNoise* perlinNoise) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
     m_indicesCount(0),
     m_shader(nullptr),
-    m_perlinNoise(nullptr)
+    m_perlinNoise(perlinNoise)
 {
-    m_perlinNoise = new PerlinNoise();
-
     CreateBuffers();
 
     m_shader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag", 
@@ -43,17 +41,15 @@ Terrain::~Terrain()
     }
 
     FreeBuffers();
-
-    if (m_perlinNoise)
-    {
-        delete m_perlinNoise;
-        m_perlinNoise = nullptr;
-    }
 }
 
-void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix, vec3& cameraPosition)
+void Terrain::Draw(Camera* camera)
 {
-    mat4 model = mat4(1.0f);
+    vec3 cameraPosition = camera->GetPosition();
+
+    mat4 model      = mat4(1.0f);
+    mat4 view       = camera->GetViewMatrix();
+    mat4 projection = camera->GetProjectionMatrix();
     
     m_shader->Use();
 
@@ -63,6 +59,8 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix, vec3& cameraPositio
     m_shader->SetMatrix4("Model", model);
 
     m_shader->SetVec3("CameraPosition", cameraPosition);
+    m_shader->SetFloat("DistanceForDetails", DISTANCE_FOR_DETAILS);
+    m_shader->SetFloat("TessellationLevel", MAX_TESSELATION);
 
     m_shader->SetFloat("NoiseDefaultFrequency", PerlinNoise::DEFAULT_FREQUENCY);
     m_shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
@@ -70,8 +68,8 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix, vec3& cameraPositio
     m_shader->SetInt("StartOctave", PerlinNoise::OCTAVES_COUNT);
     m_shader->SetInt("OctavesAdd", PerlinNoise::OCTAVES_COUNT);
 
-    m_shader->SetMatrix4("View", viewMatrix);
-    m_shader->SetMatrix4("Projection", projectionMatrix);
+    m_shader->SetMatrix4("View", view);
+    m_shader->SetMatrix4("Projection", projection);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElements(GL_PATCHES, m_indicesCount, GL_UNSIGNED_INT, 0);

@@ -16,8 +16,8 @@
 using namespace std;
 using namespace glm;
 
-constexpr auto WINDOW_WIDTH = 800;
-constexpr auto WINDOW_HEIGHT = 600;
+constexpr auto WINDOW_WIDTH = 1280;
+constexpr auto WINDOW_HEIGHT = 720;
 
 float lastMouseX = WINDOW_WIDTH / 2.0f;
 float lastMouseY = WINDOW_HEIGHT / 2.0f;
@@ -27,6 +27,8 @@ Camera* camera;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+
+    camera->UpdateWindowSize(width, height);
 }
 
 void mouse_callback(GLFWwindow* window, double posX, double posY)
@@ -71,7 +73,9 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    camera = new Camera(radians(45.0f), (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT, 0.1f, 100.0f);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -160,14 +164,14 @@ int main(int argc, char const* argv[])
 
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
-    camera = new Camera();
-
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
     float previousTime = glfwGetTime();
 
-    Terrain* terrain = new Terrain();
+    PerlinNoise* perlinNoise = new PerlinNoise();
+
+    Terrain* terrain = new Terrain(perlinNoise);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -190,13 +194,7 @@ int main(int argc, char const* argv[])
         model = rotate(model, (float)glfwGetTime() * radians(50.0f), vec3(0.5f, 1.0f, 0.0f));
         */
 
-        mat4 view = camera->GetViewMatrix();
-        mat4 projection;
-        projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-        vec3 cameraPosition = camera->GetPosition();
-
-        terrain->Draw(view, projection, cameraPosition);
+        terrain->Draw(camera);
 
         /*
         glActiveTexture(GL_TEXTURE0);
@@ -235,6 +233,9 @@ int main(int argc, char const* argv[])
     delete terrain;
     terrain = nullptr;
 
+    delete perlinNoise;
+    perlinNoise = nullptr;
+    
     delete camera;
     camera = nullptr;
 

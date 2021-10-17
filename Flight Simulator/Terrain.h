@@ -4,6 +4,7 @@
 
 #include "Shader.h"
 #include "PerlinNoise.h"
+#include "Camera.h"
 
 class Terrain
 {
@@ -24,18 +25,21 @@ private:
 
 private:
 
-    const int   TERRAIN_GRID_WIDTH  = 64;
-    const int   TERRAIN_GRID_HEIGHT = 64;
+    const int   TERRAIN_GRID_WIDTH   = 64;
+    const int   TERRAIN_GRID_HEIGHT  = 64;
 
-    const float TERRAIN_WIDTH       = 64.0f;
-    const float TERRAIN_AMPLITUDE   = 20.0f;
+    const float TERRAIN_WIDTH        = 64.0f;
+    const float TERRAIN_AMPLITUDE    = 20.0f;
+
+    const float DISTANCE_FOR_DETAILS = 25.0f;
+    const float MAX_TESSELATION      = 10.0f;
 
 public:
 
-    Terrain();
+    Terrain(PerlinNoise*);
     ~Terrain();
 
-    void Draw(glm::mat4&, glm::mat4&, glm::vec3&);
+    void Draw(Camera*);
 
 private:
 
