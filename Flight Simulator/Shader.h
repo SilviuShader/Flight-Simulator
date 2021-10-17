@@ -18,6 +18,7 @@ public:
     void SetBool(const std::string&, bool)          const;
     void SetInt(const std::string&, int)            const;
     void SetFloat(const std::string&, float)        const;
+    void SetVec3(const std::string&, glm::vec3&)    const;
     void SetMatrix4(const std::string&, glm::mat4&) const;
     void SetBlockBinding(const std::string&, int)   const;
 

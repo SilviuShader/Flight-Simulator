@@ -85,9 +85,14 @@ void Camera::Update(float deltaTime)
     UpdateViewMatrix();
 }
 
-mat4 Camera::GetViewMatrix()
+mat4 Camera::GetViewMatrix() const
 {
     return m_viewMatrix;
+}
+
+vec3 Camera::GetPosition() const
+{
+    return m_position;
 }
 
 mat4 Camera::GetRotationMatrix()

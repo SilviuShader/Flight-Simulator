@@ -19,7 +19,8 @@ public:
     void ProcessMouseInput(float, float);
     void Update(float);
 
-    glm::mat4 GetViewMatrix();
+    glm::mat4 GetViewMatrix() const;
+    glm::vec3 GetPosition()   const;
 
 private:
 

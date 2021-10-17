@@ -2,11 +2,15 @@
 layout (location = 0) in vec3 VSInputPosition;
 layout (location = 1) in vec3 VSInputColor;
 
+uniform mat4 Model;
+
+out vec3 TCSInputWorldPosition;
 out vec3 TCSInputPosition;
 out vec3 TCSInputColor;
 
 void main()
 {
-    TCSInputPosition    = VSInputPosition;
-    TCSInputColor       = VSInputColor;
+    TCSInputWorldPosition = (Model * (vec4(VSInputPosition, 1.0f))).xyz;
+    TCSInputPosition      = VSInputPosition;
+    TCSInputColor         = VSInputColor;
 }

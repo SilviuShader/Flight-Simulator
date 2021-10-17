@@ -127,6 +127,11 @@ void Shader::SetFloat(const string& name, float value) const
     glUniform1f(glGetUniformLocation(m_programId, name.c_str()), value);
 }
 
+void Shader::SetVec3(const string& name, vec3& value) const
+{
+    glUniform3f(glGetUniformLocation(m_programId, name.c_str()), value.x, value.y, value.z);
+}
+
 void Shader::SetMatrix4(const string& name, mat4& value) const
 {
     float* ptr = value_ptr(value);

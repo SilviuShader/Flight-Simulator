@@ -194,7 +194,9 @@ int main(int argc, char const* argv[])
         mat4 projection;
         projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        terrain->Draw(view, projection);
+        vec3 cameraPosition = camera->GetPosition();
+
+        terrain->Draw(view, projection, cameraPosition);
 
         /*
         glActiveTexture(GL_TEXTURE0);

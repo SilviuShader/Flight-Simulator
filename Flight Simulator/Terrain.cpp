@@ -51,7 +51,7 @@ Terrain::~Terrain()
     }
 }
 
-void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
+void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix, vec3& cameraPosition)
 {
     mat4 model = mat4(1.0f);
     
@@ -60,13 +60,16 @@ void Terrain::Draw(mat4& viewMatrix, mat4& projectionMatrix)
     m_shader->SetBlockBinding("NoiseValues", 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perlinNoise->GetNoiseValuesBuffer());
 
+    m_shader->SetMatrix4("Model", model);
+
+    m_shader->SetVec3("CameraPosition", cameraPosition);
+
     m_shader->SetFloat("NoiseDefaultFrequency", PerlinNoise::DEFAULT_FREQUENCY);
     m_shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
 
     m_shader->SetInt("StartOctave", PerlinNoise::OCTAVES_COUNT);
     m_shader->SetInt("OctavesAdd", PerlinNoise::OCTAVES_COUNT);
 
-    m_shader->SetMatrix4("Model", model);
     m_shader->SetMatrix4("View", viewMatrix);
     m_shader->SetMatrix4("Projection", projectionMatrix);
 

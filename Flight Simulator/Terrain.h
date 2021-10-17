@@ -24,18 +24,18 @@ private:
 
 private:
 
-    const int   TERRAIN_GRID_WIDTH  = 128;
-    const int   TERRAIN_GRID_HEIGHT = 128;
+    const int   TERRAIN_GRID_WIDTH  = 64;
+    const int   TERRAIN_GRID_HEIGHT = 64;
 
     const float TERRAIN_WIDTH       = 64.0f;
-    const float TERRAIN_AMPLITUDE   = 10.0f;
+    const float TERRAIN_AMPLITUDE   = 20.0f;
 
 public:
 
     Terrain();
     ~Terrain();
 
-    void Draw(glm::mat4&, glm::mat4&);
+    void Draw(glm::mat4&, glm::mat4&, glm::vec3&);
 
 private:
 
