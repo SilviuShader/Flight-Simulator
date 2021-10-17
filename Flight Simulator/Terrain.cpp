@@ -78,6 +78,8 @@ void Terrain::Draw(Camera* camera)
     m_shader->SetMatrix4("View", view);
     m_shader->SetMatrix4("Projection", projection);
 
+    m_shader->SetVec4("DiffuseColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    m_shader->SetVec3("LightDirection", vec3(1.0f, -1.0f, 0.0f));
     m_shader->SetTexture("TerrainTexture", m_texture, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -228,7 +230,7 @@ void Terrain::FillMeshNormals(MeshData* meshData)
             vec3 toTopLeft     = topLeftPos - bottomLeftPos;
             vec3 toBottomRight = bottomRightPos - bottomLeftPos;
 
-            vec3 crossProduct = cross(toTopLeft, toBottomRight);
+            vec3 crossProduct = cross(toBottomRight, toTopLeft);
 
             vec3 normal = normalize(crossProduct);
 
