@@ -4,7 +4,7 @@ layout (vertices = 3) out;
 
 in vec3 TCSInputWorldPosition[];
 in vec3 TCSInputPosition[];
-in vec3 TCSInputColor[];
+in vec2 TCSInputTexCoords[];
 
 uniform vec3 CameraPosition;
 
@@ -13,7 +13,7 @@ uniform float TessellationLevel;
 
 out vec3 TESInputWorldPosition[];
 out vec3 TESInputPosition[];
-out vec3 TESInputColor[];
+out vec2 TESInputTexCoords[];
 
 float getTessLevel(float dist1, float dist2)
 {
@@ -28,7 +28,7 @@ void main()
 {
     TESInputWorldPosition[gl_InvocationID] = TCSInputWorldPosition[gl_InvocationID];
     TESInputPosition[gl_InvocationID]      = TCSInputPosition[gl_InvocationID];
-    TESInputColor[gl_InvocationID]         = TCSInputColor[gl_InvocationID];
+    TESInputTexCoords[gl_InvocationID]     = TCSInputTexCoords[gl_InvocationID];
 
     float distVertex0 = distance(TESInputWorldPosition[0], CameraPosition);
     float distVertex1 = distance(TESInputWorldPosition[1], CameraPosition);
@@ -38,5 +38,4 @@ void main()
     gl_TessLevelOuter[1] = getTessLevel(distVertex0, distVertex2);
     gl_TessLevelOuter[2] = getTessLevel(distVertex0, distVertex1);
     gl_TessLevelInner[0] = gl_TessLevelOuter[2];
-
 }

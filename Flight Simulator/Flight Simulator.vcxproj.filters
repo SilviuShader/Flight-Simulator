@@ -19,11 +19,11 @@
     <Filter Include="Header Files\KHR">
       <UniqueIdentifier>{ec4eb56a-2cf9-4466-bd72-5953420211af}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\assets">
-      <UniqueIdentifier>{abb6cdb6-2e27-4c2c-a22c-8cd4dc361fbd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{14fbf4a0-b986-4ca6-b6a6-58d1dd257ef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Assets">
+      <UniqueIdentifier>{abb6cdb6-2e27-4c2c-a22c-8cd4dc361fbd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +46,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -71,6 +74,9 @@
     <ClInclude Include="PerlinNoise.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="shaders\Terrain.vert">
@@ -80,16 +86,19 @@
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets\container.jpg">
-      <Filter>Resource Files\assets</Filter>
+      <Filter>Resource Files\Assets</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets\awesomeface.png">
-      <Filter>Resource Files\assets</Filter>
+      <Filter>Resource Files\Assets</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Terrain.tesc">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Terrain.tese">
       <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\dirt01d.tga">
+      <Filter>Resource Files\Assets</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

@@ -21,9 +21,14 @@ uniform int OctavesAdd;
 
 in vec3 TESInputWorldPosition[];
 in vec3 TESInputPosition[];
-in vec3 TESInputColor[];
+in vec2 TESInputTexCoords[];
 
-out vec3 FSInputColor;
+out vec2 FSInputTexCoords;
+
+vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
+{
+    return u * gl_TessCoord.x + v * gl_TessCoord.y + w * gl_TessCoord.z;
+}
 
 vec3 interpolate3D(vec3 u, vec3 v, vec3 w)
 {
@@ -117,7 +122,7 @@ void main()
 {
     vec3 rawPosition   = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
     vec3 worldPosition = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
-    FSInputColor       = interpolate3D(TESInputColor[0], TESInputColor[1], TESInputColor[2]);
+    FSInputTexCoords   = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
     float noise        = getCombinedNoiseValue(rawPosition.xz);
     
     worldPosition.y += noise * TerrainAmplitude;

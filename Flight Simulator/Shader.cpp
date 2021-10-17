@@ -143,6 +143,13 @@ void Shader::SetBlockBinding(const string& name, int binding) const
     glUniformBlockBinding(m_programId, glGetUniformBlockIndex(m_programId, name.c_str()), binding);
 }
 
+void Shader::SetTexture(const string& name, Texture* texture, int textureNumber) const
+{
+    glActiveTexture(GL_TEXTURE0 + textureNumber);
+    glBindTexture(GL_TEXTURE_2D, texture->GetTexture());
+    SetInt(name, textureNumber);
+}
+
 string Shader::ReadFile(const string filename)
 {
     try

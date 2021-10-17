@@ -15,24 +15,24 @@ private:
     public:
 
         Vertex();
-        Vertex(glm::vec3, glm::vec3);
+        Vertex(glm::vec3, glm::vec2);
 
     public:
 
         glm::vec3 Position;
-        glm::vec3 Color;
+        glm::vec2 TexCoord;
     };
 
 private:
 
-    const int   TERRAIN_GRID_WIDTH   = 64;
-    const int   TERRAIN_GRID_HEIGHT  = 64;
+    const int   TERRAIN_GRID_WIDTH   = 32;
+    const int   TERRAIN_GRID_HEIGHT  = 32;
 
     const float TERRAIN_WIDTH        = 64.0f;
     const float TERRAIN_AMPLITUDE    = 20.0f;
 
-    const float DISTANCE_FOR_DETAILS = 25.0f;
-    const float MAX_TESSELATION      = 10.0f;
+    const float DISTANCE_FOR_DETAILS = 50.0f;
+    const float MAX_TESSELATION      = 20.0f;
 
 public:
 
@@ -56,4 +56,6 @@ private:
 
     Shader*      m_shader;
     PerlinNoise* m_perlinNoise;
+
+    Texture*     m_texture;
 };

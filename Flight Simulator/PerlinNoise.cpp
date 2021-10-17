@@ -12,7 +12,7 @@ using namespace std;
 using namespace glm;
 
 const float PerlinNoise::DEFAULT_FREQUENCY = 0.05f;
-const int   PerlinNoise::OCTAVES_COUNT     = 4;
+const int   PerlinNoise::OCTAVES_COUNT     = 5;
 
 void PerlinNoise::NoiseValues::GenerateSamples(std::mt19937& generator)
 {

@@ -8,13 +8,13 @@ using namespace glm;
 
 Terrain::Vertex::Vertex() :
     Position(vec3(0.0f, 0.0f, 0.0f)),
-    Color(vec3(0.0f, 0.0f, 0.0f))
+    TexCoord(vec2(0.0f, 0.0f))
 {
 }
 
-Terrain::Vertex::Vertex(vec3 position, vec3 color) :
+Terrain::Vertex::Vertex(vec3 position, vec2 texCoord) :
     Position(position),
-    Color(color)
+    TexCoord(texCoord)
 {
 }
 
@@ -30,10 +30,18 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
 
     m_shader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag", 
         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
+
+    m_texture = new Texture("Assets/dirt01d.tga");
 }
 
 Terrain::~Terrain()
 {
+    if (m_texture)
+    {
+        delete m_texture;
+        m_texture = nullptr;
+    }
+
     if (m_shader)
     {
         delete m_shader;
@@ -71,6 +79,8 @@ void Terrain::Draw(Camera* camera)
     m_shader->SetMatrix4("View", view);
     m_shader->SetMatrix4("Projection", projection);
 
+    m_shader->SetTexture("TerrainTexture", m_texture, 0);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElements(GL_PATCHES, m_indicesCount, GL_UNSIGNED_INT, 0);
 }
@@ -95,7 +105,7 @@ void Terrain::CreateBuffers()
             float height = m_perlinNoise->GetCombinedValue(planePosition) * TERRAIN_AMPLITUDE;
 
             vertices.get()[i * verticesWidth + j].Position = vec3(planePosition.x, height, planePosition.y);
-            vertices.get()[i * verticesWidth + j].Color = vec3(1.0f, 1.0f, 1.0f);
+            vertices.get()[i * verticesWidth + j].TexCoord = vec2(j % 2 == 0 ? 0.0f : 1.0f, i % 2 == 0 ? 0.0f : 1.0f);
         }
     }
 
@@ -136,7 +146,7 @@ void Terrain::CreateBuffers()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
     glEnableVertexAttribArray(1);
 
     glGenBuffers(1, &m_ebo);
