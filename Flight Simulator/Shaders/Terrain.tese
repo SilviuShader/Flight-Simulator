@@ -1,8 +1,9 @@
 #version 430 core
 
 #define NOISE_SAMPLES_COUNT 256
+#define PLOY_SIDE_BIAS      0.001
 
-layout (triangles, fractional_odd_spacing , ccw) in;
+layout (triangles, fractional_odd_spacing, ccw) in;
 
 layout (std140, binding = 0) uniform NoiseValues
 {
@@ -61,8 +62,8 @@ float getNoiseValue(vec2 position)
 
     int left   = (int(floor(position.x))) & mask;
     int bottom = (int(floor(position.y))) & mask;
-    int right  =                 (left + 1) & mask;
-    int top    =               (bottom + 1) & mask;
+    int right  =               (left + 1) & mask;
+    int top    =             (bottom + 1) & mask;
 
     float dx = position.x - int(floor(position.x));
     float dy = position.y - int(floor(position.y));
@@ -100,13 +101,13 @@ float getCombinedNoiseValue(vec2 position)
 {
     float frequency = float(1 << StartOctave);
     float amplitude = 1.0 / frequency;
-    float result = 0.0f;
+    float result = 0.0;
 
     for (int i = 0; i < OctavesAdd; i++)
     {
         result += getNoiseValue(position * frequency) * amplitude;
-        frequency *= 2.0f;
-        amplitude *= 0.5f;
+        frequency *= 2.0;
+        amplitude *= 0.5;
     }
 
     return result;
@@ -114,11 +115,12 @@ float getCombinedNoiseValue(vec2 position)
 
 void main()
 {
-    vec3 rawPosition = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
+    vec3 rawPosition   = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
     vec3 worldPosition = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
-    FSInputColor = interpolate3D(TESInputColor[0], TESInputColor[1], TESInputColor[2]);
-    float noise = getCombinedNoiseValue(rawPosition.xz);
+    FSInputColor       = interpolate3D(TESInputColor[0], TESInputColor[1], TESInputColor[2]);
+    float noise        = getCombinedNoiseValue(rawPosition.xz);
+    
     worldPosition.y += noise * TerrainAmplitude;
 
-    gl_Position  = Projection * View * vec4(worldPosition, 1.0f);
+    gl_Position = Projection * View * vec4(worldPosition, 1.0);
 }
