@@ -11,7 +11,7 @@
 using namespace std;
 using namespace glm;
 
-const float PerlinNoise::DEFAULT_FREQUENCY = 0.01f;
+const float PerlinNoise::DEFAULT_FREQUENCY = 0.005f;
 const int   PerlinNoise::OCTAVES_COUNT     = 5;
 
 void PerlinNoise::NoiseValues::GenerateSamples(std::mt19937& generator)
@@ -20,7 +20,7 @@ void PerlinNoise::NoiseValues::GenerateSamples(std::mt19937& generator)
     auto random = bind(distribution, generator);
 
     const int permutationsSize = SAMPLES_COUNT << 1;
-    const int permutationsMask = permutationsSize - 1;
+    const int permutationsMask = SAMPLES_COUNT - 1;
     int permutationsMap[permutationsSize];
 
     for (int i = 0; i < permutationsSize; i++)
@@ -28,7 +28,7 @@ void PerlinNoise::NoiseValues::GenerateSamples(std::mt19937& generator)
 
     for (int i = 0; i < permutationsSize; i++)
     {
-        int swapIndex = permutationsMap[i];
+        int swapIndex = generator() % permutationsSize;
         swap(permutationsMap[i], permutationsMap[swapIndex]);
     }
 
@@ -77,10 +77,26 @@ PerlinNoise::PerlinNoise(int seed)
 #endif
 
     CreateBuffer();
+
+    m_noiseShader = new Shader("Shaders/Noise.vert", "Shaders/Noise.frag");
+
+    RenderNoiseTexture();
 }
 
 PerlinNoise::~PerlinNoise()
 {
+    if (m_renderTexture)
+    {
+        delete m_renderTexture;
+        m_renderTexture = nullptr;
+    }
+
+    if (m_noiseShader)
+    {
+        delete m_noiseShader;
+        m_noiseShader = nullptr;
+    }
+
     FreeBuffer();
 }
 
@@ -181,6 +197,11 @@ void PerlinNoise::CreateBuffer()
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
+Texture* PerlinNoise::GetNoiseTexture() const
+{
+    return m_renderTexture->GetTexture();
+}
+
 void PerlinNoise::FreeBuffer()
 {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -195,4 +216,74 @@ float PerlinNoise::Smoothstep(float x) const
 float PerlinNoise::Lerp(float a, float b, float value) const
 {
     return a + ((b - a) * value);
+}
+
+void PerlinNoise::RenderNoiseTexture()
+{
+    unsigned int vao;
+    unsigned int vbo;
+    unsigned int ebo;
+
+    float vertices[] = 
+    {
+         1.0f,  1.0f, 0.0f,             1024.0f, 1024.0f,
+         1.0f, -1.0f, 0.0f,             1024.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f,             0.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,             0.0f, 1024.0f
+    };
+
+    unsigned int indices[] = 
+    {
+        0, 1, 3,
+        1, 2, 3 
+    };
+
+    glGenVertexArrays(1, &vao);
+
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 20, vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
+    glEnableVertexAttribArray(1);
+
+    glGenBuffers(1, &ebo);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, indices, GL_STATIC_DRAW);
+
+    m_renderTexture = new RenderTexture(SAMPLES_COUNT << 2, SAMPLES_COUNT << 2);
+    m_renderTexture->Begin();
+
+    m_noiseShader->Use();
+
+    m_noiseShader->SetBlockBinding("NoiseValues", 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, GetNoiseValuesBuffer());
+
+    m_noiseShader->SetFloat("NoiseDefaultFrequency", DEFAULT_FREQUENCY);
+    m_noiseShader->SetFloat("TerrainAmplitude", 1.0f);
+
+    m_noiseShader->SetInt("OctavesAdd", 6);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(vao);
+
+    glDisableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &vbo);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &ebo);
+
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &vao);
 }

@@ -3,7 +3,7 @@
 using namespace glm;
 
 Light::Light() :
-    m_ambientColor(vec4(0.1f, 0.1f, 0.1f, 1.0f)),
+    m_ambientColor(vec4(0.25f, 0.25f, 0.25f, 1.0f)),
     m_diffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f)),
     m_lightDirection(vec3(1.0f, -1.0f, 0.0f))
 {

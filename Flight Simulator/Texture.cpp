@@ -37,6 +37,16 @@ Texture::Texture(const string& filename)
     stbi_image_free(data);
 }
 
+Texture::Texture(unsigned int texture) :
+    m_texture(texture)
+{
+}
+
+Texture::~Texture()
+{
+    glDeleteTextures(1, &m_texture);
+}
+
 unsigned int Texture::GetTexture() const
 {
     return m_texture;

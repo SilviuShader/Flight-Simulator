@@ -3,6 +3,9 @@
 #include <random>
 #include <glm/glm.hpp>
 
+#include "RenderTexture.h"
+#include "Shader.h"
+
 class PerlinNoise
 {
 public:
@@ -45,12 +48,15 @@ public:
     float        GetCombinedValue(glm::vec2);
 
     unsigned int GetNoiseValuesBuffer() const;
+    Texture*     GetNoiseTexture() const;
     
 private:
 
     int   HashPermutationsMap(int, int);
 
     void  DebugNoise();
+
+    void  RenderNoiseTexture();
 
     void  CreateBuffer();
     void  FreeBuffer();
@@ -60,7 +66,9 @@ private:
     
 private:
 
-    NoiseValues  m_noiseValues;
+    NoiseValues    m_noiseValues;
+    RenderTexture* m_renderTexture;
+    Shader*        m_noiseShader;
 
-    unsigned int m_noiseValuesBuffer;
+    unsigned int   m_noiseValuesBuffer;
 };

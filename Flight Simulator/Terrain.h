@@ -22,7 +22,7 @@ private:
 
         glm::vec3 Position;
         glm::vec2 TexCoord;
-        glm::vec3 Normal;
+        glm::vec2 NoiseCoord;
     };
 
     struct MeshData
@@ -30,7 +30,6 @@ private:
     public:
 
         glm::vec3 Position;
-        glm::vec3 Normal;
     };
 
 private:
@@ -38,11 +37,11 @@ private:
            const float TERRAIN_WIDTH        = 128.0f;
            const float TERRAIN_AMPLITUDE    = 60.0f;
 
-           const float DISTANCE_FOR_DETAILS = 50.0f;
-           const float MAX_TESSELATION      = 10.0f;
+           const float DISTANCE_FOR_DETAILS = 100.0f;
+           const float MAX_TESSELATION      = 20.0f;
 
-    static const int   TERRAIN_GRID_WIDTH   = 128;
-    static const int   TERRAIN_GRID_HEIGHT  = 128;
+    static const int   TERRAIN_GRID_WIDTH   = 64;
+    static const int   TERRAIN_GRID_HEIGHT  = 64;
 
     static const int   INDICES_COUNT        = TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT * 6;
 
@@ -59,7 +58,6 @@ private:
     void FreeBuffers();
 
     void FillMeshPositions(MeshData*);
-    void FillMeshNormals(MeshData*);
 
 private:
 

@@ -17,7 +17,7 @@ void main()
 
     FSOutFragColor = AmbientColor;
 
-    vec3 lightDir = -LightDirection;
+    vec3 lightDir = normalize(-LightDirection);
     float lightIntensity = clamp(dot(FSInputNormal, lightDir), 0.0, 1.0);
 
     if (lightIntensity > 0.0)

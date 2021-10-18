@@ -76,7 +76,7 @@ int main(int argc, char const* argv[])
 
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    camera = new Camera(radians(45.0f), (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT, 0.1f, 100.0f);
+    camera = new Camera(radians(45.0f), (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT, 0.1f, 1000.0f);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -106,6 +106,7 @@ int main(int argc, char const* argv[])
 
     light->SetAmbientColor(vec4(0.1f, 0.1f, 0.1f, 1.0f));
     light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    //light->SetLightDirection(vec3(1.0f, 0.0f, 0.0f));
 
     Terrain* terrain = new Terrain(perlinNoise);
 
@@ -120,6 +121,9 @@ int main(int argc, char const* argv[])
 
         processInput(window);
         camera->Update(deltaTime);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, camera->GetWidth(), camera->GetHeight());
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

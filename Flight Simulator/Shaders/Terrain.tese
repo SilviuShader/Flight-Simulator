@@ -1,28 +1,16 @@
 #version 430 core
 
-#define NOISE_SAMPLES_COUNT 256
-#define PLOY_SIDE_BIAS      0.001
-
-layout (triangles, equal_spacing, ccw) in;
-
-layout (std140, binding = 0) uniform NoiseValues
-{
-    vec4 Samples[NOISE_SAMPLES_COUNT];
-};
+layout (triangles, fractional_odd_spacing, ccw) in;
 
 uniform mat4 View;
 uniform mat4 Projection;
 
-uniform float NoiseDefaultFrequency;
-uniform float TerrainAmplitude;
-
-uniform int StartOctave;
-uniform int OctavesAdd;
+uniform sampler2D NoiseTexture;
 
 in vec3 TESInputWorldPosition[];
 in vec3 TESInputPosition[];
 in vec2 TESInputTexCoords[];
-in vec3 TESInputNormal[];
+in vec2 TESInputNoiseCoords[];
 
 out vec2 FSInputTexCoords;
 out vec3 FSInputNormal;
@@ -37,105 +25,58 @@ vec3 interpolate3D(vec3 u, vec3 v, vec3 w)
     return u * gl_TessCoord.x + v * gl_TessCoord.y + w * gl_TessCoord.z;
 }
 
-bool isSide()
+vec3 get3Dcoord(vec2 pos, vec2 uv)
 {
-    if (gl_TessCoord.x < PLOY_SIDE_BIAS || gl_TessCoord.y < PLOY_SIDE_BIAS || gl_TessCoord.z < PLOY_SIDE_BIAS)
-        return true;
-
-    return false;
+    float h = texture(NoiseTexture, uv).x;
+    return vec3(pos.x, h * 25.0, pos.y);
 }
 
-int getPermutation(int index)
+vec3 calculateNormal(vec3 currentPos, vec2 noiseCoords)
 {
-    int permutationsCount = NOISE_SAMPLES_COUNT << 1;
-    if (index < 0 || index >= permutationsCount)
-    {
-        return 0;
-    }
+    float offset = 0.01;
+    float uvScale = 1.0 / 64.0;
 
-    if (index < NOISE_SAMPLES_COUNT)
-        return int(Samples[index].z);
-
-    return int(Samples[index - NOISE_SAMPLES_COUNT].w);
-}
-
-int hashPermutationsMap(int val1, int val2)
-{
-    return getPermutation(getPermutation(val1) + val2);
-}
-
-float smoothstep(float x)
-{
-    return x * x * (3.0 - 2.0 * x);
-}
-
-float getNoiseValue(vec2 position)
-{
-    int mask = NOISE_SAMPLES_COUNT - 1;
-
-    position *= NoiseDefaultFrequency;
-
-    int left   = (int(floor(position.x))) & mask;
-    int bottom = (int(floor(position.y))) & mask;
-    int right  =               (left + 1) & mask;
-    int top    =             (bottom + 1) & mask;
-
-    float dx = position.x - int(floor(position.x));
-    float dy = position.y - int(floor(position.y));
-
-    vec2 bottomLeft  = Samples[hashPermutationsMap(left,  bottom)].xy;
-    vec2 bottomRight = Samples[hashPermutationsMap(right, bottom)].xy;
-    vec2 topLeft     = Samples[hashPermutationsMap(left,  top)].xy;
-    vec2 topRight    = Samples[hashPermutationsMap(right, top)].xy;
-
-    vec2 toBottomLeft  = vec2(dx,       dy);
-    vec2 toBottomRight = vec2(dx - 1.0, dy);
-    vec2 toTopLeft     = vec2(dx,       dy - 1.0);
-    vec2 toTopRight    = vec2(dx - 1.0, dy - 1.0);
-
-    float dotBottomLeft  = dot(bottomLeft,  toBottomLeft);
-    float dotBottomRight = dot(bottomRight, toBottomRight);
-    float dotTopLeft     = dot(topLeft,     toTopLeft);
-    float dotTopRight    = dot(topRight,    toTopRight);
-
-    float horizontalPercentage = smoothstep(dx);
-    float verticalPercentage   = smoothstep(dy);
-
-    float bottomValue = mix(dotBottomLeft, dotBottomRight, horizontalPercentage);
-    float topValue    = mix(dotTopLeft, dotTopRight, horizontalPercentage);
+    vec2 posx    = vec2(currentPos.x, currentPos.z) + vec2(offset, 0.0);
+    vec2 posxneg = vec2(currentPos.x, currentPos.z) - vec2(offset, 0.0);
+    vec2 posy    = vec2(currentPos.x, currentPos.z) + vec2(0.0, offset);
+    vec2 posyneg = vec2(currentPos.x, currentPos.z) - vec2(0.0, offset);
     
-    float result = mix(bottomValue, topValue, verticalPercentage);
+    vec2 nposx    = noiseCoords + vec2(offset * uvScale, 0.0);
+    vec2 nposxneg = noiseCoords - vec2(offset * uvScale, 0.0);
+    vec2 nposy    = noiseCoords + vec2(0.0, offset * uvScale);
+    vec2 nposyneg = noiseCoords - vec2(0.0, offset * uvScale);
 
-    result *= 0.5;
-    result += 0.5;
+    
+    currentPos = get3Dcoord(currentPos.xz, noiseCoords);
+    vec3 right = get3Dcoord(posx, nposx);
+    vec3 left = get3Dcoord(posxneg, nposxneg);
+    vec3 top = get3Dcoord(posy, nposy);
+    vec3 bottom = get3Dcoord(posyneg, nposyneg);
+    
+    vec3 normalTopRight = normalize(cross(top - currentPos, right - currentPos));
+    vec3 normalBottomRight = normalize(cross(right - currentPos, bottom - currentPos));
+    vec3 normalBottomLeft = normalize(cross(bottom - currentPos, left - currentPos));
+    vec3 normalTopLeft = normalize(cross(left - currentPos, top - currentPos));
 
-    return result;
-}
+    //vec3 dx = get3Dcoord(posx, nposx) - get3Dcoord(posxneg, nposxneg);
+    //vec3 dy = get3Dcoord(posy, nposy) - get3Dcoord(posyneg, nposyneg);
 
-float getCombinedNoiseValue(vec2 position)
-{
-    float frequency = float(1 << StartOctave);
-    float amplitude = 1.0 / frequency;
-    float result = 0.0;
+    // normalize(cross(dy, dx));
 
-    for (int i = 0; i < OctavesAdd; i++)
-    {
-        result += getNoiseValue(position * frequency) * amplitude;
-        frequency *= 2.0;
-        amplitude *= 0.5;
-    }
-
-    return result;
+    vec3 result = normalize(normalTopRight + normalTopLeft + normalBottomLeft + normalBottomRight);
+    return vec3(result.z, result.y, result.x);
 }
 
 void main()
 {
     vec3 rawPosition   = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
     vec3 worldPosition = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
-    float noisePoint   = getCombinedNoiseValue(rawPosition.xz); 
-    worldPosition.y   += noisePoint * TerrainAmplitude;
+    vec2 noiseCoords   = interpolate2D(TESInputNoiseCoords[0], TESInputNoiseCoords[1], TESInputNoiseCoords[2]);
+    
+    //rawPosition.y += noise.x * 50.0;
+    worldPosition.y = get3Dcoord(rawPosition.xz, noiseCoords).y;
 
     FSInputTexCoords   = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
-    FSInputNormal      = normalize(interpolate3D(TESInputNormal[0], TESInputNormal[1], TESInputNormal[2]) + vec3(0.0, noisePoint * 10.0, 0.0));
+    FSInputNormal      = calculateNormal(rawPosition, noiseCoords);
     gl_Position        = Projection * View * vec4(worldPosition, 1.0);
 }

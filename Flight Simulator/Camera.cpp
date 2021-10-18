@@ -7,8 +7,10 @@
 using namespace glm;
 
 Camera::Camera(float fieldOfView, float width, float height, float near, float far) :
-    m_position(vec3(0.0f, 100.0f, 0.0f)),
+    m_position(vec3(0.0f, 10.0f, 0.0f)),
     m_rotation(vec3(0.0f, 0.0f, 0.0f)),
+    m_width(width),
+    m_height(height),
     m_upPressed(false),
     m_leftPressed(false),
     m_downPressed(false),
@@ -46,6 +48,8 @@ void Camera::ProcessMouseInput(float diffX, float diffY)
 
 void Camera::UpdateWindowSize(float width, float height)
 {
+    m_width = width;
+    m_height = height;
     m_projectionMatrix = perspective(m_fieldOfView, width / height, m_near, m_far);
 }
 
@@ -107,6 +111,16 @@ mat4 Camera::GetProjectionMatrix() const
 vec3 Camera::GetPosition() const
 {
     return m_position;
+}
+
+float Camera::GetWidth() const
+{
+    return m_width;
+}
+
+float Camera::GetHeight() const
+{
+    return m_height;
 }
 
 mat4 Camera::GetRotationMatrix()

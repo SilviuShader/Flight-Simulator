@@ -60,28 +60,20 @@ void Terrain::Draw(Light* light, Camera* camera)
     
     m_shader->Use();
 
-    m_shader->SetBlockBinding("NoiseValues", 0);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perlinNoise->GetNoiseValuesBuffer());
-
     m_shader->SetMatrix4("Model", model);
 
     m_shader->SetVec3("CameraPosition", cameraPosition);
     m_shader->SetFloat("DistanceForDetails", DISTANCE_FOR_DETAILS);
     m_shader->SetFloat("TessellationLevel", MAX_TESSELATION);
 
-    m_shader->SetFloat("NoiseDefaultFrequency", PerlinNoise::DEFAULT_FREQUENCY);
-    m_shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
-
-    m_shader->SetInt("StartOctave", PerlinNoise::OCTAVES_COUNT);
-    m_shader->SetInt("OctavesAdd", PerlinNoise::OCTAVES_COUNT);
-
+    m_shader->SetTexture("NoiseTexture", m_perlinNoise->GetNoiseTexture(), 0);
     m_shader->SetMatrix4("View", view);
     m_shader->SetMatrix4("Projection", projection);
 
     m_shader->SetVec4("AmbientColor", light->GetAmbientColor());
     m_shader->SetVec4("DiffuseColor", light->GetDiffuseColor());
     m_shader->SetVec3("LightDirection", light->GetLightDirection());
-    m_shader->SetTexture("TerrainTexture", m_texture, 0);
+    m_shader->SetTexture("TerrainTexture", m_texture, 1);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
@@ -97,7 +89,6 @@ void Terrain::CreateBuffers()
     MeshData* meshData = new MeshData[verticesCount];
 
     FillMeshPositions(meshData);
-    FillMeshNormals(meshData);
 
     Vertex* vertices = new Vertex[verticesCount];
 
@@ -107,7 +98,7 @@ void Terrain::CreateBuffers()
         {
             vertices[i * verticesWidth + j].Position = meshData[i * verticesWidth + j].Position;
             vertices[i * verticesWidth + j].TexCoord = vec2(j % 2 == 0 ? 0.0f : 1.0f, i % 2 == 0 ? 0.0f : 1.0f);
-            vertices[i * verticesWidth + j].Normal   = meshData[i * verticesWidth + j].Normal;
+            vertices[i * verticesWidth + j].NoiseCoord = vec2((float)j / (float)(verticesWidth - 1), (float)i / (float)(verticesHeight - 1));
         }
     }
 
@@ -149,7 +140,7 @@ void Terrain::CreateBuffers()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3) + sizeof(vec2)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3) + sizeof(vec2)));
     glEnableVertexAttribArray(2);
 
     glGenBuffers(1, &m_ebo);
@@ -182,6 +173,7 @@ void Terrain::FreeBuffers()
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_vbo);
@@ -206,63 +198,8 @@ void Terrain::FillMeshPositions(MeshData* meshData)
             float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
 
             vec2 planePosition = vec2(adjustedI * TERRAIN_WIDTH, adjustedJ * TERRAIN_WIDTH);
-            float height = m_perlinNoise->GetCombinedValue(planePosition) * TERRAIN_AMPLITUDE;
 
-            meshData[i * verticesWidth + j].Position = vec3(planePosition.x, height, planePosition.y);
-        }
-    }
-}
-
-void Terrain::FillMeshNormals(MeshData* meshData)
-{
-    int verticesWidth = TERRAIN_GRID_WIDTH + 1;
-    int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
-
-    vec3 faceNormals[TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT];
-
-    for (int i = 0; i < TERRAIN_GRID_HEIGHT; i++)
-    {
-        for (int j = 0; j < TERRAIN_GRID_WIDTH; j++)
-        {
-            vec3 bottomLeftPos = meshData[i * verticesWidth + j].Position;
-            vec3 topLeftPos = meshData[(i + 1) * verticesWidth + j].Position;
-            vec3 bottomRightPos = meshData[i * verticesWidth + j + 1].Position;
-
-            vec3 toTopLeft     = topLeftPos - bottomLeftPos;
-            vec3 toBottomRight = bottomRightPos - bottomLeftPos;
-
-            vec3 crossProduct = cross(toBottomRight, toTopLeft);
-
-            vec3 normal = normalize(crossProduct);
-
-            faceNormals[i * TERRAIN_GRID_WIDTH + j] = normal;
-        }
-    }
-
-    for (int i = 0; i < verticesHeight; i++)
-    {
-        for (int j = 0; j < verticesWidth; j++)
-        {
-            vec3 normalSum = vec3(0.0f, 0.0f, 0.0f);
-
-            // top-right face
-            if (i < TERRAIN_GRID_HEIGHT && j < TERRAIN_GRID_WIDTH)
-                normalSum = normalSum + faceNormals[i * TERRAIN_GRID_WIDTH + j];
-
-            // top-left face
-            if (i < TERRAIN_GRID_HEIGHT && j >= 1)
-                normalSum = normalSum + faceNormals[i * TERRAIN_GRID_WIDTH + j - 1];
-
-            // bottom-left face
-            if (i >= 1 && j >= 1)
-                normalSum = normalSum + faceNormals[(i - 1) * TERRAIN_GRID_WIDTH + j - 1];
-
-            // bottom-right face
-            if (i >= 1 && j < TERRAIN_GRID_WIDTH)
-                normalSum = normalSum + faceNormals[(i - 1) * TERRAIN_GRID_WIDTH + j];
-
-            vec3 normal = normalize(normalSum);
-            meshData[i * verticesWidth + j].Normal = normal;
+            meshData[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
         }
     }
 }

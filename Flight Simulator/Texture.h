@@ -7,6 +7,8 @@ class Texture
 public:
 
     Texture(const std::string&);
+    Texture(unsigned int);
+    ~Texture();
 
     unsigned int GetTexture() const;
 

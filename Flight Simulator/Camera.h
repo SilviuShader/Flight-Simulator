@@ -26,6 +26,9 @@ public:
     glm::mat4 GetProjectionMatrix() const;
     glm::vec3 GetPosition()         const;
 
+    float     GetWidth()            const;
+    float     GetHeight()           const;
+
 private:
 
     glm::mat4 GetRotationMatrix();
@@ -47,4 +50,7 @@ private:
     bool      m_leftPressed;
     bool      m_downPressed;
     bool      m_rightPressed;
+
+    float     m_width;
+    float     m_height;
 };
