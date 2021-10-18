@@ -50,7 +50,7 @@ Terrain::~Terrain()
     FreeBuffers();
 }
 
-void Terrain::Draw(Camera* camera)
+void Terrain::Draw(Light* light, Camera* camera)
 {
     vec3 cameraPosition = camera->GetPosition();
 
@@ -78,8 +78,9 @@ void Terrain::Draw(Camera* camera)
     m_shader->SetMatrix4("View", view);
     m_shader->SetMatrix4("Projection", projection);
 
-    m_shader->SetVec4("DiffuseColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    m_shader->SetVec3("LightDirection", vec3(1.0f, -1.0f, 0.0f));
+    m_shader->SetVec4("AmbientColor", light->GetAmbientColor());
+    m_shader->SetVec4("DiffuseColor", light->GetDiffuseColor());
+    m_shader->SetVec3("LightDirection", light->GetLightDirection());
     m_shader->SetTexture("TerrainTexture", m_texture, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);

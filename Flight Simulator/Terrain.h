@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "PerlinNoise.h"
 #include "Camera.h"
+#include "Light.h"
 
 class Terrain
 {
@@ -50,7 +51,7 @@ public:
     Terrain(PerlinNoise*);
     ~Terrain();
 
-    void Draw(Camera*);
+    void Draw(Light*, Camera*);
 
 private:
 
