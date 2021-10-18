@@ -7,7 +7,7 @@
 using namespace glm;
 
 Camera::Camera(float fieldOfView, float width, float height, float near, float far) :
-    m_position(vec3(0.0f, 0.0f, 0.0f)),
+    m_position(vec3(0.0f, 100.0f, 0.0f)),
     m_rotation(vec3(0.0f, 0.0f, 0.0f)),
     m_upPressed(false),
     m_leftPressed(false),
@@ -39,7 +39,7 @@ void Camera::ProcessMouseInput(float diffX, float diffY)
     if (m_rotation.x >= halfPi)
         m_rotation.x = halfPi;
     if (m_rotation.x <= -halfPi)
-        m_rotation.x = halfPi;
+        m_rotation.x = -halfPi;
 
     UpdateViewMatrix();
 }
@@ -129,8 +129,11 @@ void Camera::UpdateViewMatrix()
     vec3 forwardVec = vec3(forward.x, forward.y, forward.z);
     forwardVec = normalize(forwardVec);
     
+    float yDot = dot(forwardVec, vec3(0.0f, 1.0f, 0.0f));
     vec3 right = normalize(cross(forwardVec, vec3(0.0f, 1.0f, 0.0f)));
     vec3 up = normalize(cross(right, forwardVec));
+    if (abs(yDot) >= 1.0f - CAMERA_LOOK_DOWN_BIAS)
+        up = vec3(sinf(m_rotation.y + pi<float>()), 0.0f, cosf(m_rotation.y + pi<float>()));
 
     m_viewMatrix = lookAt(m_position, m_position + forwardVec, up);
 }

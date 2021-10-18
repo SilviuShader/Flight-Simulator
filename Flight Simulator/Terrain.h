@@ -34,14 +34,14 @@ private:
 
 private:
 
-           const float TERRAIN_WIDTH        = 64.0f;
-           const float TERRAIN_AMPLITUDE    = 20.0f;
+           const float TERRAIN_WIDTH        = 128.0f;
+           const float TERRAIN_AMPLITUDE    = 60.0f;
 
            const float DISTANCE_FOR_DETAILS = 50.0f;
-           const float MAX_TESSELATION      = 20.0f;
+           const float MAX_TESSELATION      = 10.0f;
 
-    static const int   TERRAIN_GRID_WIDTH   = 32;
-    static const int   TERRAIN_GRID_HEIGHT  = 32;
+    static const int   TERRAIN_GRID_WIDTH   = 128;
+    static const int   TERRAIN_GRID_HEIGHT  = 128;
 
     static const int   INDICES_COUNT        = TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT * 6;
 

@@ -7,9 +7,10 @@ class Camera
 {
 private:
 
-    const float CAMERA_MOVE_SPEED = 10.0f;
-    const float CAMERA_ROTATE_SPEED = 0.001f;
+    const float CAMERA_MOVE_SPEED        = 10.0f;
+    const float CAMERA_ROTATE_SPEED      = 0.001f;
     const float MINIMUM_TRANSLATION_BIAS = 0.01f;
+    const float CAMERA_LOOK_DOWN_BIAS    = 0.001f;
 
 public:
 

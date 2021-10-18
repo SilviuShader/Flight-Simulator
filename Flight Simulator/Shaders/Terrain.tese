@@ -3,7 +3,7 @@
 #define NOISE_SAMPLES_COUNT 256
 #define PLOY_SIDE_BIAS      0.001
 
-layout (triangles, fractional_odd_spacing, ccw) in;
+layout (triangles, equal_spacing, ccw) in;
 
 layout (std140, binding = 0) uniform NoiseValues
 {
@@ -35,6 +35,14 @@ vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
 vec3 interpolate3D(vec3 u, vec3 v, vec3 w)
 {
     return u * gl_TessCoord.x + v * gl_TessCoord.y + w * gl_TessCoord.z;
+}
+
+bool isSide()
+{
+    if (gl_TessCoord.x < PLOY_SIDE_BIAS || gl_TessCoord.y < PLOY_SIDE_BIAS || gl_TessCoord.z < PLOY_SIDE_BIAS)
+        return true;
+
+    return false;
 }
 
 int getPermutation(int index)
@@ -124,11 +132,10 @@ void main()
 {
     vec3 rawPosition   = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
     vec3 worldPosition = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
-    float noise        = getCombinedNoiseValue(rawPosition.xz);
-    
-    worldPosition.y   += noise * TerrainAmplitude;
+    float noisePoint   = getCombinedNoiseValue(rawPosition.xz); 
+    worldPosition.y   += noisePoint * TerrainAmplitude;
 
     FSInputTexCoords   = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
-    FSInputNormal      = interpolate3D(TESInputNormal[0], TESInputNormal[1], TESInputNormal[2]);
+    FSInputNormal      = normalize(interpolate3D(TESInputNormal[0], TESInputNormal[1], TESInputNormal[2]) + vec3(0.0, noisePoint * 10.0, 0.0));
     gl_Position        = Projection * View * vec4(worldPosition, 1.0);
 }
