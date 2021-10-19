@@ -8,17 +8,17 @@
 
 class PerlinNoise
 {
-public:
-
-    static const float DEFAULT_FREQUENCY;
-    static const int   OCTAVES_COUNT;
-
 private:
 
-           const int   DEBUG_IMAGE_WIDTH     = 1024;
-           const int   DEBUG_IMAGE_HEIGHT    = 1024;
+           const int   TEXTURE_WIDTH         = 1024;
+           const int   TEXTURE_HEIGHT        = 1024;
 
            const float DEBUG_IMAGE_FREQUENCY = 0.01f;
+
+           const float DEFAULT_FREQUENCY     = 0.025f;
+           const int   OCTAVES_COUNT         = 10;
+
+           const int   QUAD_INDICES_COUNT    = 6;
 
     static const int   SAMPLES_COUNT         = 1 << 8; // must be a power of 2.
 
@@ -39,36 +39,37 @@ private:
                                             // (z, w) are for the permutations map.
     };
 
+    struct Vertex
+    {
+        glm::vec3 Position;
+        glm::vec2 TexCoords;
+    };
+
 public:
 
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
-    float        GetValue(glm::vec2);
-    float        GetCombinedValue(glm::vec2);
-
-    unsigned int GetNoiseValuesBuffer() const;
-    Texture*     GetNoiseTexture() const;
+    RenderTexture* RenderNoise(glm::vec2, glm::vec2);
     
 private:
 
-    int   HashPermutationsMap(int, int);
+    int  HashPermutationsMap(int, int);
 
-    void  DebugNoise();
+    void CreateQuadBuffers();
+    void FreeQuadBuffers();
 
-    void  RenderNoiseTexture();
-
-    void  CreateBuffer();
-    void  FreeBuffer();
-
-    float Smoothstep(float)         const;
-    float Lerp(float, float, float) const;
+    void CreateValuesBuffer();
+    void FreeValuesBuffer();
     
 private:
 
     NoiseValues    m_noiseValues;
-    RenderTexture* m_renderTexture;
     Shader*        m_noiseShader;
 
     unsigned int   m_noiseValuesBuffer;
+
+    unsigned int   m_quadVao;
+    unsigned int   m_quadVbo;
+    unsigned int   m_quadEbo;
 };

@@ -8,9 +8,11 @@ layout (std140, binding = 0) uniform NoiseValues
 };
 
 uniform float NoiseDefaultFrequency;
-uniform float TerrainAmplitude;
 
 uniform int OctavesAdd;
+
+uniform vec2 StartPosition;
+uniform vec2 FinalPosition;
 
 in vec2 FSInputCoords;
 
@@ -101,6 +103,8 @@ float getCombinedNoiseValue(vec2 position)
 
 void main()
 {
-    float noise = getCombinedNoiseValue(FSInputCoords) * TerrainAmplitude;
+    vec2 finalStartDiff = FinalPosition - StartPosition;
+    vec2 noisePosition = vec2(FSInputCoords.x * finalStartDiff.x, FSInputCoords.y * finalStartDiff.y) + StartPosition;
+    float noise = getCombinedNoiseValue(noisePosition);
     FSOutFragColor = vec3(noise, noise, noise);
 }

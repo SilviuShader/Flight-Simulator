@@ -101,18 +101,18 @@ int main(int argc, char const* argv[])
 
     float previousTime = glfwGetTime();
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     PerlinNoise* perlinNoise = new PerlinNoise();
     Light* light = new Light();
 
-    light->SetAmbientColor(vec4(0.1f, 0.1f, 0.1f, 1.0f));
+    light->SetAmbientColor(vec4(0.5f, 0.5f, 0.5f, 1.0f));
     light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
     //light->SetLightDirection(vec3(1.0f, 0.0f, 0.0f));
 
     Terrain* terrain = new Terrain(perlinNoise);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {

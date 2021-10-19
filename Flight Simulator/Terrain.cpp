@@ -31,10 +31,18 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 
     m_texture = new Texture("Assets/dirt01d.tga");
+
+    m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(TERRAIN_WIDTH, TERRAIN_WIDTH));
 }
 
 Terrain::~Terrain()
 {
+    if (m_renderTexture)
+    {
+        delete m_renderTexture;
+        m_renderTexture = nullptr;
+    }
+
     if (m_texture)
     {
         delete m_texture;
@@ -57,6 +65,9 @@ void Terrain::Draw(Light* light, Camera* camera)
     mat4 model      = mat4(1.0f);
     mat4 view       = camera->GetViewMatrix();
     mat4 projection = camera->GetProjectionMatrix();
+
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     
     m_shader->Use();
 
@@ -66,9 +77,14 @@ void Terrain::Draw(Light* light, Camera* camera)
     m_shader->SetFloat("DistanceForDetails", DISTANCE_FOR_DETAILS);
     m_shader->SetFloat("TessellationLevel", MAX_TESSELATION);
 
-    m_shader->SetTexture("NoiseTexture", m_perlinNoise->GetNoiseTexture(), 0);
+    m_shader->SetTexture("NoiseTexture", m_renderTexture->GetTexture(), 0);
     m_shader->SetMatrix4("View", view);
     m_shader->SetMatrix4("Projection", projection);
+
+    m_shader->SetFloat("TerrainWidth", TERRAIN_WIDTH);
+    m_shader->SetFloat("GridWidth", TERRAIN_GRID_WIDTH);
+    m_shader->SetFloat("GridHeight", TERRAIN_GRID_HEIGHT);
+    m_shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
 
     m_shader->SetVec4("AmbientColor", light->GetAmbientColor());
     m_shader->SetVec4("DiffuseColor", light->GetDiffuseColor());
@@ -98,7 +114,6 @@ void Terrain::CreateBuffers()
         {
             vertices[i * verticesWidth + j].Position = meshData[i * verticesWidth + j].Position;
             vertices[i * verticesWidth + j].TexCoord = vec2(j % 2 == 0 ? 0.0f : 1.0f, i % 2 == 0 ? 0.0f : 1.0f);
-            vertices[i * verticesWidth + j].NoiseCoord = vec2((float)j / (float)(verticesWidth - 1), (float)i / (float)(verticesHeight - 1));
         }
     }
 
@@ -140,9 +155,6 @@ void Terrain::CreateBuffers()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3) + sizeof(vec2)));
-    glEnableVertexAttribArray(2);
-
     glGenBuffers(1, &m_ebo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -173,7 +185,6 @@ void Terrain::FreeBuffers()
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_vbo);

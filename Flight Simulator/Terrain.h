@@ -22,7 +22,6 @@ private:
 
         glm::vec3 Position;
         glm::vec2 TexCoord;
-        glm::vec2 NoiseCoord;
     };
 
     struct MeshData
@@ -34,11 +33,11 @@ private:
 
 private:
 
-           const float TERRAIN_WIDTH        = 128.0f;
-           const float TERRAIN_AMPLITUDE    = 60.0f;
+           const float TERRAIN_WIDTH        = 64.0;
+           const float TERRAIN_AMPLITUDE    = 30.0f;
 
-           const float DISTANCE_FOR_DETAILS = 100.0f;
-           const float MAX_TESSELATION      = 20.0f;
+           const float DISTANCE_FOR_DETAILS = 128.0f;
+           const float MAX_TESSELATION      = 40.0f;
 
     static const int   TERRAIN_GRID_WIDTH   = 64;
     static const int   TERRAIN_GRID_HEIGHT  = 64;
@@ -61,12 +60,13 @@ private:
 
 private:
 
-    unsigned int m_vbo;
-    unsigned int m_ebo;
-    unsigned int m_vao;
+    unsigned int   m_vbo;
+    unsigned int   m_ebo;
+    unsigned int   m_vao;
 
-    Shader*      m_shader;
-    PerlinNoise* m_perlinNoise;
+    Shader*        m_shader;
+    PerlinNoise*   m_perlinNoise;
+    RenderTexture* m_renderTexture;
 
     Texture*     m_texture;
 };
