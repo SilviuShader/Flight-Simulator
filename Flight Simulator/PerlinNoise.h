@@ -24,21 +24,6 @@ private:
 
 private:
 
-    struct NoiseValues
-    {
-    public:
-
-        void GenerateSamples(std::mt19937&);
-       
-        glm::vec2 GetSample(int)      const;
-        int       GetPermutation(int) const;
-
-    private:
-
-        glm::vec4 m_samples[SAMPLES_COUNT]; // (x, y) components are for the vectors
-                                            // (z, w) are for the permutations map.
-    };
-
     struct Vertex
     {
         glm::vec3 Position;
@@ -54,7 +39,7 @@ public:
     
 private:
 
-    int  HashPermutationsMap(int, int);
+    void GenerateNoiseValues(int seed);
 
     void CreateQuadBuffers();
     void FreeQuadBuffers();
@@ -64,7 +49,9 @@ private:
     
 private:
 
-    NoiseValues    m_noiseValues;
+    glm::vec4      m_noiseValues[SAMPLES_COUNT]; // (x, y) components are for the vectors
+                                                 // (z, w) are for the permutations map.
+
     Shader*        m_noiseShader;
 
     unsigned int   m_noiseValuesBuffer;

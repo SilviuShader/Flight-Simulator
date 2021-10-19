@@ -11,8 +11,31 @@
 using namespace std;
 using namespace glm;
 
-void PerlinNoise::NoiseValues::GenerateSamples(std::mt19937& generator)
+
+PerlinNoise::PerlinNoise(int seed)
 {
+    GenerateNoiseValues(seed);
+    CreateValuesBuffer();
+    CreateQuadBuffers();
+
+    m_noiseShader = new Shader("Shaders/Noise.vert", "Shaders/Noise.frag");
+}
+
+PerlinNoise::~PerlinNoise()
+{
+    if (m_noiseShader)
+    {
+        delete m_noiseShader;
+        m_noiseShader = nullptr;
+    }
+
+    FreeQuadBuffers();
+    FreeValuesBuffer();
+}
+
+void PerlinNoise::GenerateNoiseValues(int seed)
+{
+    mt19937 generator(seed);
     uniform_real_distribution<float> distribution(0.0f, 2.0f * pi<float>());
     auto random = bind(distribution, generator);
 
@@ -32,64 +55,9 @@ void PerlinNoise::NoiseValues::GenerateSamples(std::mt19937& generator)
     for (int i = 0; i < SAMPLES_COUNT; i++)
     {
         float angle = random();
-        m_samples[i] = vec4(cosf(angle), sinf(angle),
-           (float)permutationsMap[i], (float)permutationsMap[i & permutationsMask]);
+        m_noiseValues[i] = vec4(cosf(angle), sinf(angle),
+            (float)permutationsMap[i], (float)permutationsMap[i & permutationsMask]);
     }
-}
-
-vec2 PerlinNoise::NoiseValues::GetSample(int index) const
-{
-    if (index < 0 || index >= SAMPLES_COUNT)
-    {
-        cout << "PERLIN::NOISE::INDEX_OUT_OF_BOUNDS\n" << endl;
-        return vec2(0.0f, 0.0f);
-    }
-
-    return vec2(m_samples[index].x, m_samples[index].y);
-}
-
-int PerlinNoise::NoiseValues::GetPermutation(int index) const
-{
-    int permutationsCount = SAMPLES_COUNT << 1;
-    if (index < 0 || index >= permutationsCount)
-    {
-        cout << "PERLIN::NOISE::INDEX_OUT_OF_BOUNDS\n" << endl;
-        return 0;
-    }
-
-    if (index < SAMPLES_COUNT)
-        return (int)m_samples[index].z;
-
-    return (int)m_samples[index - SAMPLES_COUNT].w;
-}
-
-PerlinNoise::PerlinNoise(int seed)
-{
-    mt19937 generator(seed);
-
-    m_noiseValues.GenerateSamples(generator);
-
-    CreateValuesBuffer();
-    CreateQuadBuffers();
-
-    m_noiseShader = new Shader("Shaders/Noise.vert", "Shaders/Noise.frag");
-}
-
-PerlinNoise::~PerlinNoise()
-{
-    if (m_noiseShader)
-    {
-        delete m_noiseShader;
-        m_noiseShader = nullptr;
-    }
-
-    FreeQuadBuffers();
-    FreeValuesBuffer();
-}
-
-int PerlinNoise::HashPermutationsMap(int val1, int val2)
-{
-    return m_noiseValues.GetPermutation(m_noiseValues.GetPermutation(val1) + val2);
 }
 
 void PerlinNoise::CreateQuadBuffers()
@@ -150,9 +118,8 @@ void PerlinNoise::FreeQuadBuffers()
 RenderTexture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition)
 {
     RenderTexture* renderTexture = new RenderTexture(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+    
     renderTexture->Begin();
-
-    glBindVertexArray(m_quadVao);
 
     m_noiseShader->Use();
 
@@ -166,6 +133,7 @@ RenderTexture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition)
 
     m_noiseShader->SetInt("OctavesAdd", OCTAVES_COUNT);
 
+    glBindVertexArray(m_quadVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_quadEbo);
     glDrawElements(GL_TRIANGLES, QUAD_INDICES_COUNT, GL_UNSIGNED_INT, 0);
 

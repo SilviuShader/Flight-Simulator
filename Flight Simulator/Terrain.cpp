@@ -65,9 +65,6 @@ void Terrain::Draw(Light* light, Camera* camera)
     mat4 model      = mat4(1.0f);
     mat4 view       = camera->GetViewMatrix();
     mat4 projection = camera->GetProjectionMatrix();
-
-    glBindVertexArray(m_vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     
     m_shader->Use();
 
@@ -91,6 +88,7 @@ void Terrain::Draw(Light* light, Camera* camera)
     m_shader->SetVec3("LightDirection", light->GetLightDirection());
     m_shader->SetTexture("TerrainTexture", m_texture, 1);
 
+    glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
 }

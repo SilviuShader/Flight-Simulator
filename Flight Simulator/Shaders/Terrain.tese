@@ -42,12 +42,12 @@ vec3 get3Dcoord(vec2 pos)
 
 vec3 calculateNormal(vec3 currentPos)
 {
-    float offset = 0.01;
+    float offset = 1.0 / 2048.0;
 
-    vec2 posx    = vec2(currentPos.x, currentPos.z) + vec2(offset, 0.0);
-    vec2 posxneg = vec2(currentPos.x, currentPos.z) - vec2(offset, 0.0);
-    vec2 posy    = vec2(currentPos.x, currentPos.z) + vec2(0.0, offset);
-    vec2 posyneg = vec2(currentPos.x, currentPos.z) - vec2(0.0, offset);
+    vec2 posx    = currentPos.xz + vec2(offset, 0.0);
+    vec2 posxneg = currentPos.xz - vec2(offset, 0.0);
+    vec2 posy    = currentPos.xz + vec2(0.0, offset);
+    vec2 posyneg = currentPos.xz - vec2(0.0, offset);
 
     currentPos = get3Dcoord(currentPos.xz);
     vec3 right = get3Dcoord(posx);
