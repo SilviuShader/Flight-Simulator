@@ -102,17 +102,18 @@ void Terrain::CreateBuffers()
 
     constexpr int verticesCount = verticesWidth * verticesHeight;
 
-    MeshData* meshData = new MeshData[verticesCount];
-
-    FillMeshPositions(meshData);
-
     Vertex* vertices = new Vertex[verticesCount];
 
     for (int i = 0; i < verticesHeight; i++)
     {
         for (int j = 0; j < verticesWidth; j++)
         {
-            vertices[i * verticesWidth + j].Position = meshData[i * verticesWidth + j].Position;
+            float adjustedI = (i - ((float)(verticesWidth - 1) / 2.0f)) / (float)(verticesWidth - 1);
+            float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
+
+            vec2 planePosition = vec2(adjustedJ * TERRAIN_WIDTH, adjustedI * TERRAIN_WIDTH);
+
+            vertices[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
             vertices[i * verticesWidth + j].TexCoord = vec2(j % 2 == 0 ? 0.0f : 1.0f, i % 2 == 0 ? 0.0f : 1.0f);
         }
     }
@@ -131,12 +132,12 @@ void Terrain::CreateBuffers()
             int bottomRight = (i + 1) * verticesHeight + j + 1;
 
             indices[indicesIndex++] = pivot;
-            indices[indicesIndex++] = right;
             indices[indicesIndex++] = bottom;
+            indices[indicesIndex++] = right;
 
             indices[indicesIndex++] = right;
-            indices[indicesIndex++] = bottomRight;
             indices[indicesIndex++] = bottom;
+            indices[indicesIndex++] = bottomRight;
         }
     }
 
@@ -171,12 +172,6 @@ void Terrain::CreateBuffers()
         delete[] vertices;
         vertices = nullptr;
     }
-
-    if (meshData)
-    {
-        delete[] meshData;
-        meshData = nullptr;
-    }
 }
 
 void Terrain::FreeBuffers()
@@ -194,23 +189,4 @@ void Terrain::FreeBuffers()
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &m_vao);
-}
-
-void Terrain::FillMeshPositions(MeshData* meshData)
-{
-    int verticesWidth = TERRAIN_GRID_WIDTH + 1;
-    int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
-
-    for (int i = 0; i < verticesHeight; i++)
-    {
-        for (int j = 0; j < verticesWidth; j++)
-        {
-            float adjustedI = (i - ((float)(verticesWidth - 1) / 2.0f)) / (float)(verticesWidth - 1);
-            float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
-
-            vec2 planePosition = vec2(adjustedI * TERRAIN_WIDTH, adjustedJ * TERRAIN_WIDTH);
-
-            meshData[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
-        }
-    }
 }

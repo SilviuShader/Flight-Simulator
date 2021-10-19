@@ -34,6 +34,7 @@ vec3 get3Dcoord(vec2 pos)
     pos = (pos / TerrainWidth);
     pos = vec2(pos.x * GridWidth, pos.y * GridHeight);
     vec2 uv = vec2(pos.x + (GridWidth / 2.0), pos.y + (GridHeight / 2.0));
+
     uv = vec2(uv.x / GridWidth, uv.y / GridHeight);
     float h = texture(NoiseTexture, uv).x;
     return vec3(pos.x, h * TerrainAmplitude, pos.y);
@@ -59,13 +60,7 @@ vec3 calculateNormal(vec3 currentPos)
     vec3 normalBottomLeft = normalize(cross(bottom - currentPos, left - currentPos));
     vec3 normalTopLeft = normalize(cross(left - currentPos, top - currentPos));
 
-    //vec3 dx = get3Dcoord(posx, nposx) - get3Dcoord(posxneg, nposxneg);
-    //vec3 dy = get3Dcoord(posy, nposy) - get3Dcoord(posyneg, nposyneg);
-
-    // normalize(cross(dy, dx));
-
-    vec3 result = normalize(normalTopRight + normalTopLeft + normalBottomLeft + normalBottomRight);
-    return vec3(result.z, result.y, result.x);
+    return normalize(normalTopRight + normalTopLeft + normalBottomLeft + normalBottomRight);
 }
 
 void main()
@@ -73,8 +68,7 @@ void main()
     vec3 rawPosition   = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
     vec3 worldPosition = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
     
-    //rawPosition.y += noise.x * 50.0;
-    worldPosition.y = get3Dcoord(rawPosition.xz).y;
+    worldPosition.y    = get3Dcoord(rawPosition.xz).y;
 
     FSInputTexCoords   = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
     FSInputNormal      = calculateNormal(rawPosition);

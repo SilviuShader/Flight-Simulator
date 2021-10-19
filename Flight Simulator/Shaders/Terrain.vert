@@ -7,7 +7,6 @@ uniform mat4 Model;
 out vec3 TCSInputWorldPosition;
 out vec3 TCSInputPosition;
 out vec2 TCSInputTexCoords;
-out vec2 TCSInputNoiseCoords;
 
 void main()
 {

@@ -24,13 +24,6 @@ private:
         glm::vec2 TexCoord;
     };
 
-    struct MeshData
-    {
-    public:
-
-        glm::vec3 Position;
-    };
-
 private:
 
            const float TERRAIN_WIDTH        = 64.0;
@@ -55,8 +48,6 @@ private:
 
     void CreateBuffers();
     void FreeBuffers();
-
-    void FillMeshPositions(MeshData*);
 
 private:
 

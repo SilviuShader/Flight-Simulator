@@ -103,8 +103,7 @@ int main(int argc, char const* argv[])
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+    
     PerlinNoise* perlinNoise = new PerlinNoise();
     Light* light = new Light();
 
@@ -113,6 +112,8 @@ int main(int argc, char const* argv[])
     //light->SetLightDirection(vec3(1.0f, 0.0f, 0.0f));
 
     Terrain* terrain = new Terrain(perlinNoise);
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {
