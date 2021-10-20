@@ -1,6 +1,7 @@
 #version 430 core
 
 in vec2 FSInputTexCoords;
+in vec4 FSInputColor;
 in vec3 FSInputNormal;
 
 uniform vec4 AmbientColor;
@@ -13,7 +14,7 @@ out vec4 FSOutFragColor;
 
 void main()
 {
-    vec4 textureColor = texture(TerrainTexture, FSInputTexCoords);
+    vec4 textureColor = clamp(texture(TerrainTexture, FSInputTexCoords) * FSInputColor * 2.0, 0.0, 1.0);
 
     FSOutFragColor = AmbientColor;
 

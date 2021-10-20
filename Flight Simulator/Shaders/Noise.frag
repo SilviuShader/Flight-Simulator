@@ -91,9 +91,13 @@ float getCombinedNoiseValue(vec2 position)
     float amplitude = 1.0;
     float result = 0.0;
 
-    for (int i = 0; i < OctavesAdd; i++)
+    int octavesAdd = 1;
+
+    for (int i = 0; i < octavesAdd; i++)
     {
         result += getNoiseValue(position * frequency) * amplitude;
+        float percentage = clamp(result, 0.0, 1.0);
+        octavesAdd = int(percentage * OctavesAdd / 2) + (OctavesAdd / 2);
         frequency *= 2.0;
         amplitude *= 0.5;
     }
