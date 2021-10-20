@@ -10,17 +10,19 @@ class PerlinNoise
 {
 private:
 
-           const int   TEXTURE_WIDTH         = 1024;
-           const int   TEXTURE_HEIGHT        = 1024;
+           const int   TEXTURE_WIDTH            = 1024;
+           const int   TEXTURE_HEIGHT           = 1024;
 
-           const float DEBUG_IMAGE_FREQUENCY = 0.01f;
+           const float DEBUG_IMAGE_FREQUENCY    = 0.01f;
 
-           const float DEFAULT_FREQUENCY     = 0.025f;
-           const int   OCTAVES_COUNT         = 10;
+           const float DEFAULT_FREQUENCY        = 0.025f;
+           const float COLORS_DEFAULT_FREQUENCY = 0.05f;
+           const int   OCTAVES_COUNT            = 10;
+           const int   COLORS_OCTAVES_COUNT     = 10;
 
-           const int   QUAD_INDICES_COUNT    = 6;
+           const int   QUAD_INDICES_COUNT       = 6;
 
-    static const int   SAMPLES_COUNT         = 1 << 8; // must be a power of 2.
+    static const int   SAMPLES_COUNT            = 1 << 8; // must be a power of 2.
 
 private:
 

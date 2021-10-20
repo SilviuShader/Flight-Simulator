@@ -8,8 +8,10 @@ layout (std140, binding = 0) uniform NoiseValues
 };
 
 uniform float NoiseDefaultFrequency;
+uniform float ColorsDefaultFrequency;
 
 uniform int OctavesAdd;
+uniform int ColorsOctavesAdd;
 
 uniform vec2 StartPosition;
 uniform vec2 FinalPosition;
@@ -42,11 +44,11 @@ float smoothstep(float x)
     return x * x * (3.0 - 2.0 * x);
 }
 
-float getNoiseValue(vec2 position)
+float getNoiseValue(vec2 position, float defaultFrequency)
 {
     int mask = NOISE_SAMPLES_COUNT - 1;
 
-    position *= NoiseDefaultFrequency;
+    position *= defaultFrequency;
 
     int left   = (int(floor(position.x))) & mask;
     int bottom = (int(floor(position.y))) & mask;
@@ -85,7 +87,7 @@ float getNoiseValue(vec2 position)
     return result;
 }
 
-float getCombinedNoiseValue(vec2 position)
+float getCombinedNoiseValue(vec2 position, float defaultFrequency, int maxOctaves)
 {
     float frequency = 1.0;
     float amplitude = 1.0;
@@ -95,9 +97,9 @@ float getCombinedNoiseValue(vec2 position)
 
     for (int i = 0; i < octavesAdd; i++)
     {
-        result += getNoiseValue(position * frequency) * amplitude;
+        result += getNoiseValue(position * frequency, defaultFrequency) * amplitude;
         float percentage = clamp(result, 0.0, 1.0);
-        octavesAdd = int(percentage * OctavesAdd / 2) + (OctavesAdd / 2);
+        octavesAdd = int(percentage * maxOctaves / 2) + (maxOctaves / 2);
         frequency *= 2.0;
         amplitude *= 0.5;
     }
@@ -107,8 +109,10 @@ float getCombinedNoiseValue(vec2 position)
 
 void main()
 {
-    vec2 finalStartDiff = FinalPosition - StartPosition;
-    vec2 noisePosition = vec2(FSInputCoords.x * finalStartDiff.x, FSInputCoords.y * finalStartDiff.y) + StartPosition;
-    float noise = getCombinedNoiseValue(noisePosition);
-    FSOutFragColor = vec3(noise, noise, noise);
+    vec2  finalStartDiff = FinalPosition - StartPosition;
+    vec2  noisePosition  = vec2(FSInputCoords.x * finalStartDiff.x, FSInputCoords.y * finalStartDiff.y) + StartPosition;
+    float noise          = getCombinedNoiseValue(noisePosition, NoiseDefaultFrequency, OctavesAdd);
+    float colorNoise     = getCombinedNoiseValue(noisePosition, ColorsDefaultFrequency, ColorsOctavesAdd);
+
+    FSOutFragColor = vec3(noise, colorNoise, noise);
 }

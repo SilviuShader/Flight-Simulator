@@ -10,7 +10,7 @@ out vec2 TCSInputTexCoords;
 
 void main()
 {
-    TCSInputWorldPosition = (Model * (vec4(VSInputPosition, 1.0f))).xyz;
+    TCSInputWorldPosition = (Model * (vec4(VSInputPosition, 1.0))).xyz;
     TCSInputPosition      = VSInputPosition;
     TCSInputTexCoords     = VSInputTexCoords;
 }

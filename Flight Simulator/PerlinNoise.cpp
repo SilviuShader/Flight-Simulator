@@ -127,11 +127,13 @@ RenderTexture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition)
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_noiseValuesBuffer);
 
     m_noiseShader->SetFloat("NoiseDefaultFrequency", DEFAULT_FREQUENCY);
+    m_noiseShader->SetFloat("ColorsDefaultFrequency", COLORS_DEFAULT_FREQUENCY);
 
     m_noiseShader->SetVec2("StartPosition", startPosition);
     m_noiseShader->SetVec2("FinalPosition", finalPosition);
 
     m_noiseShader->SetInt("OctavesAdd", OCTAVES_COUNT);
+    m_noiseShader->SetInt("ColorsOctavesAdd", COLORS_OCTAVES_COUNT);
 
     glBindVertexArray(m_quadVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_quadEbo);
