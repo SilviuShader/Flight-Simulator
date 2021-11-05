@@ -1,5 +1,6 @@
 #version 430 core
 
+in vec3 FSInputWorldPosition;
 in vec2 FSInputTexCoords;
 in vec4 FSInputColor;
 in vec3 FSInputNormal;
@@ -7,6 +8,9 @@ in vec3 FSInputNormal;
 uniform vec4 AmbientColor;
 uniform vec4 DiffuseColor;
 uniform vec3 LightDirection;
+
+uniform vec3  CameraPosition;
+uniform float SpecularStrength;
 
 uniform sampler2D TerrainTexture;
 
@@ -23,8 +27,14 @@ void main()
 
     if (lightIntensity > 0.0)
         FSOutFragColor += lightIntensity * DiffuseColor;
+
+    vec3 viewDir = normalize(CameraPosition - FSInputWorldPosition);
+    vec3 reflectDir = reflect(-lightDir, FSInputNormal);
+    float specular = pow(max(dot(viewDir, reflectDir), 0.0), 256);
     
     FSOutFragColor = clamp(FSOutFragColor, 0.0f, 1.0f);
 
     FSOutFragColor = FSOutFragColor * textureColor;
+
+    FSOutFragColor += SpecularStrength * specular * DiffuseColor;
 }

@@ -32,6 +32,8 @@ private:
            const float DISTANCE_FOR_DETAILS = 128.0f;
            const float MAX_TESSELATION      = 40.0f;
 
+           const float SPECULAR_STRENGTH    = 10.5f;
+
     static const int   COLORS_COUNT         = 5;
 
            const glm::vec4 TERRAIN_COLORS[COLORS_COUNT] =

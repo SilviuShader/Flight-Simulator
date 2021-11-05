@@ -23,6 +23,7 @@ in vec3 TESInputWorldPosition[];
 in vec3 TESInputPosition[];
 in vec2 TESInputTexCoords[];
 
+out vec3 FSInputWorldPosition;
 out vec2 FSInputTexCoords;
 out vec4 FSInputColor;
 out vec3 FSInputNormal;
@@ -57,7 +58,7 @@ vec3 get3Dcoord(vec2 pos)
 
 vec3 calculateNormal(vec3 currentPos)
 {
-    float offset = 1.0 / 2048.0;
+    float offset = 1.0 / 1024.0;
 
     vec2 posx    = currentPos.xz + vec2(offset, 0.0);
     vec2 posxneg = currentPos.xz - vec2(offset, 0.0);
@@ -97,14 +98,15 @@ vec4 getColor(vec2 pos, float height)
 
 void main()
 {
-    vec3 rawPosition   = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
-    vec3 worldPosition = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
+    vec3 rawPosition     = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
+    vec3 worldPosition   = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
     
-    worldPosition.y    = get3Dcoord(rawPosition.xz).y;
+    worldPosition.y      = get3Dcoord(rawPosition.xz).y;
 
-    FSInputColor       = getColor(rawPosition.xz, worldPosition.y);
+    FSInputColor         = getColor(rawPosition.xz, worldPosition.y);
 
-    FSInputTexCoords   = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
-    FSInputNormal      = calculateNormal(rawPosition);
-    gl_Position        = Projection * View * vec4(worldPosition, 1.0);
+    FSInputWorldPosition = worldPosition;
+    FSInputTexCoords     = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
+    FSInputNormal        = calculateNormal(rawPosition);
+    gl_Position          = Projection * View * vec4(worldPosition, 1.0);
 }

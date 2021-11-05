@@ -92,6 +92,10 @@ void Terrain::Draw(Light* light, Camera* camera)
     m_shader->SetVec4("AmbientColor", light->GetAmbientColor());
     m_shader->SetVec4("DiffuseColor", light->GetDiffuseColor());
     m_shader->SetVec3("LightDirection", light->GetLightDirection());
+
+    m_shader->SetVec3("CameraPosition", camera->GetPosition());
+    m_shader->SetFloat("SpecularStrength", SPECULAR_STRENGTH);
+
     m_shader->SetTexture("TerrainTexture", m_texture, 1);
 
     glBindVertexArray(m_vao);
