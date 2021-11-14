@@ -16,8 +16,8 @@ private:
            const float DEBUG_IMAGE_FREQUENCY    = 0.01f;
 
            const float DEFAULT_FREQUENCY        = 0.025f;
-           const float COLORS_DEFAULT_FREQUENCY = 0.05f;
-           const int   OCTAVES_COUNT            = 10;
+           const float COLORS_DEFAULT_FREQUENCY = 0.5f;
+           const int   OCTAVES_COUNT            = 20;
            const int   COLORS_OCTAVES_COUNT     = 10;
 
            const int   QUAD_INDICES_COUNT       = 6;

@@ -33,6 +33,7 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 
     m_texture = new Texture("Assets/dirt01d.tga");
+    m_normalTexture = new Texture("Assets/dirt01n.tga");
 
     m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(TERRAIN_WIDTH, TERRAIN_WIDTH));
 }
@@ -97,6 +98,7 @@ void Terrain::Draw(Light* light, Camera* camera)
     m_shader->SetFloat("SpecularStrength", SPECULAR_STRENGTH);
 
     m_shader->SetTexture("TerrainTexture", m_texture, 1);
+    m_shader->SetTexture("TerrainNormalTexture", m_normalTexture, 2);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -122,7 +124,7 @@ void Terrain::CreateTerrainBuffers()
             vec2 planePosition = vec2(adjustedJ * TERRAIN_WIDTH, adjustedI * TERRAIN_WIDTH);
 
             vertices[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
-            vertices[i * verticesWidth + j].TexCoord = vec2(j % 2 == 0 ? 0.0f : 1.0f, i % 2 == 0 ? 0.0f : 1.0f);
+            vertices[i * verticesWidth + j].TexCoord = vec2(j * TEX_COORDS_MULTIPLIER, verticesHeight - i * TEX_COORDS_MULTIPLIER - 1);
         }
     }
 

@@ -118,5 +118,8 @@
     <CopyFileToFolders Include="Shaders\Noise.frag">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\dirt01n.tga">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

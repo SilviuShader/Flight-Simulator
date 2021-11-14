@@ -11,7 +11,6 @@
 using namespace std;
 using namespace glm;
 
-
 PerlinNoise::PerlinNoise(int seed)
 {
     GenerateNoiseValues(seed);

@@ -26,7 +26,10 @@ in vec2 TESInputTexCoords[];
 out vec3 FSInputWorldPosition;
 out vec2 FSInputTexCoords;
 out vec4 FSInputColor;
+
 out vec3 FSInputNormal;
+out vec3 FSInputBinormal;
+out vec3 FSInputTangent;
 
 vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
 {
@@ -56,9 +59,9 @@ vec3 get3Dcoord(vec2 pos)
     return vec3(pos.x, h * TerrainAmplitude, pos.y);
 }
 
-vec3 calculateNormal(vec3 currentPos)
+void calculateNormal(vec3 currentPos, out vec3 normal, out vec3 binormal, out vec3 tangent)
 {
-    float offset = 1.0 / 1024.0;
+    float offset = 1.0 / 32.0;
 
     vec2 posx    = currentPos.xz + vec2(offset, 0.0);
     vec2 posxneg = currentPos.xz - vec2(offset, 0.0);
@@ -71,12 +74,9 @@ vec3 calculateNormal(vec3 currentPos)
     vec3 top = get3Dcoord(posy);
     vec3 bottom = get3Dcoord(posyneg);
     
-    vec3 normalTopRight = normalize(cross(top - currentPos, right - currentPos));
-    vec3 normalBottomRight = normalize(cross(right - currentPos, bottom - currentPos));
-    vec3 normalBottomLeft = normalize(cross(bottom - currentPos, left - currentPos));
-    vec3 normalTopLeft = normalize(cross(left - currentPos, top - currentPos));
-
-    return normalize(normalTopRight + normalTopLeft + normalBottomLeft + normalBottomRight);
+    tangent = normalize(right - left);
+    binormal = normalize(top - bottom);
+    normal = normalize(cross(binormal, tangent));
 }
 
 vec4 getColor(vec2 pos, float height)
@@ -85,8 +85,7 @@ vec4 getColor(vec2 pos, float height)
 
     float texColor = texture(NoiseTexture, uv).y;
 
-    float percentage = height / (TerrainAmplitude * 2.0) + mix(0.9, 3.0, texColor - 1.0);
-    percentage *= 0.5;
+    float percentage = (texColor - 0.3f) * 0.7f;
     percentage = clamp(percentage, 0.0, 1.0);
     float fIndex = percentage * (TERRAIN_COLORS_COUNT - 1);
     int index = int(fIndex);
@@ -107,6 +106,7 @@ void main()
 
     FSInputWorldPosition = worldPosition;
     FSInputTexCoords     = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
-    FSInputNormal        = calculateNormal(rawPosition);
     gl_Position          = Projection * View * vec4(worldPosition, 1.0);
+
+    calculateNormal(rawPosition, FSInputNormal, FSInputBinormal, FSInputTangent);
 }
