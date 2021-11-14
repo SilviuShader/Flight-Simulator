@@ -107,8 +107,8 @@ int main(int argc, char const* argv[])
     PerlinNoise* perlinNoise = new PerlinNoise();
     Light* light = new Light();
 
-    light->SetAmbientColor(vec4(0.5f, 0.5f, 0.5f, 1.0f));
-    light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    light->SetAmbientColor(vec4(0.75f, 0.75f, 0.75f, 1.0f));
+    light->SetDiffuseColor(vec4(0.8f, 0.8f, 0.9f, 1.0f));
     //light->SetLightDirection(vec3(1.0f, 0.0f, 0.0f));
 
     Terrain* terrain = new Terrain(perlinNoise);

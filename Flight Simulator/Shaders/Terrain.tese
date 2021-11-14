@@ -85,7 +85,7 @@ vec4 getColor(vec2 pos, float height)
 
     float texColor = texture(NoiseTexture, uv).y;
 
-    float percentage = (texColor - 0.3f) * 0.7f;
+    float percentage = texColor * 0.5f;
     percentage = clamp(percentage, 0.0, 1.0);
     float fIndex = percentage * (TERRAIN_COLORS_COUNT - 1);
     int index = int(fIndex);

@@ -32,8 +32,9 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
     m_shader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag", 
         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 
-    m_texture = new Texture("Assets/dirt01d.tga");
-    m_normalTexture = new Texture("Assets/dirt01n.tga");
+    m_texture = new Texture("Assets/snow_02_diff_1k.png");
+    m_normalTexture = new Texture("Assets/snow_02_nor_gl_1k.png");
+    m_specularTexture = new Texture("Assets/snow_02_spec_1k.png");
 
     m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(TERRAIN_WIDTH, TERRAIN_WIDTH));
 }
@@ -90,15 +91,18 @@ void Terrain::Draw(Light* light, Camera* camera)
     m_shader->SetFloat("GridHeight", TERRAIN_GRID_HEIGHT);
     m_shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
 
+    m_shader->SetFloat("Gamma", GAMMA);
+
     m_shader->SetVec4("AmbientColor", light->GetAmbientColor());
     m_shader->SetVec4("DiffuseColor", light->GetDiffuseColor());
     m_shader->SetVec3("LightDirection", light->GetLightDirection());
+    m_shader->SetFloat("SpecularPower", light->GetSpecularPower());
 
     m_shader->SetVec3("CameraPosition", camera->GetPosition());
-    m_shader->SetFloat("SpecularStrength", SPECULAR_STRENGTH);
-
+    
     m_shader->SetTexture("TerrainTexture", m_texture, 1);
     m_shader->SetTexture("TerrainNormalTexture", m_normalTexture, 2);
+    m_shader->SetTexture("TerrainSpecularTexture", m_specularTexture, 3);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);

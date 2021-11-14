@@ -33,7 +33,7 @@ private:
            const float MAX_TESSELATION       = 10.0f;
            const float TEX_COORDS_MULTIPLIER = 0.5f;
 
-           const float SPECULAR_STRENGTH     = 10.0f;
+           const float GAMMA                 = 1.0f;
 
     static const int   COLORS_COUNT          = 5;
 
@@ -80,4 +80,5 @@ private:
 
     Texture*       m_texture;
     Texture*       m_normalTexture;
+    Texture*       m_specularTexture;
 };

@@ -121,5 +121,14 @@
     <CopyFileToFolders Include="Assets\dirt01n.tga">
       <Filter>Resource Files\Assets</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_02_diff_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_02_nor_gl_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_02_spec_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

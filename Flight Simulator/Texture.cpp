@@ -25,6 +25,8 @@ Texture::Texture(const string& filename)
         int internalFormat = GL_RGB;
         if (nrChannels == 4)
             internalFormat = GL_RGBA;
+        if (nrChannels == 1)
+            internalFormat = GL_RED;
 
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
