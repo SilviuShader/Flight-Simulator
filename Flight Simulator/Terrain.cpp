@@ -24,7 +24,8 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
     m_vao(0),
     m_colorsBuffer(0),
     m_shader(nullptr),
-    m_perlinNoise(perlinNoise)
+    m_perlinNoise(perlinNoise),
+    m_materials(vector<Material*>())
 {
     CreateTerrainBuffers();
     CreateColorsBuffer();
@@ -32,9 +33,8 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
     m_shader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag", 
         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 
-    m_texture = new Texture("Assets/snow_02_diff_1k.png");
-    m_normalTexture = new Texture("Assets/snow_02_nor_gl_1k.png");
-    m_specularTexture = new Texture("Assets/snow_02_spec_1k.png");
+    m_materials.push_back(new Material("Assets/snow_02_diff_1k.png", "Assets/snow_02_nor_gl_1k.png", "Assets/snow_02_spec_1k.png"));
+    m_materials.push_back(new Material("Assets/medieval_blocks_02_diff_1k.png", "Assets/medieval_blocks_02_nor_gl_1k.png", "Assets/medieval_blocks_02_spec_1k.png"));
 
     m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(TERRAIN_WIDTH, TERRAIN_WIDTH));
 }
@@ -47,12 +47,17 @@ Terrain::~Terrain()
         m_renderTexture = nullptr;
     }
 
-    if (m_texture)
+    for (auto& material : m_materials)
     {
-        delete m_texture;
-        m_texture = nullptr;
+        if (material)
+        {
+            delete material;
+            material = nullptr;
+        }
     }
-
+    
+    m_materials.clear();
+    
     if (m_shader)
     {
         delete m_shader;
@@ -99,10 +104,8 @@ void Terrain::Draw(Light* light, Camera* camera)
     m_shader->SetFloat("SpecularPower", light->GetSpecularPower());
 
     m_shader->SetVec3("CameraPosition", camera->GetPosition());
-    
-    m_shader->SetTexture("TerrainTexture", m_texture, 1);
-    m_shader->SetTexture("TerrainNormalTexture", m_normalTexture, 2);
-    m_shader->SetTexture("TerrainSpecularTexture", m_specularTexture, 3);
+
+    m_shader->SetMaterials("TerrainTextures", "TerrainNormalTextures", "TerrainSpecularTextures", m_materials, 1);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);

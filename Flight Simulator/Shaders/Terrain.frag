@@ -1,5 +1,7 @@
 #version 430 core
 
+#define TERRAIN_MATERIALS_COUNT 2
+
 in vec3 FSInputWorldPosition;
 in vec2 FSInputTexCoords;
 in vec4 FSInputColor;
@@ -17,17 +19,28 @@ uniform float SpecularPower;
 
 uniform vec3  CameraPosition;
 
-uniform sampler2D TerrainTexture;
-uniform sampler2D TerrainNormalTexture;
-uniform sampler2D TerrainSpecularTexture;
+uniform sampler2D TerrainTextures[TERRAIN_MATERIALS_COUNT];
+uniform sampler2D TerrainNormalTextures[TERRAIN_MATERIALS_COUNT];
+uniform sampler2D TerrainSpecularTextures[TERRAIN_MATERIALS_COUNT];
 
 out vec4 FSOutFragColor;
 
+float getFirstTexturePercentage()
+{
+    return abs(dot(FSInputNormal, vec3(0.0f, 1.0f, 0.0f)));
+}
+
 void main()
 {
-    vec4 textureColor = clamp(texture(TerrainTexture, FSInputTexCoords) * FSInputColor * Gamma, 0.0, 1.0);
-    vec3 normalData = texture(TerrainNormalTexture, FSInputTexCoords).xyz * 2.0;
-    float specularStrength = texture(TerrainSpecularTexture, FSInputTexCoords).x;
+    float firstPercentage = getFirstTexturePercentage();
+
+    vec4 firstTexColor = texture(TerrainTextures[0], FSInputTexCoords) * firstPercentage;
+    vec4 secondTexColor = texture(TerrainTextures[1], FSInputTexCoords) * (1.0 - firstPercentage);
+
+    vec4 textureColor = clamp((firstTexColor + secondTexColor) * FSInputColor * Gamma, 0.0, 1.0);
+
+    vec3 normalData = ((texture(TerrainNormalTextures[0], FSInputTexCoords).xyz * firstPercentage) + (texture(TerrainNormalTextures[1], FSInputTexCoords).xyz * (1.0 - firstPercentage))) * 2.0;
+    float specularStrength = (texture(TerrainSpecularTextures[0], FSInputTexCoords).x * firstPercentage) +  (texture(TerrainSpecularTextures[1], FSInputTexCoords).x * (1.0 - firstPercentage));
 
     normalData -= vec3(1.0f, 1.0f, 1.0f);
 

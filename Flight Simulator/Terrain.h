@@ -6,6 +6,7 @@
 #include "PerlinNoise.h"
 #include "Camera.h"
 #include "Light.h"
+#include "Material.h"
 
 class Terrain
 {
@@ -31,7 +32,7 @@ private:
 
            const float DISTANCE_FOR_DETAILS  = 128.0f;
            const float MAX_TESSELATION       = 10.0f;
-           const float TEX_COORDS_MULTIPLIER = 0.5f;
+           const float TEX_COORDS_MULTIPLIER = 0.1f;
 
            const float GAMMA                 = 1.0f;
 
@@ -68,17 +69,15 @@ private:
 
 private:
 
-    unsigned int   m_vbo;
-    unsigned int   m_ebo;
-    unsigned int   m_vao;
+    unsigned int           m_vbo;
+    unsigned int           m_ebo;
+    unsigned int           m_vao;
+                           
+    unsigned int           m_colorsBuffer;
+                           
+    Shader*                m_shader;
+    PerlinNoise*           m_perlinNoise;
+    RenderTexture*         m_renderTexture;
 
-    unsigned int   m_colorsBuffer;
-
-    Shader*        m_shader;
-    PerlinNoise*   m_perlinNoise;
-    RenderTexture* m_renderTexture;
-
-    Texture*       m_texture;
-    Texture*       m_normalTexture;
-    Texture*       m_specularTexture;
+    std::vector<Material*> m_materials;
 };

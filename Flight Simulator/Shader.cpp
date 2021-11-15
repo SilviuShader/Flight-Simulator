@@ -160,6 +160,60 @@ void Shader::SetTexture(const string& name, Texture* texture, int textureNumber)
     SetInt(name, textureNumber);
 }
 
+int Shader::SetMaterials(const string& texturesName, const string& normalTexturesName, const string& specularTexturesName, const vector<Material*>& materials, int startingTextureNumber) const
+{
+    int materialsCount = materials.size();
+
+    int* textureNumbers = new int[materialsCount];
+    int* normalTextureNumbers = new int[materialsCount];
+    int* specularTextureNumbers = new int[materialsCount];
+
+    for (int i = 0; i < materialsCount; i++)
+        textureNumbers[i] = startingTextureNumber++;
+
+    for (int i = 0; i < materialsCount; i++)
+        normalTextureNumbers[i] = startingTextureNumber++;
+
+    for (int i = 0; i < materialsCount; i++)
+        specularTextureNumbers[i] = startingTextureNumber++;
+
+    for (int i = 0; i < materialsCount; i++)
+    {
+        glActiveTexture(GL_TEXTURE0 + textureNumbers[i]);
+        glBindTexture(GL_TEXTURE_2D, materials[i]->GetTexture()->GetTexture());
+
+        glActiveTexture(GL_TEXTURE0 + normalTextureNumbers[i]);
+        glBindTexture(GL_TEXTURE_2D, materials[i]->GetNormalTexture()->GetTexture());
+
+        glActiveTexture(GL_TEXTURE0 + specularTextureNumbers[i]);
+        glBindTexture(GL_TEXTURE_2D, materials[i]->GetSpecularTexture()->GetTexture());
+    }
+
+    glUniform1iv(glGetUniformLocation(m_programId, texturesName.c_str()), materialsCount, textureNumbers);
+    glUniform1iv(glGetUniformLocation(m_programId, normalTexturesName.c_str()), materialsCount, normalTextureNumbers);
+    glUniform1iv(glGetUniformLocation(m_programId, specularTexturesName.c_str()), materialsCount, specularTextureNumbers);
+
+    if (specularTextureNumbers)
+    {
+        delete[] specularTextureNumbers;
+        specularTextureNumbers = nullptr;
+    }
+
+    if (normalTextureNumbers)
+    {
+        delete[] normalTextureNumbers;
+        normalTextureNumbers = nullptr;
+    }
+
+    if (textureNumbers)
+    {
+        delete[] textureNumbers;
+        textureNumbers = nullptr;
+    }
+
+    return startingTextureNumber;
+}
+
 string Shader::ReadFile(const string filename)
 {
     try
