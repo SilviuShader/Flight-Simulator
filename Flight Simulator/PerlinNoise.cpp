@@ -128,6 +128,10 @@ RenderTexture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition)
     m_noiseShader->SetFloat("NoiseDefaultFrequency", DEFAULT_FREQUENCY);
     m_noiseShader->SetFloat("ColorsDefaultFrequency", COLORS_DEFAULT_FREQUENCY);
 
+    m_noiseShader->SetFloat("FudgeFactor", FUDGE_FACTOR);
+    m_noiseShader->SetFloat("Exponent", EXPONENT);
+    m_noiseShader->SetVec2("OctaveOffset", OCTAVE_OFFSET);
+
     m_noiseShader->SetVec2("StartPosition", startPosition);
     m_noiseShader->SetVec2("FinalPosition", finalPosition);
 

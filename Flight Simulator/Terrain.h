@@ -28,7 +28,7 @@ private:
 private:
 
            const float TERRAIN_WIDTH         = 64.0;
-           const float TERRAIN_AMPLITUDE     = 30.0f;
+           const float TERRAIN_AMPLITUDE     = 75.0f;
 
            const float DISTANCE_FOR_DETAILS  = 128.0f;
            const float MAX_TESSELATION       = 10.0f;

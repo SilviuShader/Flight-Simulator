@@ -13,6 +13,10 @@ uniform float ColorsDefaultFrequency;
 uniform int OctavesAdd;
 uniform int ColorsOctavesAdd;
 
+uniform float FudgeFactor;
+uniform float Exponent;
+uniform vec2  OctaveOffset;
+
 uniform vec2 StartPosition;
 uniform vec2 FinalPosition;
 
@@ -93,16 +97,21 @@ float getCombinedNoiseValue(vec2 position, float defaultFrequency, int maxOctave
     float amplitude = 1.0;
     float result = 0.0;
 
-    int octavesAdd = 1;
+    float amplitudeSum = 0.0f;
 
-    for (int i = 0; i < octavesAdd; i++)
+    for (int i = 0; i < maxOctaves; i++)
     {
-        result += getNoiseValue(position * frequency, defaultFrequency) * amplitude;
+        result += getNoiseValue(position * frequency + (OctaveOffset * i), defaultFrequency) * amplitude;
         float percentage = clamp(result, 0.0, 1.0);
-        octavesAdd = int(percentage * maxOctaves / 2) + (maxOctaves / 2);
+        
+        amplitudeSum += amplitude;
+
         frequency *= 2.0;
         amplitude *= 0.5;
     }
+
+    result = result / amplitudeSum;
+    result = pow(result * FudgeFactor, Exponent);
 
     return result;
 }

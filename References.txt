@@ -1,0 +1,9 @@
+https://www.redblobgames.com/maps/terrain-from-noise/
+
+https://github.com/jadkhoury/ProceduralTerrain
+
+https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/perlin-noise-part-2/perlin-noise
+
+http://rastertek.com/tutdx11s2ter.html
+
+https://learnopengl.com/ (Shader class)
