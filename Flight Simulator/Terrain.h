@@ -36,13 +36,15 @@ private:
 
            const float GAMMA                 = 1.0f;
 
+           const float BIOMES_COUNT          = 2;
+           const float MATERIALS_PER_BIOME   = 4;
+
     static const int   COLORS_COUNT          = 5;
 
     static const int   TERRAIN_GRID_WIDTH   = 256;
     static const int   TERRAIN_GRID_HEIGHT  = 256;
 
     static const int   INDICES_COUNT        = TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT * 6;
-
 public:
 
     Terrain(PerlinNoise*);
@@ -66,4 +68,5 @@ private:
     RenderTexture*         m_renderTexture;
 
     std::vector<Material*> m_materials;
+    Texture*               m_biomeMaterialsTexture;
 };

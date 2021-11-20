@@ -24,7 +24,8 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
     m_vao(0),
     m_shader(nullptr),
     m_perlinNoise(perlinNoise),
-    m_materials(vector<Material*>())
+    m_materials(vector<Material*>()),
+    m_biomeMaterialsTexture(nullptr)
 {
     CreateTerrainBuffers();
 
@@ -33,6 +34,32 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
 
     m_materials.push_back(new Material("Assets/snow_02_diff_1k.png", "Assets/snow_02_nor_gl_1k.png", "Assets/snow_02_spec_1k.png"));
     m_materials.push_back(new Material("Assets/medieval_blocks_02_diff_1k.png", "Assets/medieval_blocks_02_nor_gl_1k.png", "Assets/medieval_blocks_02_spec_1k.png"));
+    m_materials.push_back(new Material("Assets/brown_mud_leaves_01_diff_1k.png", "Assets/brown_mud_leaves_01_nor_gl_1k.png", "Assets/brown_mud_leaves_01_spec_1k.png"));
+    m_materials.push_back(new Material("Assets/forest_leaves_03_diff_1k.png", "Assets/forest_leaves_03_nor_gl_1k.png"));
+    m_materials.push_back(new Material("Assets/snow_field_aerial_col_1k.png", "Assets/snow_field_aerial_nor_gl_1k.png"));
+    m_materials.push_back(new Material("Assets/snow_03_diff_1k.png", "Assets/snow_03_nor_gl_1k.png", "Assets/snow_03_spec_1k.png"));
+
+    float materialsCount = m_materials.size() - 1;
+    float* biomesData = new float[BIOMES_COUNT * MATERIALS_PER_BIOME];
+    biomesData[0] = 2.0f / materialsCount;
+    biomesData[1] = 3.0f / materialsCount;
+
+    biomesData[2] = 1.0f / materialsCount;
+    biomesData[3] = 5.0f / materialsCount;
+    
+    biomesData[4] = 5.0f / materialsCount;
+    biomesData[5] = 1.0f / materialsCount;
+    
+    biomesData[6] = 0.0f / materialsCount;
+    biomesData[7] = 4.0f / materialsCount;
+
+    m_biomeMaterialsTexture = new Texture(biomesData, BIOMES_COUNT, MATERIALS_PER_BIOME);
+
+    if (biomesData)
+    {
+        delete[] biomesData;
+        biomesData = nullptr;
+    }
 
     m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(TERRAIN_WIDTH, TERRAIN_WIDTH));
 }
@@ -43,6 +70,12 @@ Terrain::~Terrain()
     {
         delete m_renderTexture;
         m_renderTexture = nullptr;
+    }
+
+    if (m_biomeMaterialsTexture)
+    {
+        delete m_biomeMaterialsTexture;
+        m_biomeMaterialsTexture = nullptr;
     }
 
     for (auto& material : m_materials)
@@ -99,7 +132,12 @@ void Terrain::Draw(Light* light, Camera* camera)
 
     m_shader->SetVec3("CameraPosition", camera->GetPosition());
 
-    m_shader->SetMaterials("TerrainTextures", "TerrainNormalTextures", "TerrainSpecularTextures", m_materials, 1);
+    m_shader->SetInt("BiomesCount", BIOMES_COUNT);
+    m_shader->SetInt("MaterialsPerBiome", MATERIALS_PER_BIOME);
+
+    m_shader->SetTexture("BiomeMaterialsTexture", m_biomeMaterialsTexture, 1);
+
+    m_shader->SetMaterials("TerrainTextures", "TerrainNormalTextures", "TerrainSpecularTextures", m_materials, 2);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);

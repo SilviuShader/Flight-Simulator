@@ -145,5 +145,35 @@
     <CopyFileToFolders Include="Assets\medieval_blocks_02_spec_1k.png">
       <Filter>Resource Files\Assets</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\brown_mud_leaves_01_diff_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\brown_mud_leaves_01_nor_gl_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\brown_mud_leaves_01_spec_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\forest_leaves_03_diff_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\forest_leaves_03_nor_gl_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_field_aerial_col_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_field_aerial_nor_gl_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_03_diff_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_03_nor_gl_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\snow_03_spec_1k.png">
+      <Filter>Resource Files\Assets</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

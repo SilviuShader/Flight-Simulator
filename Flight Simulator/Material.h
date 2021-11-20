@@ -8,7 +8,7 @@ class Material
 {
 public:
 
-	Material(const std::string, const std::string, const std::string);
+	Material(const std::string, const std::string, const std::string = "");
 	~Material();
 
 	Texture* GetTexture()         const;

@@ -20,6 +20,7 @@ in vec2 TESInputTexCoords[];
 
 out vec3 FSInputWorldPosition;
 out vec2 FSInputTexCoords;
+out vec2 FSInputBiomeData;
 
 out vec3 FSInputNormal;
 out vec3 FSInputBinormal;
@@ -73,6 +74,15 @@ void calculateNormal(vec3 currentPos, out vec3 normal, out vec3 binormal, out ve
     normal = normalize(cross(binormal, tangent));
 }
 
+vec2 calculateBiome(vec2 pos, float height)
+{
+    vec2 uv = getUv(pos);
+
+    float texColor = texture(NoiseTexture, uv).y;
+
+    return vec2(texColor, (height / TerrainAmplitude) * 2.0f);
+}
+
 void main()
 {
     vec3 rawPosition     = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
@@ -80,6 +90,7 @@ void main()
     
     worldPosition.y      = get3Dcoord(rawPosition.xz).y;
 
+    FSInputBiomeData     = calculateBiome(rawPosition.xz, worldPosition.y);
     FSInputWorldPosition = worldPosition;
     FSInputTexCoords     = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
     gl_Position          = Projection * View * vec4(worldPosition, 1.0);

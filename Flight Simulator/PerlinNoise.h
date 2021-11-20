@@ -18,14 +18,14 @@ private:
            const float     DEFAULT_FREQUENCY        = 0.025f;
            const int       OCTAVES_COUNT            = 20;
 
-           const float     BIOMES_DEFAULT_FREQUENCY = 0.5f;
+           const float     BIOMES_DEFAULT_FREQUENCY = 0.1f;
            const int       BIOMES_OCTAVES_COUNT     = 10;
 
            const float     FUDGE_FACTOR             = 1.2f;
            const float     EXPONENT                 = 4.0f;
            
            const float     BIOMES_FUDGE_FACTOR      = 1.0f;
-           const float     BIOMES_EXPONENT          = 4.0f;
+           const float     BIOMES_EXPONENT          = 1.0f;
 
            const int       QUAD_INDICES_COUNT       = 6;
 

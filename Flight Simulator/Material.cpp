@@ -4,9 +4,28 @@ using namespace std;
 
 Material::Material(const string textureFilename, const string normalTextureFilename, const string specularTextureFilename)
 {
-	m_texture         = new Texture(textureFilename);
-	m_normalTexture   = new Texture(normalTextureFilename);
-	m_specularTexture = new Texture(specularTextureFilename);
+	m_texture       = new Texture(textureFilename);
+	m_normalTexture = new Texture(normalTextureFilename);
+
+	if (specularTextureFilename.size())
+	{
+		m_specularTexture = new Texture(specularTextureFilename);
+	}
+	else
+	{
+		int textureSize = m_texture->GetWidth() * m_texture->GetHeight();
+		float* specularValues = new float[textureSize];
+		for (int i = 0; i < textureSize; i++)
+			specularValues[i] = 0.0f;
+
+		m_specularTexture = new Texture(specularValues, m_texture->GetWidth(), m_texture->GetHeight());
+
+		if (specularValues)
+		{
+			delete[] specularValues;
+			specularValues = nullptr;
+		}
+	}
 }
 
 Material::~Material()
