@@ -16,13 +16,17 @@ private:
            const float     DEBUG_IMAGE_FREQUENCY    = 0.01f;
 
            const float     DEFAULT_FREQUENCY        = 0.025f;
-           const float     COLORS_DEFAULT_FREQUENCY = 0.5f;
            const int       OCTAVES_COUNT            = 20;
-           const int       COLORS_OCTAVES_COUNT     = 10;
 
-           const int       FUDGE_FACTOR             = 1.2f;
+           const float     BIOMES_DEFAULT_FREQUENCY = 0.5f;
+           const int       BIOMES_OCTAVES_COUNT     = 10;
+
+           const float     FUDGE_FACTOR             = 1.2f;
            const float     EXPONENT                 = 4.0f;
            
+           const float     BIOMES_FUDGE_FACTOR      = 1.0f;
+           const float     BIOMES_EXPONENT          = 4.0f;
+
            const int       QUAD_INDICES_COUNT       = 6;
 
            const glm::vec2 OCTAVE_OFFSET            = glm::vec2(1.0f, 1.0f);

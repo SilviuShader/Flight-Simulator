@@ -8,13 +8,17 @@ layout (std140, binding = 0) uniform NoiseValues
 };
 
 uniform float NoiseDefaultFrequency;
-uniform float ColorsDefaultFrequency;
-
 uniform int OctavesAdd;
-uniform int ColorsOctavesAdd;
+
+uniform float BiomesDefaultFrequency;
+uniform int BiomesOctavesAdd;
 
 uniform float FudgeFactor;
 uniform float Exponent;
+
+uniform float BiomesFudgeFactor;
+uniform float BiomesExponent;
+
 uniform vec2  OctaveOffset;
 
 uniform vec2 StartPosition;
@@ -91,7 +95,7 @@ float getNoiseValue(vec2 position, float defaultFrequency)
     return result;
 }
 
-float getCombinedNoiseValue(vec2 position, float defaultFrequency, int maxOctaves)
+float getCombinedNoiseValue(vec2 position, float defaultFrequency, int maxOctaves, float fudge, float exponent)
 {
     float frequency = 1.0;
     float amplitude = 1.0;
@@ -111,7 +115,7 @@ float getCombinedNoiseValue(vec2 position, float defaultFrequency, int maxOctave
     }
 
     result = result / amplitudeSum;
-    result = pow(result * FudgeFactor, Exponent);
+    result = pow(result * fudge, exponent);
 
     return result;
 }
@@ -120,8 +124,8 @@ void main()
 {
     vec2  finalStartDiff = FinalPosition - StartPosition;
     vec2  noisePosition  = vec2(FSInputCoords.x * finalStartDiff.x, FSInputCoords.y * finalStartDiff.y) + StartPosition;
-    float noise          = getCombinedNoiseValue(noisePosition, NoiseDefaultFrequency, OctavesAdd);
-    float colorNoise     = getCombinedNoiseValue(noisePosition, ColorsDefaultFrequency, ColorsOctavesAdd);
+    float noise          = getCombinedNoiseValue(noisePosition, NoiseDefaultFrequency, OctavesAdd, FudgeFactor, Exponent);
+    float biomesNoise    = getCombinedNoiseValue(noisePosition, BiomesDefaultFrequency, BiomesOctavesAdd, BiomesFudgeFactor, BiomesExponent);
 
-    FSOutFragColor = vec3(noise, colorNoise, noise);
+    FSOutFragColor = vec3(noise, biomesNoise, noise);
 }

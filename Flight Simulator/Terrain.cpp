@@ -22,13 +22,11 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
-    m_colorsBuffer(0),
     m_shader(nullptr),
     m_perlinNoise(perlinNoise),
     m_materials(vector<Material*>())
 {
     CreateTerrainBuffers();
-    CreateColorsBuffer();
 
     m_shader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag", 
         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
@@ -64,7 +62,6 @@ Terrain::~Terrain()
         m_shader = nullptr;
     }
 
-    FreeColorsBuffer();
     FreeTerrainBuffers();
 }
 
@@ -87,9 +84,6 @@ void Terrain::Draw(Light* light, Camera* camera)
     m_shader->SetTexture("NoiseTexture", m_renderTexture->GetTexture(), 0);
     m_shader->SetMatrix4("View", view);
     m_shader->SetMatrix4("Projection", projection);
-
-    m_shader->SetBlockBinding("Colors", 0);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_colorsBuffer);
 
     m_shader->SetFloat("TerrainWidth", TERRAIN_WIDTH);
     m_shader->SetFloat("GridWidth", TERRAIN_GRID_WIDTH);
@@ -206,18 +200,4 @@ void Terrain::FreeTerrainBuffers()
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &m_vao);
-}
-
-void Terrain::CreateColorsBuffer()
-{
-    glGenBuffers(1, &m_colorsBuffer);
-    glBindBuffer(GL_UNIFORM_BUFFER, m_colorsBuffer);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * COLORS_COUNT, TERRAIN_COLORS, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-void Terrain::FreeColorsBuffer()
-{
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &m_colorsBuffer);
 }

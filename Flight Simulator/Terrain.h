@@ -38,15 +38,6 @@ private:
 
     static const int   COLORS_COUNT          = 5;
 
-           const glm::vec4 TERRAIN_COLORS[COLORS_COUNT] =
-           { 
-               glm::vec4(0.003f, 0.047f, 0.188f, 1.0f),
-               glm::vec4(0.729f, 0.764f, 0.878f, 1.0f),
-               glm::vec4(0.819f, 0.882f, 1.0f, 1.0f),
-               glm::vec4(0.596f, 0.831f, 1.0f, 1.0f),
-               glm::vec4(0.152f, 0.658f, 0.968f, 1.0f)
-           };
-
     static const int   TERRAIN_GRID_WIDTH   = 256;
     static const int   TERRAIN_GRID_HEIGHT  = 256;
 
@@ -64,16 +55,11 @@ private:
     void CreateTerrainBuffers();
     void FreeTerrainBuffers();
 
-    void CreateColorsBuffer();
-    void FreeColorsBuffer();
-
 private:
 
     unsigned int           m_vbo;
     unsigned int           m_ebo;
     unsigned int           m_vao;
-                           
-    unsigned int           m_colorsBuffer;
                            
     Shader*                m_shader;
     PerlinNoise*           m_perlinNoise;

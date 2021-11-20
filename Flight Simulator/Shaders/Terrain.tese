@@ -4,11 +4,6 @@
 
 layout (triangles, fractional_odd_spacing, ccw) in;
 
-layout (std140, binding = 0) uniform Colors
-{
-    vec4 TerrainColors[TERRAIN_COLORS_COUNT];
-};
-
 uniform mat4 View;
 uniform mat4 Projection;
 
@@ -25,7 +20,6 @@ in vec2 TESInputTexCoords[];
 
 out vec3 FSInputWorldPosition;
 out vec2 FSInputTexCoords;
-out vec4 FSInputColor;
 
 out vec3 FSInputNormal;
 out vec3 FSInputBinormal;
@@ -79,30 +73,12 @@ void calculateNormal(vec3 currentPos, out vec3 normal, out vec3 binormal, out ve
     normal = normalize(cross(binormal, tangent));
 }
 
-vec4 getColor(vec2 pos, float height)
-{
-    vec2 uv = getUv(pos);
-
-    float texColor = texture(NoiseTexture, uv).x;
-
-    float percentage = texColor;
-    percentage = clamp(percentage, 0.0, 1.0);
-    float fIndex = percentage * (TERRAIN_COLORS_COUNT - 1);
-    int index = int(fIndex);
-    if (index >= (TERRAIN_COLORS_COUNT - 1))
-        return TerrainColors[(TERRAIN_COLORS_COUNT - 1)];
-
-    return mix(TerrainColors[index], TerrainColors[index + 1], fIndex - index);
-}
-
 void main()
 {
     vec3 rawPosition     = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
     vec3 worldPosition   = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
     
     worldPosition.y      = get3Dcoord(rawPosition.xz).y;
-
-    FSInputColor         = getColor(rawPosition.xz, worldPosition.y);
 
     FSInputWorldPosition = worldPosition;
     FSInputTexCoords     = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);

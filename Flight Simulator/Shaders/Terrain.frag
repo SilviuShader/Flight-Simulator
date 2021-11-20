@@ -4,7 +4,6 @@
 
 in vec3 FSInputWorldPosition;
 in vec2 FSInputTexCoords;
-in vec4 FSInputColor;
 
 in vec3 FSInputNormal;
 in vec3 FSInputBinormal;
@@ -37,7 +36,7 @@ void main()
     vec4 firstTexColor = texture(TerrainTextures[0], FSInputTexCoords) * firstPercentage;
     vec4 secondTexColor = texture(TerrainTextures[1], FSInputTexCoords) * (1.0 - firstPercentage);
 
-    vec4 textureColor = clamp((firstTexColor + secondTexColor) * FSInputColor * Gamma, 0.0, 1.0);
+    vec4 textureColor = clamp((firstTexColor + secondTexColor) * Gamma, 0.0, 1.0);
 
     vec3 normalData = ((texture(TerrainNormalTextures[0], FSInputTexCoords).xyz * firstPercentage) + (texture(TerrainNormalTextures[1], FSInputTexCoords).xyz * (1.0 - firstPercentage))) * 2.0;
     float specularStrength = (texture(TerrainSpecularTextures[0], FSInputTexCoords).x * firstPercentage) +  (texture(TerrainSpecularTextures[1], FSInputTexCoords).x * (1.0 - firstPercentage));
