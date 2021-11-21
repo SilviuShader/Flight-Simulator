@@ -103,6 +103,7 @@ void PerlinNoise::FreeQuadBuffers()
     glBindVertexArray(m_quadVao);
 
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_quadVbo);

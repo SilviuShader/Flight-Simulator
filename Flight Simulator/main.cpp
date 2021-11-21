@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "stb_image.h"
 
+#include "Skybox.h"
 #include "Terrain.h"
 #include "Camera.h"
 #include "Light.h"
@@ -111,6 +112,8 @@ int main(int argc, char const* argv[])
     light->SetDiffuseColor(vec4(0.8f, 0.8f, 0.9f, 1.0f));
     //light->SetLightDirection(vec3(1.0f, 0.0f, 0.0f));
 
+    Skybox* skybox = new Skybox();
+
     Terrain* terrain = new Terrain(perlinNoise);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -129,6 +132,7 @@ int main(int argc, char const* argv[])
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        skybox->Draw(camera);
         terrain->Draw(light, camera);
 
         glfwSwapBuffers(window);
@@ -137,17 +141,35 @@ int main(int argc, char const* argv[])
         previousTime = currentTime;
     }
 
-    delete terrain;
-    terrain = nullptr;
+    if (terrain)
+    {
+        delete terrain;
+        terrain = nullptr;
+    }
 
-    delete light;
-    light = nullptr;
+    if (skybox)
+    {
+        delete skybox;
+        skybox = nullptr;
+    }
 
-    delete perlinNoise;
-    perlinNoise = nullptr;
-    
-    delete camera;
-    camera = nullptr;
+    if (light)
+    {
+        delete light;
+        light = nullptr;
+    }
+
+    if (perlinNoise)
+    {
+        delete perlinNoise;
+        perlinNoise = nullptr;
+    }
+
+    if (camera)
+    {
+        delete camera;
+        camera = nullptr;
+    }
 
     glfwTerminate();
 
