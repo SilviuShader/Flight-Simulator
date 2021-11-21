@@ -156,7 +156,14 @@ void Shader::SetBlockBinding(const string& name, int binding) const
 void Shader::SetTexture(const string& name, Texture* texture, int textureNumber) const
 {
     glActiveTexture(GL_TEXTURE0 + textureNumber);
-    glBindTexture(GL_TEXTURE_2D, texture->GetTexture());
+    glBindTexture(GL_TEXTURE_2D, texture->GetTextureID());
+    SetInt(name, textureNumber);
+}
+
+void Shader::SetCubemap(const string& name, Cubemap* cubemap, int textureNumber) const
+{
+    glActiveTexture(GL_TEXTURE0 + textureNumber);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->GetTextureID());
     SetInt(name, textureNumber);
 }
 
@@ -180,13 +187,13 @@ int Shader::SetMaterials(const string& texturesName, const string& normalTexture
     for (int i = 0; i < materialsCount; i++)
     {
         glActiveTexture(GL_TEXTURE0 + textureNumbers[i]);
-        glBindTexture(GL_TEXTURE_2D, materials[i]->GetTexture()->GetTexture());
+        glBindTexture(GL_TEXTURE_2D, materials[i]->GetTexture()->GetTextureID());
 
         glActiveTexture(GL_TEXTURE0 + normalTextureNumbers[i]);
-        glBindTexture(GL_TEXTURE_2D, materials[i]->GetNormalTexture()->GetTexture());
+        glBindTexture(GL_TEXTURE_2D, materials[i]->GetNormalTexture()->GetTextureID());
 
         glActiveTexture(GL_TEXTURE0 + specularTextureNumbers[i]);
-        glBindTexture(GL_TEXTURE_2D, materials[i]->GetSpecularTexture()->GetTexture());
+        glBindTexture(GL_TEXTURE_2D, materials[i]->GetSpecularTexture()->GetTextureID());
     }
 
     glUniform1iv(glGetUniformLocation(m_programId, texturesName.c_str()), materialsCount, textureNumbers);

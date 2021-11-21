@@ -2,6 +2,7 @@
 
 #include "Camera.h"
 #include "Shader.h"
+#include "Cubemap.h"
 
 class Skybox
 {
@@ -24,4 +25,5 @@ private:
 	unsigned int m_vao;
 
 	Shader*      m_skyboxShader;
+	Cubemap*     m_cubemap;
 };

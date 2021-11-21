@@ -11,14 +11,14 @@ public:
     Texture(float*, int, int);   // for red-only textures
     ~Texture();
 
-    unsigned int GetTexture() const;
+    unsigned int GetTextureID() const;
 
     int          GetWidth()   const;
     int          GetHeight()  const;
 
 private:
 
-    unsigned int m_texture;
+    unsigned int m_textureID;
     int          m_width;
     int          m_height;
 };

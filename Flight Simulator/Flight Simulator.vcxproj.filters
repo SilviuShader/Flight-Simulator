@@ -25,6 +25,9 @@
     <Filter Include="Resource Files\Assets">
       <UniqueIdentifier>{abb6cdb6-2e27-4c2c-a22c-8cd4dc361fbd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Assets\Skybox">
+      <UniqueIdentifier>{9ce550cb-5cd8-402c-baa2-250bba734007}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -63,6 +66,9 @@
     <ClCompile Include="Skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Cubemap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glad\glad.h">
@@ -99,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cubemap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -186,6 +195,24 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Skybox.vert">
       <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Skybox\back.jpg">
+      <Filter>Resource Files\Assets\Skybox</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Skybox\bottom.jpg">
+      <Filter>Resource Files\Assets\Skybox</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Skybox\front.jpg">
+      <Filter>Resource Files\Assets\Skybox</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Skybox\left.jpg">
+      <Filter>Resource Files\Assets\Skybox</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Skybox\right.jpg">
+      <Filter>Resource Files\Assets\Skybox</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Skybox\top.jpg">
+      <Filter>Resource Files\Assets\Skybox</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

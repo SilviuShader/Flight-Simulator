@@ -7,3 +7,7 @@ https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/perli
 http://rastertek.com/tutdx11s2ter.html
 
 https://learnopengl.com/ (Shader class)
+
+https://learnopengl.com/Advanced-OpenGL/Cubemaps
+
+https://www.cleanpng.com/png-space-skybox-texture-mapping-cube-mapping-night-sk-776480/

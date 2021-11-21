@@ -10,10 +10,25 @@ Skybox::Skybox()
 	CreateCubeBuffers();
 
 	m_skyboxShader = new Shader("Shaders/Skybox.vert", "Shaders/Skybox.frag");
+	m_cubemap = new Cubemap(
+	{
+		"Assets/Skybox/right.jpg",
+		"Assets/Skybox/left.jpg",
+		"Assets/Skybox/top.jpg",
+		"Assets/Skybox/bottom.jpg",
+		"Assets/Skybox/front.jpg",
+		"Assets/Skybox/back.jpg"
+	});
 }
 
 Skybox::~Skybox()
 {
+	if (m_cubemap)
+	{
+		delete m_cubemap;
+		m_cubemap = nullptr;
+	}
+
 	if (m_skyboxShader)
 	{
 		delete m_skyboxShader;
@@ -25,7 +40,7 @@ Skybox::~Skybox()
 
 void Skybox::Draw(Camera* camera)
 {
-	mat4 model      = translate(mat4(1.0f), camera->GetPosition()) * scale(mat4(1.0f), vec3(100.0f, 100.0f, 100.0f));
+	mat4 model      = translate(mat4(1.0f), camera->GetPosition()) * rotate(mat4(1.0f), -half_pi<float>(), vec3(1.0f, 0.0f, 0.0f)) * scale(mat4(1.0f), vec3(100.0f, 100.0f, 100.0f));
 	mat4 view       = camera->GetViewMatrix();
 	mat4 projection = camera->GetProjectionMatrix();
 
@@ -34,6 +49,8 @@ void Skybox::Draw(Camera* camera)
 	m_skyboxShader->SetMatrix4("Model", model);
 	m_skyboxShader->SetMatrix4("View", view);
 	m_skyboxShader->SetMatrix4("Projection", projection);
+
+	m_skyboxShader->SetCubemap("Skybox", m_cubemap, 0);
 
 	glBindVertexArray(m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);

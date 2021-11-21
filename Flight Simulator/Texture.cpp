@@ -9,8 +9,8 @@ using namespace std;
 
 Texture::Texture(const string& filename)
 {
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
+    glGenTextures(1, &m_textureID);
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -42,8 +42,8 @@ Texture::Texture(const string& filename)
     stbi_image_free(data);
 }
 
-Texture::Texture(unsigned int texture) :
-    m_texture(texture),
+Texture::Texture(unsigned int textureID) :
+    m_textureID(textureID),
     m_width(-1),
     m_height(-1)
 {
@@ -54,8 +54,8 @@ Texture::Texture(float* texData, int width, int height)
     m_width = width;
     m_height = height;
 
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
+    glGenTextures(1, &m_textureID);
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -68,12 +68,12 @@ Texture::Texture(float* texData, int width, int height)
 
 Texture::~Texture()
 {
-    glDeleteTextures(1, &m_texture);
+    glDeleteTextures(1, &m_textureID);
 }
 
-unsigned int Texture::GetTexture() const
+unsigned int Texture::GetTextureID() const
 {
-    return m_texture;
+    return m_textureID;
 }
 
 int Texture::GetWidth() const
