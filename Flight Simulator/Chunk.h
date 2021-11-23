@@ -8,7 +8,7 @@
 #include "Light.h"
 #include "Material.h"
 
-class Terrain
+class Chunk
 {
 private:
 
@@ -27,7 +27,7 @@ private:
 
 private:
 
-           const float TERRAIN_WIDTH         = 64.0;
+           const float CHUNK_WIDTH           = 64.0;
            const float TERRAIN_AMPLITUDE     = 75.0f;
 
            const float DISTANCE_FOR_DETAILS  = 64.0f;
@@ -41,14 +41,14 @@ private:
 
     static const int   COLORS_COUNT          = 5;
 
-    static const int   TERRAIN_GRID_WIDTH   = 128;
-    static const int   TERRAIN_GRID_HEIGHT  = 128;
+    static const int   CHUNK_GRID_WIDTH      = 128;
+    static const int   CHUNK_GRID_HEIGHT     = 128;
 
-    static const int   INDICES_COUNT        = TERRAIN_GRID_WIDTH * TERRAIN_GRID_HEIGHT * 6;
+    static const int   INDICES_COUNT        = CHUNK_GRID_WIDTH * CHUNK_GRID_HEIGHT * 6;
 public:
 
-    Terrain(PerlinNoise*);
-    ~Terrain();
+    Chunk(PerlinNoise*);
+    ~Chunk();
 
     void Draw(Light*, Camera*);
 
@@ -63,7 +63,7 @@ private:
     unsigned int           m_ebo;
     unsigned int           m_vao;
                            
-    Shader*                m_shader;
+    Shader*                m_terrainShader;
     PerlinNoise*           m_perlinNoise;
     RenderTexture*         m_renderTexture;
 

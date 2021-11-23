@@ -154,8 +154,9 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="stb_image.cpp" />
-    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -169,8 +170,9 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
-    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="Chunk.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="shaders\Terrain.frag">

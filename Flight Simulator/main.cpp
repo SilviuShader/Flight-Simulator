@@ -10,8 +10,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "stb_image.h"
 
+#include "World.h"
 #include "Skybox.h"
-#include "Terrain.h"
+#include "Chunk.h"
 #include "Camera.h"
 #include "Light.h"
 
@@ -24,13 +25,14 @@ constexpr auto WINDOW_HEIGHT = 720;
 float lastMouseX = WINDOW_WIDTH / 2.0f;
 float lastMouseY = WINDOW_HEIGHT / 2.0f;
 
-Camera* camera;
+World* g_world;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 
-    camera->UpdateWindowSize(width, height);
+    if (g_world)
+        g_world->UpdateWindowSize(width, height);
 }
 
 void mouse_callback(GLFWwindow* window, double posX, double posY)
@@ -40,7 +42,8 @@ void mouse_callback(GLFWwindow* window, double posX, double posY)
     lastMouseX = posX;
     lastMouseY = posY;
 
-    camera->ProcessMouseInput(diffX, diffY);
+    if (g_world)
+        g_world->ProcessMouseInput(diffX, diffY);
 }
 
 void processInput(GLFWwindow* window)
@@ -48,7 +51,8 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    camera->ProcessKeybaordInput(window);
+    if (g_world)
+        g_world->ProcessKeyboardInput(window);
 }
 
 int main(int argc, char const* argv[])
@@ -77,8 +81,6 @@ int main(int argc, char const* argv[])
 
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    camera = new Camera(radians(45.0f), (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT, 0.1f, 1000.0f);
-
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     stbi_set_flip_vertically_on_load(true);
@@ -105,16 +107,7 @@ int main(int argc, char const* argv[])
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     
-    PerlinNoise* perlinNoise = new PerlinNoise();
-    Light* light = new Light();
-
-    light->SetAmbientColor(vec4(0.75f, 0.75f, 0.75f, 1.0f));
-    light->SetDiffuseColor(vec4(0.8f, 0.8f, 0.9f, 1.0f));
-    //light->SetLightDirection(vec3(1.0f, 0.0f, 0.0f));
-
-    Skybox* skybox = new Skybox();
-
-    Terrain* terrain = new Terrain(perlinNoise);
+    g_world = new World(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -124,16 +117,15 @@ int main(int argc, char const* argv[])
         float deltaTime = currentTime - previousTime;
 
         processInput(window);
-        camera->Update(deltaTime);
+        g_world->Update(deltaTime);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, camera->GetWidth(), camera->GetHeight());
+        glViewport(0, 0, g_world->GetCamera()->GetWidth(), g_world->GetCamera()->GetHeight());
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        skybox->Draw(camera);
-        terrain->Draw(light, camera);
+        g_world->Draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -141,34 +133,10 @@ int main(int argc, char const* argv[])
         previousTime = currentTime;
     }
 
-    if (terrain)
+    if (g_world)
     {
-        delete terrain;
-        terrain = nullptr;
-    }
-
-    if (skybox)
-    {
-        delete skybox;
-        skybox = nullptr;
-    }
-
-    if (light)
-    {
-        delete light;
-        light = nullptr;
-    }
-
-    if (perlinNoise)
-    {
-        delete perlinNoise;
-        perlinNoise = nullptr;
-    }
-
-    if (camera)
-    {
-        delete camera;
-        camera = nullptr;
+        delete g_world;
+        g_world = nullptr;
     }
 
     glfwTerminate();

@@ -1,35 +1,35 @@
 #include <memory>
 #include "glad/glad.h"
 
-#include "Terrain.h"
+#include "Chunk.h"
 
 using namespace std;
 using namespace glm;
 
-Terrain::Vertex::Vertex() :
+Chunk::Vertex::Vertex() :
     Position(vec3(0.0f, 0.0f, 0.0f)),
     TexCoord(vec2(0.0f, 0.0f))
 {
 }
 
-Terrain::Vertex::Vertex(vec3 position, vec2 texCoord) :
+Chunk::Vertex::Vertex(vec3 position, vec2 texCoord) :
     Position(position),
     TexCoord(texCoord)
 {
 }
 
-Terrain::Terrain(PerlinNoise* perlinNoise) :
+Chunk::Chunk(PerlinNoise* perlinNoise) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
-    m_shader(nullptr),
+    m_terrainShader(nullptr),
     m_perlinNoise(perlinNoise),
     m_materials(vector<Material*>()),
     m_biomeMaterialsTexture(nullptr)
 {
     CreateTerrainBuffers();
 
-    m_shader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag", 
+    m_terrainShader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag",
         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 
     m_materials.push_back(new Material("Assets/snow_02_diff_1k.png", "Assets/snow_02_nor_gl_1k.png", "Assets/snow_02_spec_1k.png"));
@@ -61,10 +61,10 @@ Terrain::Terrain(PerlinNoise* perlinNoise) :
         biomesData = nullptr;
     }
 
-    m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(TERRAIN_WIDTH, TERRAIN_WIDTH));
+    m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(CHUNK_WIDTH, CHUNK_WIDTH));
 }
 
-Terrain::~Terrain()
+Chunk::~Chunk()
 {
     if (m_renderTexture)
     {
@@ -89,16 +89,16 @@ Terrain::~Terrain()
     
     m_materials.clear();
     
-    if (m_shader)
+    if (m_terrainShader)
     {
-        delete m_shader;
-        m_shader = nullptr;
+        delete m_terrainShader;
+        m_terrainShader = nullptr;
     }
 
     FreeTerrainBuffers();
 }
 
-void Terrain::Draw(Light* light, Camera* camera)
+void Chunk::Draw(Light* light, Camera* camera)
 {
     vec3 cameraPosition = camera->GetPosition();
 
@@ -106,48 +106,48 @@ void Terrain::Draw(Light* light, Camera* camera)
     mat4 view       = camera->GetViewMatrix();
     mat4 projection = camera->GetProjectionMatrix();
     
-    m_shader->Use();
+    m_terrainShader->Use();
 
-    m_shader->SetMatrix4("Model", model);
+    m_terrainShader->SetMatrix4("Model", model);
 
-    m_shader->SetVec3("CameraPosition", cameraPosition);
-    m_shader->SetFloat("DistanceForDetails", DISTANCE_FOR_DETAILS);
-    m_shader->SetFloat("TessellationLevel", MAX_TESSELATION);
+    m_terrainShader->SetVec3("CameraPosition", cameraPosition);
+    m_terrainShader->SetFloat("DistanceForDetails", DISTANCE_FOR_DETAILS);
+    m_terrainShader->SetFloat("TessellationLevel", MAX_TESSELATION);
 
-    m_shader->SetTexture("NoiseTexture", m_renderTexture->GetTexture(), 0);
-    m_shader->SetMatrix4("View", view);
-    m_shader->SetMatrix4("Projection", projection);
+    m_terrainShader->SetTexture("NoiseTexture", m_renderTexture->GetTexture(), 0);
+    m_terrainShader->SetMatrix4("View", view);
+    m_terrainShader->SetMatrix4("Projection", projection);
 
-    m_shader->SetFloat("TerrainWidth", TERRAIN_WIDTH);
-    m_shader->SetFloat("GridWidth", TERRAIN_GRID_WIDTH);
-    m_shader->SetFloat("GridHeight", TERRAIN_GRID_HEIGHT);
-    m_shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
+    m_terrainShader->SetFloat("TerrainWidth", CHUNK_WIDTH);
+    m_terrainShader->SetFloat("GridWidth", CHUNK_GRID_WIDTH);
+    m_terrainShader->SetFloat("GridHeight", CHUNK_GRID_HEIGHT);
+    m_terrainShader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
 
-    m_shader->SetFloat("Gamma", GAMMA);
+    m_terrainShader->SetFloat("Gamma", GAMMA);
 
-    m_shader->SetVec4("AmbientColor", light->GetAmbientColor());
-    m_shader->SetVec4("DiffuseColor", light->GetDiffuseColor());
-    m_shader->SetVec3("LightDirection", light->GetLightDirection());
-    m_shader->SetFloat("SpecularPower", light->GetSpecularPower());
+    m_terrainShader->SetVec4("AmbientColor", light->GetAmbientColor());
+    m_terrainShader->SetVec4("DiffuseColor", light->GetDiffuseColor());
+    m_terrainShader->SetVec3("LightDirection", light->GetLightDirection());
+    m_terrainShader->SetFloat("SpecularPower", light->GetSpecularPower());
 
-    m_shader->SetVec3("CameraPosition", camera->GetPosition());
+    m_terrainShader->SetVec3("CameraPosition", camera->GetPosition());
 
-    m_shader->SetInt("BiomesCount", BIOMES_COUNT);
-    m_shader->SetInt("MaterialsPerBiome", MATERIALS_PER_BIOME);
+    m_terrainShader->SetInt("BiomesCount", BIOMES_COUNT);
+    m_terrainShader->SetInt("MaterialsPerBiome", MATERIALS_PER_BIOME);
 
-    m_shader->SetTexture("BiomeMaterialsTexture", m_biomeMaterialsTexture, 1);
+    m_terrainShader->SetTexture("BiomeMaterialsTexture", m_biomeMaterialsTexture, 1);
 
-    m_shader->SetMaterials("TerrainTextures", "TerrainNormalTextures", "TerrainSpecularTextures", m_materials, 2);
+    m_terrainShader->SetMaterials("TerrainTextures", "TerrainNormalTextures", "TerrainSpecularTextures", m_materials, 2);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
 }
 
-void Terrain::CreateTerrainBuffers()
+void Chunk::CreateTerrainBuffers()
 {
-    constexpr int verticesWidth = TERRAIN_GRID_WIDTH + 1;
-    constexpr int verticesHeight = TERRAIN_GRID_HEIGHT + 1;
+    constexpr int verticesWidth = CHUNK_GRID_WIDTH + 1;
+    constexpr int verticesHeight = CHUNK_GRID_HEIGHT + 1;
 
     constexpr int verticesCount = verticesWidth * verticesHeight;
 
@@ -160,7 +160,7 @@ void Terrain::CreateTerrainBuffers()
             float adjustedI = (i - ((float)(verticesWidth - 1) / 2.0f)) / (float)(verticesWidth - 1);
             float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
 
-            vec2 planePosition = vec2(adjustedJ * TERRAIN_WIDTH, adjustedI * TERRAIN_WIDTH);
+            vec2 planePosition = vec2(adjustedJ * CHUNK_WIDTH, adjustedI * CHUNK_WIDTH);
 
             vertices[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
             vertices[i * verticesWidth + j].TexCoord = vec2(j * TEX_COORDS_MULTIPLIER, verticesHeight - i * TEX_COORDS_MULTIPLIER - 1);
@@ -171,9 +171,9 @@ void Terrain::CreateTerrainBuffers()
 
     int indicesIndex = 0;
 
-    for (int i = 0; i < TERRAIN_GRID_HEIGHT; i++)
+    for (int i = 0; i < CHUNK_GRID_HEIGHT; i++)
     {
-        for (int j = 0; j < TERRAIN_GRID_WIDTH; j++)
+        for (int j = 0; j < CHUNK_GRID_WIDTH; j++)
         {
             int pivot = i * verticesWidth + j;
             int right = i * verticesHeight + j + 1;
@@ -223,7 +223,7 @@ void Terrain::CreateTerrainBuffers()
     }
 }
 
-void Terrain::FreeTerrainBuffers()
+void Chunk::FreeTerrainBuffers()
 {
     glBindVertexArray(m_vao);
 
