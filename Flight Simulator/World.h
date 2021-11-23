@@ -16,6 +16,11 @@ private:
 		inline void DiamondHands() const { std::cout << "NO CELL NO SELL" << std::endl; }
 	};
 
+private:
+
+	static const int BIOMES_COUNT        = 2;
+	static const int MATERIALS_PER_BIOME = 4;
+
 public:
 
 	World(int, int);
@@ -32,11 +37,21 @@ public:
 
 private:
 
-	Light*       m_light;  // lights
-	Camera*      m_camera; // camera
-	GME*         m_moass;  // ACTION! 
+	void CreateTerrainObjects();
+	void FreeTerrainObjects();
 
-	Skybox*      m_skybox;
-	PerlinNoise* m_noise;
-	Chunk*       m_chunk;
+private:
+
+	Light*  m_light;  // lights
+	Camera* m_camera; // camera
+	GME*    m_moass;  // ACTION! 
+
+	Skybox* m_skybox;
+	Chunk*  m_chunk;
+
+	// Terrain objects
+	PerlinNoise*           m_noise;
+	Shader*                m_terrainShader;
+	std::vector<Material*> m_terrainMaterials;
+	Texture*               m_terrainBiomesData;
 };

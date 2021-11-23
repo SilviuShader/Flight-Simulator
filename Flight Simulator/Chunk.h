@@ -36,9 +36,6 @@ private:
 
            const float GAMMA                 = 1.0f;
 
-           const float BIOMES_COUNT          = 2;
-           const float MATERIALS_PER_BIOME   = 4;
-
     static const int   COLORS_COUNT          = 5;
 
     static const int   CHUNK_GRID_WIDTH      = 128;
@@ -47,10 +44,10 @@ private:
     static const int   INDICES_COUNT        = CHUNK_GRID_WIDTH * CHUNK_GRID_HEIGHT * 6;
 public:
 
-    Chunk(PerlinNoise*);
+    Chunk(PerlinNoise*, Shader*);
     ~Chunk();
 
-    void Draw(Light*, Camera*);
+    void Draw(Light*, Camera*, const std::vector<Material*>&, Texture*);
 
 private:
 
@@ -66,7 +63,4 @@ private:
     Shader*                m_terrainShader;
     PerlinNoise*           m_perlinNoise;
     RenderTexture*         m_renderTexture;
-
-    std::vector<Material*> m_materials;
-    Texture*               m_biomeMaterialsTexture;
 };
