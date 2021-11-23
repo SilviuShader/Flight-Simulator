@@ -17,7 +17,7 @@ World::World(int windowWidth, int windowHeight) :
 
 	CreateTerrainObjects();
 
-	m_chunk  = new Chunk(m_noise, m_terrainShader);
+	m_chunk  = new Chunk(m_noise, m_terrainShader, make_pair(0, 0));
 }
 
 World::~World()

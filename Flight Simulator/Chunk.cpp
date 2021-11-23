@@ -1,4 +1,5 @@
 #include <memory>
+#include <glm/ext/matrix_transform.hpp>
 #include "glad/glad.h"
 
 #include "Chunk.h"
@@ -18,16 +19,19 @@ Chunk::Vertex::Vertex(vec3 position, vec2 texCoord) :
 {
 }
 
-Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader) :
+Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
     m_terrainShader(terrainShader),
-    m_perlinNoise(perlinNoise)
+    m_perlinNoise(perlinNoise),
+    m_chunkID(chunkID)
 {
     CreateTerrainBuffers();
 
-    m_renderTexture = m_perlinNoise->RenderNoise(vec2(0.0f, 0.0f), vec2(CHUNK_WIDTH, CHUNK_WIDTH));
+    vec3 translation = GetTranslation();
+    m_renderTexture = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f), 
+                                                 vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f));
 }
 
 Chunk::~Chunk()
@@ -45,7 +49,7 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
 {
     vec3 cameraPosition = camera->GetPosition();
 
-    mat4 model      = mat4(1.0f);
+    mat4 model      = translate(mat4(1.0f), GetTranslation());
     mat4 view       = camera->GetViewMatrix();
     mat4 projection = camera->GetProjectionMatrix();
     
@@ -85,6 +89,20 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+}
+
+vector<pair<int, int>> Chunk::GetNeighbours()
+{
+    vector<pair<int, int>> result;
+
+    int dx[] = { -1, 0, 1, 0 };
+    int dy[] = { 0, -1, 0, 1 };
+    int dirCount = sizeof(dx) / sizeof(int);
+
+    for (int i = 0; i < dirCount; i++)
+        result.push_back(make_pair(m_chunkID.first + dx[i], m_chunkID.second + dy[i]));
+
+    return result;
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -181,4 +199,9 @@ void Chunk::FreeTerrainBuffers()
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &m_vao);
+}
+
+glm::vec3 Chunk::GetTranslation() const
+{
+    return vec3(m_chunkID.first * CHUNK_WIDTH, 0.0f, m_chunkID.second * CHUNK_WIDTH);
 }

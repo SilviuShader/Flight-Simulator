@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <utility>
 
 #include "Shader.h"
 #include "PerlinNoise.h"
@@ -42,19 +43,26 @@ private:
     static const int   CHUNK_GRID_HEIGHT     = 128;
 
     static const int   INDICES_COUNT        = CHUNK_GRID_WIDTH * CHUNK_GRID_HEIGHT * 6;
+
 public:
 
-    Chunk(PerlinNoise*, Shader*);
+    Chunk(PerlinNoise*, Shader*, std::pair<int, int>);
     ~Chunk();
 
-    void Draw(Light*, Camera*, const std::vector<Material*>&, Texture*);
+    void                             Draw(Light*, Camera*, const std::vector<Material*>&, Texture*);
+
+    std::vector<std::pair<int, int>> GetNeighbours();
 
 private:
 
-    void CreateTerrainBuffers();
-    void FreeTerrainBuffers();
+    void      CreateTerrainBuffers();
+    void      FreeTerrainBuffers();
+
+    glm::vec3 GetTranslation() const;
 
 private:
+
+    std::pair<int, int>    m_chunkID;
 
     unsigned int           m_vbo;
     unsigned int           m_ebo;
