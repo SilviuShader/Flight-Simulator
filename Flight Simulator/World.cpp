@@ -1,3 +1,5 @@
+#include <queue>
+#include <unordered_set>
 #include <glm/glm.hpp>
 
 #include "World.h"
@@ -16,17 +18,20 @@ World::World(int windowWidth, int windowHeight) :
 	m_skybox = new Skybox();
 
 	CreateTerrainObjects();
-
-	m_chunk  = new Chunk(m_noise, m_terrainShader, make_pair(0, 0));
 }
 
 World::~World()
 {
-	if (m_chunk)
+	for (auto& keyVal : m_chunks)
 	{
-		delete m_chunk;
-		m_chunk = nullptr;
+		if (keyVal.second)
+		{
+			delete keyVal.second;
+			keyVal.second = nullptr;
+		}
 	}
+
+	m_chunks.clear();
 
 	FreeTerrainObjects();
 
@@ -67,12 +72,16 @@ void World::ProcessKeyboardInput(GLFWwindow* window)
 void World::Update(float deltaTime)
 {
 	m_camera->Update(deltaTime);
+
+	UpdateChunks();
 }
 
 void World::Draw()
 {
 	m_skybox->Draw(m_camera);
-	m_chunk->Draw(m_light, m_camera, m_terrainMaterials, m_terrainBiomesData);
+
+	for (auto& keyVal : m_chunks)
+		keyVal.second->Draw(m_light, m_camera, m_terrainMaterials, m_terrainBiomesData);
 }
 
 Camera* World::GetCamera() const
@@ -147,5 +156,66 @@ void World::FreeTerrainObjects()
 	{
 		delete m_noise;
 		m_noise = nullptr;
+	}
+}
+
+void World::UpdateChunks()
+{
+	vec3 cameraPos = m_camera->GetPosition();
+	vec3 cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f, 0.0f, (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
+
+	pair<int, int> currentID = make_pair(int(cameraChunkOrigin.x / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)),
+		int(cameraChunkOrigin.z / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
+
+	queue<pair<int, int>> exploreChunksQueue;
+	unordered_set<pair<int, int>, HashPair> targetChunks;
+	exploreChunksQueue.push(currentID);
+	targetChunks.insert(currentID);
+
+	while (targetChunks.size() < MAX_CHUNKS)
+	{
+		pair<int, int> currentChunk = exploreChunksQueue.front();
+		exploreChunksQueue.pop();
+
+		int dx[] = { -1, 0, 1, 0 };
+		int dy[] = { 0, -1, 0, 1 };
+		int dirCount = sizeof(dx) / sizeof(int);
+		for (int i = 0; i < dirCount; i++)
+		{
+			if (targetChunks.size() >= MAX_CHUNKS)
+				break;
+
+			pair<int, int> neighbour = make_pair(currentChunk.first + dx[i], currentChunk.second + dy[i]);
+			if (targetChunks.find(neighbour) == targetChunks.end())
+			{
+				targetChunks.insert(neighbour);
+				exploreChunksQueue.push(neighbour);
+			}
+		}
+	}
+
+	vector<pair<int, int>> toErase;
+
+	for (auto& keyVal : m_chunks)
+	{
+		if (targetChunks.find(keyVal.first) == targetChunks.end())
+		{
+			delete keyVal.second;
+			keyVal.second = nullptr;
+
+			toErase.push_back(keyVal.first);
+		}
+	}
+
+	for (auto& id : toErase)
+		m_chunks.erase(id);
+
+	for (auto& targetChunk : targetChunks)
+	{
+		if (m_chunks.find(targetChunk) == m_chunks.end())
+		{
+			Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk);
+			m_chunks[targetChunk] = chunk;
+		}
 	}
 }

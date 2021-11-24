@@ -7,6 +7,9 @@
 using namespace std;
 using namespace glm;
 
+const float Chunk::CHUNK_WIDTH      = 64.0f;
+const float Chunk::CHUNK_CLOSE_BIAS = 1.0f;
+
 Chunk::Vertex::Vertex() :
     Position(vec3(0.0f, 0.0f, 0.0f)),
     TexCoord(vec2(0.0f, 0.0f))
@@ -30,8 +33,8 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     CreateTerrainBuffers();
 
     vec3 translation = GetTranslation();
-    m_renderTexture = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f), 
-                                                 vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f));
+    m_renderTexture = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f), 
+                                                 vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f));
 }
 
 Chunk::~Chunk()
@@ -89,20 +92,6 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
-}
-
-vector<pair<int, int>> Chunk::GetNeighbours()
-{
-    vector<pair<int, int>> result;
-
-    int dx[] = { -1, 0, 1, 0 };
-    int dy[] = { 0, -1, 0, 1 };
-    int dirCount = sizeof(dx) / sizeof(int);
-
-    for (int i = 0; i < dirCount; i++)
-        result.push_back(make_pair(m_chunkID.first + dx[i], m_chunkID.second + dy[i]));
-
-    return result;
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -203,5 +192,5 @@ void Chunk::FreeTerrainBuffers()
 
 glm::vec3 Chunk::GetTranslation() const
 {
-    return vec3(m_chunkID.first * CHUNK_WIDTH, 0.0f, m_chunkID.second * CHUNK_WIDTH);
+    return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
 }
