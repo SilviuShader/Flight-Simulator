@@ -10,7 +10,6 @@ private:
     const float CAMERA_MOVE_SPEED        = 10.0f;
     const float CAMERA_ROTATE_SPEED      = 0.001f;
     const float MINIMUM_TRANSLATION_BIAS = 0.01f;
-    const float CAMERA_LOOK_DOWN_BIAS    = 0.001f;
 
 public:
 
@@ -28,6 +27,15 @@ public:
 
     float     GetWidth()            const;
     float     GetHeight()           const;
+    float     GetAspectRatio()      const;
+    float     GetFieldOfViewY()     const;
+
+    float     GetNear()             const;
+    float     GetFar()              const;
+
+    glm::vec3 GetForward()          const;
+    glm::vec3 GetRight()            const;
+    glm::vec3 GetUp()               const;
 
 private:
 
@@ -36,12 +44,16 @@ private:
 
 private:
 
-    float     m_fieldOfView;
+    float     m_fieldOfViewY;
     float     m_near;
     float     m_far;
 
     glm::vec3 m_position;
     glm::vec3 m_rotation;
+
+    glm::vec3 m_forward;
+    glm::vec3 m_right;
+    glm::vec3 m_up;
 
     glm::mat4 m_viewMatrix;
     glm::mat4 m_projectionMatrix;

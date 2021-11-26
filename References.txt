@@ -13,3 +13,5 @@ https://learnopengl.com/Advanced-OpenGL/Cubemaps
 https://www.cleanpng.com/png-space-skybox-texture-mapping-cube-mapping-night-sk-776480/
 
 https://www.geeksforgeeks.org/how-to-create-an-unordered_map-of-pairs-in-c/
+
+https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling

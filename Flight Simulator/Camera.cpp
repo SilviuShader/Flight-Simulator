@@ -6,7 +6,7 @@
 
 using namespace glm;
 
-Camera::Camera(float fieldOfView, float width, float height, float near, float far) :
+Camera::Camera(float fieldOfViewY, float width, float height, float near, float far) :
     m_position(vec3(0.0f, 10.0f, 0.0f)),
     m_rotation(vec3(0.0f, 0.0f, 0.0f)),
     m_width(width),
@@ -15,26 +15,29 @@ Camera::Camera(float fieldOfView, float width, float height, float near, float f
     m_leftPressed(false),
     m_downPressed(false),
     m_rightPressed(false),
-    m_fieldOfView(fieldOfView),
+    m_fieldOfViewY(fieldOfViewY),
     m_near(near),
-    m_far(far)
+    m_far(far),
+    m_forward(vec3(0.0f, 0.0f, -1.0f)),
+    m_right(vec3(1.0f, 0.0f, 0.0f)),
+    m_up(vec3(0.0f, 1.0f, 0.0f))
 {
-    m_projectionMatrix = perspective(fieldOfView, width / height, near, far);
+    m_projectionMatrix = perspective(fieldOfViewY, width / height, near, far);
     UpdateViewMatrix();
 }
 
 void Camera::ProcessKeybaordInput(GLFWwindow* window)
 {
-    m_upPressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
-    m_leftPressed = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
-    m_downPressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
+    m_upPressed    = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
+    m_leftPressed  = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
+    m_downPressed  = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
     m_rightPressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
 }
 
 void Camera::ProcessMouseInput(float diffX, float diffY)
 {
-    m_rotation.x -= diffY * CAMERA_ROTATE_SPEED;
-    m_rotation.y -= diffX * CAMERA_ROTATE_SPEED;
+    m_rotation.x += diffY * CAMERA_ROTATE_SPEED;
+    m_rotation.y += diffX * CAMERA_ROTATE_SPEED;
 
     constexpr float halfPi = half_pi<float>();
 
@@ -50,7 +53,7 @@ void Camera::UpdateWindowSize(float width, float height)
 {
     m_width = width;
     m_height = height;
-    m_projectionMatrix = perspective(m_fieldOfView, width / height, m_near, m_far);
+    m_projectionMatrix = perspective(m_fieldOfViewY, width / height, m_near, m_far);
 }
 
 void Camera::Update(float deltaTime)
@@ -90,7 +93,7 @@ void Camera::Update(float deltaTime)
     if (length(translation) < MINIMUM_TRANSLATION_BIAS)
         return;
 
-    vec4 transformedTranslation = rotationMatrix * translation;
+    vec4 transformedTranslation = translation * rotationMatrix;
     vec4 normalizedTranslation = normalize(transformedTranslation);
 
     m_position += vec3(normalizedTranslation.x, normalizedTranslation.y, normalizedTranslation.z) * deltaTime * CAMERA_MOVE_SPEED;
@@ -123,31 +126,67 @@ float Camera::GetHeight() const
     return m_height;
 }
 
+float Camera::GetAspectRatio() const
+{
+    return m_width / m_height;
+}
+
+float Camera::GetFieldOfViewY() const
+{
+    return m_fieldOfViewY;
+}
+
+float Camera::GetNear() const
+{
+    return m_near;
+}
+
+float Camera::GetFar() const
+{
+    return m_far;
+}
+
+glm::vec3 Camera::GetForward() const
+{
+    return m_forward;
+}
+
+glm::vec3 Camera::GetRight() const
+{
+    return m_right;
+}
+
+glm::vec3 Camera::GetUp() const
+{
+    return m_up;
+}
+
 mat4 Camera::GetRotationMatrix()
 {
     mat4 rotationMatrix = mat4(1.0f);
-    rotationMatrix = rotate(rotationMatrix, m_rotation.z, vec3(0.0f, 0.0f, 1.0f));
-    rotationMatrix = rotate(rotationMatrix, m_rotation.y, vec3(0.0f, 1.0f, 0.0f));
-    rotationMatrix = rotate(rotationMatrix, m_rotation.x, vec3(1.0f, 0.0f, 0.0f));
 
+    rotationMatrix = rotate(rotationMatrix, m_rotation.x, vec3(1.0f, 0.0f, 0.0f));
+    rotationMatrix = rotate(rotationMatrix, m_rotation.y, vec3(0.0f, 1.0f, 0.0f));
+    rotationMatrix = rotate(rotationMatrix, m_rotation.z, vec3(0.0f, 0.0f, 1.0f));
+    
     return rotationMatrix;
 }
 
 void Camera::UpdateViewMatrix()
 {
     vec4 forward = vec4(0.0f, 0.0f, -1.0f, 0.0f);
+    vec4 right   = vec4(1.0f, 0.0f, 0.0f,  0.0f);
+    vec4 up      = vec4(0.0f, 1.0f, 0.0f,  0.0f);
 
     mat4 rotationMatrix = GetRotationMatrix();
-    forward = rotationMatrix * forward;
-
-    vec3 forwardVec = vec3(forward.x, forward.y, forward.z);
-    forwardVec = normalize(forwardVec);
     
-    float yDot = dot(forwardVec, vec3(0.0f, 1.0f, 0.0f));
-    vec3 right = normalize(cross(forwardVec, vec3(0.0f, 1.0f, 0.0f)));
-    vec3 up = normalize(cross(right, forwardVec));
-    if (abs(yDot) >= 1.0f - CAMERA_LOOK_DOWN_BIAS)
-        up = vec3(sinf(m_rotation.y + pi<float>()), 0.0f, cosf(m_rotation.y + pi<float>()));
+    forward = forward * rotationMatrix;
+    right   = right   * rotationMatrix;
+    up      = up      * rotationMatrix;
 
-    m_viewMatrix = lookAt(m_position, m_position + forwardVec, up);
+    m_forward = normalize(vec3(forward.x, forward.y, forward.z));
+    m_right   = normalize(vec3(right.x,   right.y,   right.z));
+    m_up      = normalize(vec3(up.x,      up.y,      up.z));
+    
+    m_viewMatrix = lookAt(m_position, m_position + m_forward, m_up);
 }

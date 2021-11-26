@@ -103,9 +103,10 @@ void World::CreateTerrainObjects()
 	m_terrainMaterials.push_back(new Material("Assets/snow_field_aerial_col_1k.png", "Assets/snow_field_aerial_nor_gl_1k.png"));
 	m_terrainMaterials.push_back(new Material("Assets/snow_03_diff_1k.png", "Assets/snow_03_nor_gl_1k.png", "Assets/snow_03_spec_1k.png"));
 
-	float materialsCount = m_terrainMaterials.size() - 1;
-	constexpr auto biomesDataSize = BIOMES_COUNT * MATERIALS_PER_BIOME;
-	float* biomesData    = new float[biomesDataSize];
+	constexpr auto   biomesDataSize = BIOMES_COUNT * MATERIALS_PER_BIOME;
+	          float  materialsCount = m_terrainMaterials.size() - 1;
+	          float* biomesData     = new float[biomesDataSize];
+
 	biomesData[0] = 2.0f / materialsCount;
 	biomesData[1] = 3.0f / materialsCount;
 
