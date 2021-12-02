@@ -14,6 +14,8 @@ public:
 		Plane(glm::vec3 = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 = glm::vec3(0.0f, 1.0f, 0.0f));
 
+		float GetSignedDistanceToPlane(const glm::vec3&);
+
 	public:
 
 		glm::vec3 Normal;
@@ -32,6 +34,29 @@ public:
 
 		Plane FarFace;
 		Plane NearFace;
+	};
+
+	struct BoundingVolume
+	{
+	public:
+
+		virtual bool IsOnFrustum(const Frustum&) const = 0;
+	};
+
+	struct AABB : public BoundingVolume
+	{
+	public:
+
+		AABB(const glm::vec3&, const glm::vec3&);
+		AABB(const glm::vec3&, float, float, float);
+
+		bool IsOnFrustum(const Frustum&)      const override;
+		bool IsOnOrForwardPlane(const Plane&) const;
+
+	public:
+
+		glm::vec3 Center;
+		glm::vec3 Extents;
 	};
 
 public:

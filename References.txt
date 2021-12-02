@@ -15,3 +15,5 @@ https://www.cleanpng.com/png-space-skybox-texture-mapping-cube-mapping-night-sk-
 https://www.geeksforgeeks.org/how-to-create-an-unordered_map-of-pairs-in-c/
 
 https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling
+
+https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
