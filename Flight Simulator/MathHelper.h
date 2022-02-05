@@ -47,6 +47,7 @@ public:
 	{
 	public:
 
+		AABB();
 		AABB(const glm::vec3&, const glm::vec3&);
 		AABB(const glm::vec3&, float, float, float);
 
@@ -61,5 +62,5 @@ public:
 
 public:
 
-	Frustum GetCameraFrustum(Camera*);
+	static Frustum GetCameraFrustum(Camera*);
 };

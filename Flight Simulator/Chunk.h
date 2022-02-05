@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "Light.h"
 #include "Material.h"
+#include "MathHelper.h"
 
 class Chunk
 {
@@ -38,10 +39,11 @@ private:
 
     public:
 
-        Node*     Children[CHILDREN_COUNT];
-        bool      IsLeaf;
-        glm::vec2 BottomLeft;
-        glm::vec2 TopRight;
+        Node*            Children[CHILDREN_COUNT];
+        bool             IsLeaf;
+        glm::vec2        BottomLeft;
+        glm::vec2        TopRight;
+        MathHelper::AABB BoundingBox;
     };
 
 public:
@@ -80,7 +82,7 @@ private:
     void      FreeTerrainBuffers();
 
     void      BuildQuadTree();
-    void      DrawNode(Node*);
+    void      DrawNode(const MathHelper::Frustum&, Node*);
 
     glm::vec3 GetTranslation() const;
 

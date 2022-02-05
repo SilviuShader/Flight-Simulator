@@ -5,13 +5,19 @@ using namespace glm;
 
 MathHelper::Plane::Plane(vec3 pointOnPlane, vec3 normal) :
 	Normal(normal),
-	Distance(-dot(normal, pointOnPlane))
+	Distance(dot(normal, pointOnPlane))
 {
 }
 
 float MathHelper::Plane::GetSignedDistanceToPlane(const vec3& point) const
 {
 	return dot(Normal, point) - Distance;
+}
+
+MathHelper::AABB::AABB() :
+	Center(vec3(0.0f, 0.0f, 0.0f)),
+	Extents(vec3(0.0f, 0.0f, 0.0f))
+{
 }
 
 MathHelper::AABB::AABB(const vec3& min, const vec3& max) :
@@ -60,7 +66,7 @@ MathHelper::Frustum MathHelper::GetCameraFrustum(Camera* camera)
 
 	vec3 farForward      = cameraForward * cameraFar;
 
-	float halfVertical   = tanf(camera->GetFieldOfViewY()) * cameraFar;
+	float halfVertical   = tanf(camera->GetFieldOfViewY() * 0.5f) * cameraFar;
 	float halfHorizontal = camera->GetAspectRatio() * halfVertical;
 
 	result.NearFace   = Plane(cameraPosition + cameraForward * cameraNear,     cameraForward);

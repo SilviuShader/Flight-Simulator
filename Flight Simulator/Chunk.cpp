@@ -113,7 +113,7 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    DrawNode(m_quadTree);
+    DrawNode(MathHelper::GetCameraFrustum(camera), m_quadTree);
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -217,8 +217,11 @@ void Chunk::BuildQuadTree()
     m_quadTree = CreateNode(0, vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), vec2(CHUNK_WIDTH / 2.0f, CHUNK_WIDTH / 2.0f));
 }
 
-void Chunk::DrawNode(Node* node)
+void Chunk::DrawNode(const MathHelper::Frustum& frustum, Node* node)
 {
+    if (!node->BoundingBox.IsOnFrustum(frustum))
+        return;
+    
     if (node->IsLeaf)
     {
         m_terrainShader->SetVec2("BottomLeft", node->BottomLeft);
@@ -228,7 +231,7 @@ void Chunk::DrawNode(Node* node)
     else
     {
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
-            DrawNode(node->Children[i]);
+            DrawNode(frustum, node->Children[i]);
     }
 }
 
@@ -246,6 +249,11 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
     result->BottomLeft = bottomLeft;
     result->TopRight   = topRight;
+
+    vec3 boundingBoxCenter = vec3((bottomLeft.x + topRight.x) * 0.5f, 0.0f, (bottomLeft.y + topRight.y) * 0.5f) + GetTranslation();
+    vec3 boundingBoxExtents = vec3((topRight.x - bottomLeft.x) * 0.5f, TERRAIN_AMPLITUDE, (topRight.y - bottomLeft.y) * 0.5f);
+
+    result->BoundingBox = MathHelper::AABB(boundingBoxCenter, boundingBoxExtents.x, boundingBoxExtents.y, boundingBoxExtents.z);
 
     if (depth == QUAD_TREE_DEPTH - 1)
     {
