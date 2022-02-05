@@ -1,5 +1,6 @@
 #include "MathHelper.h"
 
+using namespace std;
 using namespace glm;
 
 MathHelper::Plane::Plane(vec3 pointOnPlane, vec3 normal) :
@@ -8,7 +9,7 @@ MathHelper::Plane::Plane(vec3 pointOnPlane, vec3 normal) :
 {
 }
 
-float MathHelper::Plane::GetSignedDistanceToPlane(const vec3& point)
+float MathHelper::Plane::GetSignedDistanceToPlane(const vec3& point) const
 {
 	return dot(Normal, point) - Distance;
 }
@@ -39,7 +40,11 @@ bool MathHelper::AABB::IsOnFrustum(const Frustum& frustum) const
 
 bool MathHelper::AABB::IsOnOrForwardPlane(const Plane& plane) const
 {
-	return true;
+	const float r = Extents.x * abs(plane.Normal.x) +
+		            Extents.y * abs(plane.Normal.y) +
+					Extents.z * abs(plane.Normal.z);
+
+	return -r <= plane.GetSignedDistanceToPlane(Center);
 }
 
 MathHelper::Frustum MathHelper::GetCameraFrustum(Camera* camera)

@@ -34,7 +34,7 @@ public:
 private:
            const float TERRAIN_AMPLITUDE     = 75.0f;
 
-           const float DISTANCE_FOR_DETAILS  = 64.0f;
+           const float DISTANCE_FOR_DETAILS  = 256.0f;
            const float MAX_TESSELATION       = 10.0f;
            const float TEX_COORDS_MULTIPLIER = 0.2f;
 

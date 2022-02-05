@@ -107,14 +107,14 @@ void World::CreateTerrainObjects()
 	          float  materialsCount = m_terrainMaterials.size() - 1;
 	          float* biomesData     = new float[biomesDataSize];
 
-	biomesData[0] = 2.0f / materialsCount;
+	biomesData[0] = 0.0f / materialsCount;
 	biomesData[1] = 3.0f / materialsCount;
 
-	biomesData[2] = 1.0f / materialsCount;
-	biomesData[3] = 5.0f / materialsCount;
+	biomesData[2] = 0.0f / materialsCount;
+	biomesData[3] = 2.0f / materialsCount;
 
-	biomesData[4] = 5.0f / materialsCount;
-	biomesData[5] = 1.0f / materialsCount;
+	biomesData[4] = 0.0f / materialsCount;
+	biomesData[5] = 0.0f / materialsCount;
 
 	biomesData[6] = 0.0f / materialsCount;
 	biomesData[7] = 4.0f / materialsCount;
