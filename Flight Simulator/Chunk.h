@@ -26,6 +26,24 @@ private:
         glm::vec2 TexCoord;
     };
 
+    struct Node
+    {
+    public:
+
+        static const int CHILDREN_COUNT = 4;
+
+    public:
+
+        ~Node();
+
+    public:
+
+        Node*     Children[CHILDREN_COUNT];
+        bool      IsLeaf;
+        glm::vec2 BottomLeft;
+        glm::vec2 TopRight;
+    };
+
 public:
 
     static const float CHUNK_WIDTH;
@@ -42,8 +60,10 @@ private:
 
     static const int   COLORS_COUNT          = 5;
 
-    static const int   CHUNK_GRID_WIDTH      = 64;
-    static const int   CHUNK_GRID_HEIGHT     = 64;
+    static const int   CHUNK_GRID_WIDTH      = 10;
+    static const int   CHUNK_GRID_HEIGHT     = 10;
+
+    static const int   QUAD_TREE_DEPTH       = 4;
 
     static const int   INDICES_COUNT        = CHUNK_GRID_WIDTH * CHUNK_GRID_HEIGHT * 6;
 
@@ -59,7 +79,14 @@ private:
     void      CreateTerrainBuffers();
     void      FreeTerrainBuffers();
 
+    void      BuildQuadTree();
+    void      DrawNode(Node*);
+
     glm::vec3 GetTranslation() const;
+
+private:
+
+    Node* CreateNode(int, const glm::vec2&, const glm::vec2&);
 
 private:
 
@@ -72,4 +99,6 @@ private:
     Shader*                m_terrainShader;
     PerlinNoise*           m_perlinNoise;
     RenderTexture*         m_renderTexture;
+
+    Node*                  m_quadTree;
 };

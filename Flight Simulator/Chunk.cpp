@@ -22,23 +22,45 @@ Chunk::Vertex::Vertex(vec3 position, vec2 texCoord) :
 {
 }
 
+Chunk::Node::~Node()
+{
+    if (IsLeaf)
+        return;
+
+    for (int i = 0; i < CHILDREN_COUNT; i++)
+    {
+        if (Children[i])
+        {
+            delete Children[i];
+            Children[i] = nullptr;
+        }
+    }
+}
+
 Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
     m_terrainShader(terrainShader),
     m_perlinNoise(perlinNoise),
-    m_chunkID(chunkID)
+    m_chunkID(chunkID),
+    m_quadTree(nullptr)
 {
     CreateTerrainBuffers();
 
     vec3 translation = GetTranslation();
     m_renderTexture = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f), 
                                                  vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f));
+
+    BuildQuadTree();
 }
 
 Chunk::~Chunk()
 {
+    if (m_quadTree)
+    {
+
+    }
     if (m_renderTexture)
     {
         delete m_renderTexture;
@@ -91,7 +113,7 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+    DrawNode(m_quadTree);
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -107,10 +129,10 @@ void Chunk::CreateTerrainBuffers()
     {
         for (int j = 0; j < verticesWidth; j++)
         {
-            float adjustedI = (i - ((float)(verticesWidth - 1) / 2.0f)) / (float)(verticesWidth - 1);
-            float adjustedJ = (j - ((float)(verticesHeight - 1) / 2.0f)) / (float)(verticesHeight - 1);
+            float adjustedI = (float)i / (float)(verticesWidth - 1);
+            float adjustedJ = (float)j / (float)(verticesHeight - 1);
 
-            vec2 planePosition = vec2(adjustedJ * CHUNK_WIDTH, adjustedI * CHUNK_WIDTH);
+            vec2 planePosition = vec2(adjustedJ, adjustedI);
 
             vertices[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
             vertices[i * verticesWidth + j].TexCoord = vec2(j * TEX_COORDS_MULTIPLIER, verticesHeight - i * TEX_COORDS_MULTIPLIER - 1);
@@ -190,7 +212,65 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-glm::vec3 Chunk::GetTranslation() const
+void Chunk::BuildQuadTree()
+{
+    m_quadTree = CreateNode(0, vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), vec2(CHUNK_WIDTH / 2.0f, CHUNK_WIDTH / 2.0f));
+}
+
+void Chunk::DrawNode(Node* node)
+{
+    if (node->IsLeaf)
+    {
+        m_terrainShader->SetVec2("BottomLeft", node->BottomLeft);
+        m_terrainShader->SetVec2("TopRight", node->TopRight);
+        glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+    }
+    else
+    {
+        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
+            DrawNode(node->Children[i]);
+    }
+}
+
+vec3 Chunk::GetTranslation() const
 {
     return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
+}
+
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight)
+{
+    if (depth >= QUAD_TREE_DEPTH)
+        return nullptr;
+
+    Node* result = new Node();
+
+    result->BottomLeft = bottomLeft;
+    result->TopRight   = topRight;
+
+    if (depth == QUAD_TREE_DEPTH - 1)
+    {
+        result->IsLeaf = true;
+        memset(result->Children, 0, sizeof(Node*) * Node::CHILDREN_COUNT);
+    }
+    else
+    {
+        result->IsLeaf = false;
+        result->Children[0] = CreateNode(depth + 1, 
+                                         bottomLeft, 
+                                         (topRight + bottomLeft) * 0.5f);
+
+        result->Children[1] = CreateNode(depth + 1, 
+                                         vec2((bottomLeft.x + topRight.x) * 0.5f, bottomLeft.y), 
+                                         vec2(topRight.x, (bottomLeft.y + topRight.y) * 0.5f));
+
+        result->Children[2] = CreateNode(depth + 1,
+                                         vec2(bottomLeft.x, (bottomLeft.y + topRight.y) * 0.5f),
+                                         vec2((bottomLeft.x + topRight.x) * 0.5f, topRight.y));
+
+        result->Children[3] = CreateNode(depth + 1,
+                                         (topRight + bottomLeft) * 0.5f,
+                                         topRight);
+    }
+
+    return result;
 }
