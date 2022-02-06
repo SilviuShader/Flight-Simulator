@@ -1,0 +1,33 @@
+#version 430 core
+
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (rgba32f, binding = 0) uniform image2D ImgInput;
+layout (rgba32f, binding = 1) uniform image2D ImgOutput;
+
+uniform int InitialPhase;
+
+void main()
+{
+	ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+	vec4 pixel1 = imageLoad(ImgInput, pixelCoords * 2);
+	vec4 pixel2 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(1, 0));
+	vec4 pixel3 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(0, 1));
+	vec4 pixel4 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(1, 1));
+
+	float mn1 = min(pixel1.x, pixel2.x);
+	float mn2 = min(pixel3.x, pixel4.x);
+	float mnm = min(mn1, mn2);
+
+	float mx1 = max(pixel1.y, pixel2.y);
+	float mx2 = max(pixel3.y, pixel4.y);
+
+	if (InitialPhase == 1)
+	{
+		mx1 = max(pixel1.x, pixel2.x);
+		mx2 = max(pixel3.x, pixel4.x);
+	}
+
+	float mxm = max(mx1, mx2);
+
+	imageStore(ImgOutput, pixelCoords, vec4(mnm, mxm, 0.0, 1.0));
+}

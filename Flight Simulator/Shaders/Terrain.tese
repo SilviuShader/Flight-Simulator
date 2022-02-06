@@ -80,7 +80,7 @@ vec2 calculateBiome(vec2 pos, float height)
 
     float texColor = texture(NoiseTexture, uv).y;
 
-    return vec2(texColor, (height / TerrainAmplitude) * 2.0f);
+    return vec2(texColor, (height / TerrainAmplitude) * 2.0);
 }
 
 void main()

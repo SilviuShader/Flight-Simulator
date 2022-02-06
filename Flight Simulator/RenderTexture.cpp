@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "glad/glad.h"
-
 #include "RenderTexture.h"
 
 using namespace std;
@@ -20,7 +19,7 @@ RenderTexture::RenderTexture(int width, int height) :
 
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

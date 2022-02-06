@@ -1,6 +1,7 @@
 #pragma once
 
 #include <random>
+#include <map>
 #include <glm/glm.hpp>
 
 #include "RenderTexture.h"
@@ -10,8 +11,8 @@ class PerlinNoise
 {
 private:
 
-           const int       TEXTURE_WIDTH            = 1024;
-           const int       TEXTURE_HEIGHT           = 1024;
+           const int       TEXTURE_WIDTH            = 1024; // must be a power of 2
+           const int       TEXTURE_HEIGHT           = TEXTURE_WIDTH;
 
            const float     DEBUG_IMAGE_FREQUENCY    = 0.01f;
 
@@ -46,7 +47,7 @@ public:
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
-    RenderTexture* RenderNoise(glm::vec2, glm::vec2);
+    std::pair<RenderTexture*, std::map<std::pair<int, int>, std::pair<float, float>>> RenderNoise(glm::vec2, glm::vec2, int);
     
 private:
 
@@ -64,6 +65,7 @@ private:
                                                  // (z, w) are for the permutations map.
 
     Shader*        m_noiseShader;
+    Shader*        m_minMaxShader;
 
     unsigned int   m_noiseValuesBuffer;
 

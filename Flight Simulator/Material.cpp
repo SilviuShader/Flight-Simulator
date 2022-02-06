@@ -1,5 +1,7 @@
 #include "Material.h"
 
+#include "glad/glad.h"
+
 using namespace std;
 
 Material::Material(const string textureFilename, const string normalTextureFilename, const string specularTextureFilename)
@@ -18,7 +20,7 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 		for (int i = 0; i < textureSize; i++)
 			specularValues[i] = 0.0f;
 
-		m_specularTexture = new Texture(specularValues, m_texture->GetWidth(), m_texture->GetHeight());
+		m_specularTexture = new Texture(m_texture->GetWidth(), m_texture->GetHeight(), GL_RED, GL_RED, specularValues);
 
 		if (specularValues)
 		{

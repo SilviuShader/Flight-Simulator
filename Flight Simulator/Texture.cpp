@@ -1,9 +1,9 @@
 #include <iostream>
 
 #include "glad/glad.h"
-#include "stb_image.h"
-
 #include "Texture.h"
+
+#include "stb_image.h"
 
 using namespace std;
 
@@ -47,9 +47,12 @@ Texture::Texture(unsigned int textureID) :
     m_width(-1),
     m_height(-1)
 {
+    int miplevel = 0;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &m_width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &m_height);
 }
 
-Texture::Texture(float* texData, int width, int height)
+Texture::Texture(int width, int height, int internalFormat, unsigned int format, float* texData)
 {
     m_width = width;
     m_height = height;
@@ -62,7 +65,7 @@ Texture::Texture(float* texData, int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, texData);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_FLOAT, texData);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 

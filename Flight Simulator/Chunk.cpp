@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 
 #include "Chunk.h"
+#include "Shapes.h"
 
 using namespace std;
 using namespace glm;
@@ -49,18 +50,24 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     CreateTerrainBuffers();
 
     vec3 translation = GetTranslation();
-    m_renderTexture = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f), 
-                                                 vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f));
 
-    BuildQuadTree();
+    auto noiseData = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f),
+                                                vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f),
+                                                QUAD_TREE_DEPTH);
+
+    m_renderTexture = noiseData.first;
+
+    BuildQuadTree(noiseData.second);
 }
 
 Chunk::~Chunk()
 {
     if (m_quadTree)
     {
-
+        delete m_quadTree;
+        m_quadTree = nullptr;
     }
+
     if (m_renderTexture)
     {
         delete m_renderTexture;
@@ -114,6 +121,7 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     DrawNode(MathHelper::GetCameraFrustum(camera), m_quadTree);
+    //DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -212,9 +220,13 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-void Chunk::BuildQuadTree()
+void Chunk::BuildQuadTree(map<pair<int, int>, pair<float, float>>& minMax)
 {
-    m_quadTree = CreateNode(0, vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), vec2(CHUNK_WIDTH / 2.0f, CHUNK_WIDTH / 2.0f));
+    m_quadTree = CreateNode(0, 
+                            vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
+                            vec2(CHUNK_WIDTH / 2.0f, CHUNK_WIDTH / 2.0f), 
+                            make_pair(0, 0),
+                            minMax);
 }
 
 void Chunk::DrawNode(const MathHelper::Frustum& frustum, Node* node)
@@ -235,12 +247,29 @@ void Chunk::DrawNode(const MathHelper::Frustum& frustum, Node* node)
     }
 }
 
+void Chunk::DrawQuadTrees(const MathHelper::Frustum& frustum, Camera* camera, Node* node)
+{
+    if (!node->BoundingBox.IsOnFrustum(frustum))
+        return;
+
+    if (node->IsLeaf)
+    {
+        auto& boundingBox = node->BoundingBox;
+        Shapes::GetInstance()->DrawRectangle(boundingBox.Center, boundingBox.Extents, camera);
+    }
+    else
+    {
+        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
+            DrawQuadTrees(frustum, camera, node->Children[i]);
+    }
+}
+
 vec3 Chunk::GetTranslation() const
 {
     return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
 }
 
-Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight)
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, map<pair<int, int>, pair<float, float>>& minMax)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;
@@ -249,15 +278,24 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
     result->BottomLeft = bottomLeft;
     result->TopRight   = topRight;
+    result->PositionId = positionId;
 
     vec3 boundingBoxCenter = vec3((bottomLeft.x + topRight.x) * 0.5f, 0.0f, (bottomLeft.y + topRight.y) * 0.5f) + GetTranslation();
     vec3 boundingBoxExtents = vec3((topRight.x - bottomLeft.x) * 0.5f, TERRAIN_AMPLITUDE, (topRight.y - bottomLeft.y) * 0.5f);
 
-    result->BoundingBox = MathHelper::AABB(boundingBoxCenter, boundingBoxExtents.x, boundingBoxExtents.y, boundingBoxExtents.z);
-
     if (depth == QUAD_TREE_DEPTH - 1)
     {
         result->IsLeaf = true;
+
+        float minAmplitude = minMax[positionId].first * TERRAIN_AMPLITUDE;
+        float maxAmplitude = minMax[positionId].second * TERRAIN_AMPLITUDE;
+
+        float center = (maxAmplitude + minAmplitude) / 2.0f;
+        float extents = (maxAmplitude - minAmplitude) / 2.0f;
+
+        boundingBoxCenter = vec3(boundingBoxCenter.x, center, boundingBoxCenter.z);
+        boundingBoxExtents = vec3(boundingBoxExtents.x, extents, boundingBoxExtents.z);
+
         memset(result->Children, 0, sizeof(Node*) * Node::CHILDREN_COUNT);
     }
     else
@@ -265,20 +303,45 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
         result->IsLeaf = false;
         result->Children[0] = CreateNode(depth + 1, 
                                          bottomLeft, 
-                                         (topRight + bottomLeft) * 0.5f);
+                                         (topRight + bottomLeft) * 0.5f,
+                                         make_pair(positionId.first * 2, positionId.second * 2),
+                                         minMax);
 
         result->Children[1] = CreateNode(depth + 1, 
                                          vec2((bottomLeft.x + topRight.x) * 0.5f, bottomLeft.y), 
-                                         vec2(topRight.x, (bottomLeft.y + topRight.y) * 0.5f));
+                                         vec2(topRight.x, (bottomLeft.y + topRight.y) * 0.5f),
+                                         make_pair(1 + positionId.first * 2, positionId.second * 2),
+                                         minMax);
 
         result->Children[2] = CreateNode(depth + 1,
                                          vec2(bottomLeft.x, (bottomLeft.y + topRight.y) * 0.5f),
-                                         vec2((bottomLeft.x + topRight.x) * 0.5f, topRight.y));
+                                         vec2((bottomLeft.x + topRight.x) * 0.5f, topRight.y),
+                                         make_pair(positionId.first * 2, positionId.second * 2 + 1),
+                                         minMax);
 
         result->Children[3] = CreateNode(depth + 1,
                                          (topRight + bottomLeft) * 0.5f,
-                                         topRight);
+                                         topRight,
+                                         make_pair(positionId.first * 2 + 1, positionId.second * 2 + 1),
+                                         minMax);
+
+        float maxAmplitude = -TERRAIN_AMPLITUDE;
+        float minAmplitude = TERRAIN_AMPLITUDE;
+
+        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
+        {
+            maxAmplitude = std::max(maxAmplitude, result->Children[i]->BoundingBox.Center.y + result->Children[i]->BoundingBox.Extents.y);
+            minAmplitude = std::min(maxAmplitude, result->Children[i]->BoundingBox.Center.y - result->Children[i]->BoundingBox.Extents.y);
+        }
+
+        float center = (maxAmplitude + minAmplitude) / 2.0f;
+        float extents = (maxAmplitude - minAmplitude) / 2.0f;
+
+        boundingBoxCenter = vec3(boundingBoxCenter.x, center, boundingBoxCenter.z);
+        boundingBoxExtents = vec3(boundingBoxExtents.x, extents, boundingBoxExtents.z);
     }
+
+    result->BoundingBox = MathHelper::AABB(boundingBoxCenter, boundingBoxExtents.x, boundingBoxExtents.y, boundingBoxExtents.z);
 
     return result;
 }

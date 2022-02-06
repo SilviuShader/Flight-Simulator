@@ -105,6 +105,48 @@ Shader::Shader(const string vertexPath, const string fragmentPath,
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+
+    if (addedTessControl)
+        glDeleteShader(tessControl);
+
+    if (addedTessEvaluation)
+        glDeleteShader(tessEvaluation);
+}
+
+Shader::Shader(const string computePath)
+{
+    unsigned int compute;
+    int success;
+    char infoLog[SHADER_COMPILE_LOG_LENGTH];
+
+    string csString = ReadFile(computePath);
+
+    const char* computeShaderSource = csString.c_str();
+
+    compute = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(compute, 1, &computeShaderSource, NULL);
+    glCompileShader(compute);
+
+    glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(compute, SHADER_COMPILE_LOG_LENGTH, NULL, infoLog);
+        cout << "ERROR::SHADER::COMPUTE::COMPILATION_FAILED\n" << infoLog << endl;
+    }
+
+    m_programId = glCreateProgram();
+    glAttachShader(m_programId, compute);
+    glLinkProgram(m_programId);
+
+    glGetProgramiv(m_programId, GL_LINK_STATUS, &success);
+
+    if (!success)
+    {
+        glGetProgramInfoLog(m_programId, SHADER_COMPILE_LOG_LENGTH, NULL, infoLog);
+        cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << endl;
+    }
+
+    glDeleteShader(compute);
 }
 
 void Shader::Use()
@@ -164,6 +206,12 @@ void Shader::SetCubemap(const string& name, Cubemap* cubemap, int textureNumber)
 {
     glActiveTexture(GL_TEXTURE0 + textureNumber);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->GetTextureID());
+    SetInt(name, textureNumber);
+}
+
+void Shader::SetImage2D(const string& name, Texture* texture, int textureNumber) const
+{
+    glBindImageTexture(textureNumber, texture->GetTextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
     SetInt(name, textureNumber);
 }
 

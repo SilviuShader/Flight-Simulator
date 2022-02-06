@@ -4,10 +4,10 @@
 #include <bitset>
 #include <unordered_map>
 
-#include "Camera.h"
 #include "Skybox.h"
 #include "PerlinNoise.h"
 #include "Chunk.h"
+#include "Camera.h"
 
 class World
 {

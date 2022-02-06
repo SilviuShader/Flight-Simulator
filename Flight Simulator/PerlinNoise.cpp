@@ -18,10 +18,17 @@ PerlinNoise::PerlinNoise(int seed)
     CreateQuadBuffers();
 
     m_noiseShader = new Shader("Shaders/Noise.vert", "Shaders/Noise.frag");
+    m_minMaxShader = new Shader("Shaders/MinMax.comp");
 }
 
 PerlinNoise::~PerlinNoise()
 {
+    if (m_minMaxShader)
+    {
+        delete m_minMaxShader;
+        m_minMaxShader = nullptr;
+    }
+    
     if (m_noiseShader)
     {
         delete m_noiseShader;
@@ -115,7 +122,7 @@ void PerlinNoise::FreeQuadBuffers()
     glDeleteVertexArrays(1, &m_quadVao);
 }
 
-RenderTexture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition)
+pair<RenderTexture*, map<pair<int, int>, pair<float, float>>> PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition, int quadTreeLevels)
 {
     RenderTexture* renderTexture = new RenderTexture(TEXTURE_WIDTH, TEXTURE_HEIGHT);
     
@@ -147,7 +154,72 @@ RenderTexture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_quadEbo);
     glDrawElements(GL_TRIANGLES, QUAD_INDICES_COUNT, GL_UNSIGNED_INT, 0);
 
-    return renderTexture;
+    map<pair<int, int>, pair<float, float>> minMaxValues;
+
+    int divisionsCount = 1 << (quadTreeLevels - 1);
+    int currentSize = TEXTURE_WIDTH;
+
+    Texture* currentTexture = renderTexture->GetTexture();
+    Texture* newTexture = nullptr;
+
+    while (currentSize > divisionsCount)
+    {
+        if (!newTexture)
+            newTexture = new Texture(currentSize / 2, currentSize / 2, GL_RGBA32F, GL_RGBA);
+
+        m_minMaxShader->Use();
+        
+        m_minMaxShader->SetImage2D("ImgInput", currentTexture, 0);
+        m_minMaxShader->SetImage2D("ImgOutput", newTexture, 1);
+
+        m_minMaxShader->SetInt("InitialPhase", ((currentTexture == renderTexture->GetTexture()) ? 1 : 0));
+
+        glDispatchCompute(currentSize / 2, currentSize / 2, 1);
+
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+        if (currentTexture && 
+            currentTexture != renderTexture->GetTexture())
+        {
+            delete currentTexture;
+            currentTexture = nullptr;
+        }
+
+        currentTexture = newTexture;
+        newTexture = nullptr;
+        currentSize /= 2;
+    }
+
+    float* pixels = new float[currentSize * currentSize * 4];
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, currentTexture->GetTextureID());
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+
+    for (int height = 0; height < currentSize; height++)
+    {
+        for (int width = 0; width < currentSize; width++)
+        {
+            int i = height;
+            int j = width;
+            minMaxValues[make_pair(width, height)] = make_pair(pixels[(i * currentSize + j) * 4],
+                pixels[(i * currentSize + j) * 4 + 1]);
+        }
+    }
+
+    if (pixels)
+    {
+        delete[] pixels;
+        pixels = nullptr;
+    }
+
+    if (currentTexture && currentTexture != renderTexture->GetTexture())
+    {
+        delete currentTexture;
+        currentTexture = nullptr;
+    }
+
+    return make_pair(renderTexture, minMaxValues);
 }
 
 void PerlinNoise::CreateValuesBuffer()

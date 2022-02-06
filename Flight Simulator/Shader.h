@@ -2,7 +2,6 @@
 
 #include <string>
 #include <vector>
-#include <glm/glm.hpp>
 
 #include "Texture.h"
 #include "Cubemap.h"
@@ -17,6 +16,7 @@ private:
 public:
 
     Shader(const std::string, const std::string, const std::string = "", const std::string = "");
+    Shader(const std::string);
 
     void Use();
 
@@ -30,6 +30,7 @@ public:
     void SetBlockBinding(const std::string&, int)                                                                     const;
     void SetTexture(const std::string&, Texture*, int)                                                                const;
     void SetCubemap(const std::string&, Cubemap*, int)                                                                const;
+    void SetImage2D(const std::string&, Texture*, int)                                                                const;
     int  SetMaterials(const std::string&, const std::string&, const std::string&, const std::vector<Material*>&, int) const;
 
 private:

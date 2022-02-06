@@ -9,6 +9,7 @@
 #include "Light.h"
 #include "Material.h"
 #include "MathHelper.h"
+#include <set>
 
 class Chunk
 {
@@ -39,11 +40,14 @@ private:
 
     public:
 
-        Node*            Children[CHILDREN_COUNT];
-        bool             IsLeaf;
-        glm::vec2        BottomLeft;
-        glm::vec2        TopRight;
-        MathHelper::AABB BoundingBox;
+        Node*               Children[CHILDREN_COUNT];
+        bool                IsLeaf;
+        glm::vec2           BottomLeft;
+        glm::vec2           TopRight;
+
+        std::pair<int, int> PositionId;
+
+        MathHelper::AABB    BoundingBox;
     };
 
 public:
@@ -81,14 +85,15 @@ private:
     void      CreateTerrainBuffers();
     void      FreeTerrainBuffers();
 
-    void      BuildQuadTree();
+    void      BuildQuadTree(std::map<std::pair<int, int>, std::pair<float, float>>&);
     void      DrawNode(const MathHelper::Frustum&, Node*);
+    void      DrawQuadTrees(const MathHelper::Frustum&, Camera*, Node*);
 
     glm::vec3 GetTranslation() const;
 
 private:
 
-    Node* CreateNode(int, const glm::vec2&, const glm::vec2&);
+    Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::map<std::pair<int, int>, std::pair<float, float>>&);
 
 private:
 

@@ -119,7 +119,7 @@ void World::CreateTerrainObjects()
 	biomesData[6] = 0.0f / materialsCount;
 	biomesData[7] = 4.0f / materialsCount;
 
-	m_terrainBiomesData = new Texture(biomesData, BIOMES_COUNT, MATERIALS_PER_BIOME);
+	m_terrainBiomesData = new Texture(BIOMES_COUNT, MATERIALS_PER_BIOME, GL_RED, GL_RED, biomesData);
 
 	if (biomesData)
 	{
