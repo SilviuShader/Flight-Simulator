@@ -158,6 +158,7 @@
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="VertexTypes.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +177,7 @@
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="VertexTypes.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

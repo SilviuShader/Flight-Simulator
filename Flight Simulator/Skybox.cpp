@@ -2,6 +2,7 @@
 #include "Skybox.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include "VertexTypes.h"
 
 using namespace glm;
 
@@ -61,7 +62,7 @@ void Skybox::CreateCubeBuffers()
 {
 	int verticesCount = 8;
 
-	vec3 cubeVertices[] =
+	VertexPosition cubeVertices[] =
 	{
 		// bottom vertices
 		vec3(-1.0f, -1.0f, 1.0f),  // front-left
@@ -111,10 +112,9 @@ void Skybox::CreateCubeBuffers()
 	glGenBuffers(1, &m_vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * verticesCount, cubeVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPosition) * verticesCount, cubeVertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
-	glEnableVertexAttribArray(0);
+	VertexPosition::SetLayout();
 
 	glGenBuffers(1, &m_ebo);
 
@@ -126,7 +126,7 @@ void Skybox::FreeCubeBuffers()
 {
 	glBindVertexArray(m_vao);
 
-	glDisableVertexAttribArray(0);
+	VertexPosition::ResetLayout();
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &m_vbo);

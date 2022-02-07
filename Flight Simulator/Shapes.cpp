@@ -1,22 +1,11 @@
 #include "glad/glad.h"
 #include "Shapes.h"
 #include <glm/ext/matrix_transform.hpp>
+#include "VertexTypes.h"
 
 using namespace glm;
 
 Shapes* Shapes::g_instance = nullptr;
-
-Shapes::Vertex::Vertex() :
-	Position(0.0f, 0.0f, 0.0f),
-	Color(0.0f, 0.0f, 0.0f)
-{
-}
-
-Shapes::Vertex::Vertex(vec3 position, vec3 color) :
-	Position(position),
-	Color(color)
-{
-}
 
 Shapes::~Shapes()
 {
@@ -74,17 +63,17 @@ Shapes::Shapes()
 
 void Shapes::CreateCubeBuffers()
 {
-	Vertex vertices[] =
+	VertexPositionColor vertices[] =
 	{
-		Vertex(vec3(-1.0f, -1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // left-bottom-front
-		Vertex(vec3( 1.0f, -1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-bottom-front
-		Vertex(vec3( 1.0f, -1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-bottom-back
-		Vertex(vec3(-1.0f, -1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f)), // left-bottom-back
+		VertexPositionColor(vec3(-1.0f, -1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // left-bottom-front
+		VertexPositionColor(vec3( 1.0f, -1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-bottom-front
+		VertexPositionColor(vec3( 1.0f, -1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-bottom-back
+		VertexPositionColor(vec3(-1.0f, -1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f)), // left-bottom-back
 
-		Vertex(vec3(-1.0f,  1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // left-top-front
-		Vertex(vec3( 1.0f,  1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-top-front
-		Vertex(vec3( 1.0f,  1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-top-back
-		Vertex(vec3(-1.0f,  1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f))  // left-top-back
+		VertexPositionColor(vec3(-1.0f,  1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // left-top-front
+		VertexPositionColor(vec3( 1.0f,  1.0f,  1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-top-front
+		VertexPositionColor(vec3( 1.0f,  1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f)), // right-top-back
+		VertexPositionColor(vec3(-1.0f,  1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f))  // left-top-back
 	};
 
 	unsigned int indices[] =
@@ -117,11 +106,7 @@ void Shapes::CreateCubeBuffers()
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
-	glEnableVertexAttribArray(1);
+	VertexPositionColor::SetLayout();
 
 	glGenBuffers(1, &m_ebo);
 
@@ -133,8 +118,7 @@ void Shapes::FreeCubeBuffers()
 {
 	glBindVertexArray(m_vao);
 
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
+	VertexPositionColor::ResetLayout();
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &m_vbo);

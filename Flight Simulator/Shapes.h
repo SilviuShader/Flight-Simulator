@@ -7,21 +7,6 @@
 
 class Shapes
 {
-private:
-
-	struct Vertex
-	{
-	public:
-
-		Vertex();
-		Vertex(glm::vec3, glm::vec3);
-
-	public:
-
-		glm::vec3 Position;
-		glm::vec3 Color;
-	};
-
 public:
 
 	Shapes(const Shapes&)         = delete;

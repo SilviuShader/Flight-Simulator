@@ -32,15 +32,7 @@ private:
 
            const glm::vec2 OCTAVE_OFFSET            = glm::vec2(1.0f, 1.0f);
 
-    static const int       SAMPLES_COUNT            = 1 << 8; // must be a power of 2.
-
-private:
-
-    struct Vertex
-    {
-        glm::vec3 Position;
-        glm::vec2 TexCoords;
-    };
+    static const int       SAMPLES_COUNT            = 1 << 8;
 
 public:
 

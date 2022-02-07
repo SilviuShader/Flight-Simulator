@@ -4,24 +4,13 @@
 
 #include "Chunk.h"
 #include "Shapes.h"
+#include "VertexTypes.h"
 
 using namespace std;
 using namespace glm;
 
 const float Chunk::CHUNK_WIDTH      = 64.0f;
 const float Chunk::CHUNK_CLOSE_BIAS = 1.0f;
-
-Chunk::Vertex::Vertex() :
-    Position(vec3(0.0f, 0.0f, 0.0f)),
-    TexCoord(vec2(0.0f, 0.0f))
-{
-}
-
-Chunk::Vertex::Vertex(vec3 position, vec2 texCoord) :
-    Position(position),
-    TexCoord(texCoord)
-{
-}
 
 Chunk::Node::~Node()
 {
@@ -131,7 +120,7 @@ void Chunk::CreateTerrainBuffers()
 
     constexpr int verticesCount = verticesWidth * verticesHeight;
 
-    Vertex* vertices = new Vertex[verticesCount];
+    VertexPositionTexture* vertices = new VertexPositionTexture[verticesCount];
 
     for (int i = 0; i < verticesHeight; i++)
     {
@@ -177,13 +166,9 @@ void Chunk::CreateTerrainBuffers()
     glGenBuffers(1, &m_vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verticesCount, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPositionTexture) * verticesCount, vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3)));
-    glEnableVertexAttribArray(1);
+    VertexPositionTexture::SetLayout();
 
     glGenBuffers(1, &m_ebo);
 
@@ -207,8 +192,7 @@ void Chunk::FreeTerrainBuffers()
 {
     glBindVertexArray(m_vao);
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    VertexPositionTexture::ResetLayout();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_vbo);

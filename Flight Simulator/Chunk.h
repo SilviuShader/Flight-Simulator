@@ -1,7 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <set>
 #include <utility>
+
+#include <glm/glm.hpp>
 
 #include "Shader.h"
 #include "PerlinNoise.h"
@@ -9,24 +11,10 @@
 #include "Light.h"
 #include "Material.h"
 #include "MathHelper.h"
-#include <set>
 
 class Chunk
 {
 private:
-
-    struct Vertex 
-    {
-    public:
-
-        Vertex();
-        Vertex(glm::vec3, glm::vec2);
-
-    public:
-
-        glm::vec3 Position;
-        glm::vec2 TexCoord;
-    };
 
     struct Node
     {

@@ -7,6 +7,7 @@
 
 #include "PerlinNoise.h"
 #include "glad/glad.h"
+#include "VertexTypes.h"
 
 using namespace std;
 using namespace glm;
@@ -45,6 +46,8 @@ void PerlinNoise::GenerateNoiseValues(int seed)
     uniform_real_distribution<float> distribution(0.0f, 2.0f * pi<float>());
     auto random = bind(distribution, generator);
 
+    assert((SAMPLES_COUNT & (SAMPLES_COUNT - 1)) == 0);
+
     const int permutationsSize = SAMPLES_COUNT << 1;
     const int permutationsMask = SAMPLES_COUNT - 1;
     int permutationsMap[permutationsSize];
@@ -70,12 +73,12 @@ void PerlinNoise::CreateQuadBuffers()
 {
     int verticesCount = 4;
 
-    Vertex vertices[] =
+    VertexPositionTexture vertices[] =
     {
-        vec3(1.0f,  1.0f, 0.0f), vec2(1.0f, 1.0f),
-        vec3(1.0f, -1.0f, 0.0f), vec2(1.0f, 0.0f),
-        vec3(-1.0f, -1.0f, 0.0f), vec2(0.0f, 0.0f),
-        vec3(-1.0f,  1.0f, 0.0f), vec2(0.0f, 1.0f)
+        VertexPositionTexture(vec3(1.0f,  1.0f, 0.0f), vec2(1.0f, 1.0f)),
+        VertexPositionTexture(vec3(1.0f, -1.0f, 0.0f), vec2(1.0f, 0.0f)),
+        VertexPositionTexture(vec3(-1.0f, -1.0f, 0.0f), vec2(0.0f, 0.0f)),
+        VertexPositionTexture(vec3(-1.0f,  1.0f, 0.0f), vec2(0.0f, 1.0f))
     };
 
     unsigned int indices[] =
@@ -91,14 +94,10 @@ void PerlinNoise::CreateQuadBuffers()
     glGenBuffers(1, &m_quadVbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verticesCount, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPositionTexture) * verticesCount, vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(vec3));
-    glEnableVertexAttribArray(1);
-
+    VertexPositionTexture::SetLayout();
+    
     glGenBuffers(1, &m_quadEbo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_quadEbo);
@@ -109,8 +108,7 @@ void PerlinNoise::FreeQuadBuffers()
 {
     glBindVertexArray(m_quadVao);
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    VertexPositionTexture::ResetLayout();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_quadVbo);
@@ -124,6 +122,12 @@ void PerlinNoise::FreeQuadBuffers()
 
 pair<RenderTexture*, map<pair<int, int>, pair<float, float>>> PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition, int quadTreeLevels)
 {
+    int divisionsCount = 1 << (quadTreeLevels - 1);
+    int div = TEXTURE_WIDTH / divisionsCount;
+
+    assert(TEXTURE_WIDTH == TEXTURE_HEIGHT);
+    assert(quadTreeLevels % quadTreeLevels == 0 && ((div & (div - 1)) == 0));
+
     RenderTexture* renderTexture = new RenderTexture(TEXTURE_WIDTH, TEXTURE_HEIGHT);
     
     renderTexture->Begin();
@@ -156,7 +160,6 @@ pair<RenderTexture*, map<pair<int, int>, pair<float, float>>> PerlinNoise::Rende
 
     map<pair<int, int>, pair<float, float>> minMaxValues;
 
-    int divisionsCount = 1 << (quadTreeLevels - 1);
     int currentSize = TEXTURE_WIDTH;
 
     Texture* currentTexture = renderTexture->GetTexture();

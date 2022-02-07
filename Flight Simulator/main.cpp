@@ -16,6 +16,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "stb_image.h"
+#include "Shapes.h"
 
 using namespace std;
 using namespace glm;
@@ -133,6 +134,8 @@ int main(int argc, char const* argv[])
 
         previousTime = currentTime;
     }
+
+    Shapes::FreeInstance();
 
     if (g_world)
     {
