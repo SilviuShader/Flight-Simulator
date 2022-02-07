@@ -101,7 +101,8 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
     m_noiseShader->SetVec2("StartPosition", startPosition);
     m_noiseShader->SetVec2("FinalPosition", finalPosition);
 
-    glDispatchCompute(TEXTURE_WIDTH, TEXTURE_HEIGHT, 1);
+    glDispatchCompute(GetComputeShaderGroupsCount(TEXTURE_WIDTH,  COMPUTE_SHADER_BLOCKS_COUNT), 
+                      GetComputeShaderGroupsCount(TEXTURE_HEIGHT, COMPUTE_SHADER_BLOCKS_COUNT), 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     MinMaxMap minMaxValues;
@@ -182,4 +183,9 @@ void PerlinNoise::FreeValuesBuffer()
 {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_noiseValuesBuffer);
+}
+
+uint32_t PerlinNoise::GetComputeShaderGroupsCount(const uint32_t size, const uint32_t numBlocks)
+{
+    return (size + numBlocks - 1) / numBlocks;
 }

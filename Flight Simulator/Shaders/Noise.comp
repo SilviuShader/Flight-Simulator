@@ -1,7 +1,8 @@
 #version 430 core
+#define BLOCKS_COUNT 8
 #define NOISE_SAMPLES_COUNT 256
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
 layout (rgba32f, binding = 0) uniform image2D ImgOutput;
 
 layout (std140, binding = 1) uniform NoiseValues
@@ -122,7 +123,12 @@ void main()
 {
     vec2  finalStartDiff = FinalPosition - StartPosition;
     ivec2 pixelCoords    = ivec2(gl_GlobalInvocationID.xy);
-    vec2  texCoords      = vec2(pixelCoords) / vec2(imageSize(ImgOutput).xy);
+    ivec2 imgSize        = imageSize(ImgOutput).xy;
+
+    if (pixelCoords.x >= imgSize.x || pixelCoords.y >= imgSize .y)
+        return;
+
+    vec2  texCoords      = vec2(pixelCoords) / vec2(imgSize);
 
     vec2  noisePosition  = vec2(texCoords.x * finalStartDiff.x, texCoords.y * finalStartDiff.y) + StartPosition;
     float noise          = getCombinedNoiseValue(noisePosition, NoiseDefaultFrequency, OctavesAdd, FudgeFactor, Exponent);

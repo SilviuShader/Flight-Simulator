@@ -21,3 +21,5 @@ https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
 https://github.com/microsoft/DirectXTK/blob/main/Inc/VertexTypes.h
 
 https://www.geeksforgeeks.org/how-to-create-an-unordered_map-of-pairs-in-c/
+
+https://www.3dgep.com/learning-directx-12-4/#Compute_Shaders
