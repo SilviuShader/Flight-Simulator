@@ -39,14 +39,11 @@ public:
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
-    std::pair<RenderTexture*, std::map<std::pair<int, int>, std::pair<float, float>>> RenderNoise(glm::vec2, glm::vec2, int);
+    std::pair<Texture*, std::map<std::pair<int, int>, std::pair<float, float>>> RenderNoise(glm::vec2, glm::vec2, int);
     
 private:
 
     void GenerateNoiseValues(int seed);
-
-    void CreateQuadBuffers();
-    void FreeQuadBuffers();
 
     void CreateValuesBuffer();
     void FreeValuesBuffer();
@@ -60,8 +57,4 @@ private:
     Shader*        m_minMaxShader;
 
     unsigned int   m_noiseValuesBuffer;
-
-    unsigned int   m_quadVao;
-    unsigned int   m_quadVbo;
-    unsigned int   m_quadEbo;
 };

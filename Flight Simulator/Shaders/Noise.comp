@@ -1,17 +1,19 @@
 #version 430 core
-
 #define NOISE_SAMPLES_COUNT 256
 
-layout (std140, binding = 0) uniform NoiseValues
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (rgba32f, binding = 0) uniform image2D ImgOutput;
+
+layout (std140, binding = 1) uniform NoiseValues
 {
     vec4 Samples[NOISE_SAMPLES_COUNT];
 };
 
 uniform float NoiseDefaultFrequency;
-uniform int OctavesAdd;
+uniform int   OctavesAdd;
 
 uniform float BiomesDefaultFrequency;
-uniform int BiomesOctavesAdd;
+uniform int   BiomesOctavesAdd;
 
 uniform float FudgeFactor;
 uniform float Exponent;
@@ -21,12 +23,8 @@ uniform float BiomesExponent;
 
 uniform vec2  OctaveOffset;
 
-uniform vec2 StartPosition;
-uniform vec2 FinalPosition;
-
-in vec2 FSInputCoords;
-
-layout(location = 0) out vec3 FSOutFragColor;
+uniform vec2  StartPosition;
+uniform vec2  FinalPosition;
 
 int getPermutation(int index)
 {
@@ -123,9 +121,12 @@ float getCombinedNoiseValue(vec2 position, float defaultFrequency, int maxOctave
 void main()
 {
     vec2  finalStartDiff = FinalPosition - StartPosition;
-    vec2  noisePosition  = vec2(FSInputCoords.x * finalStartDiff.x, FSInputCoords.y * finalStartDiff.y) + StartPosition;
+    ivec2 pixelCoords    = ivec2(gl_GlobalInvocationID.xy);
+    vec2  texCoords      = vec2(pixelCoords) / vec2(imageSize(ImgOutput).xy);
+
+    vec2  noisePosition  = vec2(texCoords.x * finalStartDiff.x, texCoords.y * finalStartDiff.y) + StartPosition;
     float noise          = getCombinedNoiseValue(noisePosition, NoiseDefaultFrequency, OctavesAdd, FudgeFactor, Exponent);
     float biomesNoise    = getCombinedNoiseValue(noisePosition, BiomesDefaultFrequency, BiomesOctavesAdd, BiomesFudgeFactor, BiomesExponent);
 
-    FSOutFragColor = vec3(noise, biomesNoise, noise);
+    imageStore(ImgOutput, pixelCoords, vec4(noise, biomesNoise, noise, 1.0));
 }

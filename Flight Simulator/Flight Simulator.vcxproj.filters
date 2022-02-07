@@ -157,12 +157,6 @@
     <CopyFileToFolders Include="Assets\dirt01d.tga">
       <Filter>Resource Files\Assets</Filter>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="Shaders\Noise.vert">
-      <Filter>Resource Files\Shaders</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="Shaders\Noise.frag">
-      <Filter>Resource Files\Shaders</Filter>
-    </CopyFileToFolders>
     <CopyFileToFolders Include="Assets\dirt01n.tga">
       <Filter>Resource Files\Assets</Filter>
     </CopyFileToFolders>
@@ -245,6 +239,9 @@
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Color.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Noise.comp">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
   </ItemGroup>

@@ -44,7 +44,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
                                                 vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f),
                                                 QUAD_TREE_DEPTH);
 
-    m_renderTexture = noiseData.first;
+    m_noiseTexture = noiseData.first;
 
     BuildQuadTree(noiseData.second);
 }
@@ -57,10 +57,10 @@ Chunk::~Chunk()
         m_quadTree = nullptr;
     }
 
-    if (m_renderTexture)
+    if (m_noiseTexture)
     {
-        delete m_renderTexture;
-        m_renderTexture = nullptr;
+        delete m_noiseTexture;
+        m_noiseTexture = nullptr;
     }
 
     FreeTerrainBuffers();
@@ -82,7 +82,7 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
     m_terrainShader->SetFloat("DistanceForDetails", DISTANCE_FOR_DETAILS);
     m_terrainShader->SetFloat("TessellationLevel", MAX_TESSELATION);
 
-    m_terrainShader->SetTexture("NoiseTexture", m_renderTexture->GetTexture(), 0);
+    m_terrainShader->SetTexture("NoiseTexture", m_noiseTexture, 0);
     m_terrainShader->SetMatrix4("View", view);
     m_terrainShader->SetMatrix4("Projection", projection);
 

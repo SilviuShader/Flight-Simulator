@@ -93,7 +93,7 @@ private:
                            
     Shader*                m_terrainShader;
     PerlinNoise*           m_perlinNoise;
-    RenderTexture*         m_renderTexture;
+    Texture*               m_noiseTexture;
 
     Node*                  m_quadTree;
 };
