@@ -204,7 +204,7 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-void Chunk::BuildQuadTree(map<pair<int, int>, pair<float, float>>& minMax)
+void Chunk::BuildQuadTree(PerlinNoise::MinMaxMap& minMax)
 {
     m_quadTree = CreateNode(0, 
                             vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
@@ -253,7 +253,7 @@ vec3 Chunk::GetTranslation() const
     return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
 }
 
-Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, map<pair<int, int>, pair<float, float>>& minMax)
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, PerlinNoise::MinMaxMap& minMax)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;

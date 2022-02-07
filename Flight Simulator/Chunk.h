@@ -73,7 +73,7 @@ private:
     void      CreateTerrainBuffers();
     void      FreeTerrainBuffers();
 
-    void      BuildQuadTree(std::map<std::pair<int, int>, std::pair<float, float>>&);
+    void      BuildQuadTree(PerlinNoise::MinMaxMap&);
     void      DrawNode(const MathHelper::Frustum&, Node*);
     void      DrawQuadTrees(const MathHelper::Frustum&, Camera*, Node*);
 
@@ -81,7 +81,7 @@ private:
 
 private:
 
-    Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::map<std::pair<int, int>, std::pair<float, float>>&);
+    Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMaxMap&);
 
 private:
 

@@ -67,7 +67,7 @@ void PerlinNoise::GenerateNoiseValues(int seed)
     }
 }
 
-pair<Texture*, map<pair<int, int>, pair<float, float>>> PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition, int quadTreeLevels)
+PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition, int quadTreeLevels)
 {
     int divisionsCount = 1 << (quadTreeLevels - 1);
     int div = TEXTURE_WIDTH / divisionsCount;
@@ -104,7 +104,7 @@ pair<Texture*, map<pair<int, int>, pair<float, float>>> PerlinNoise::RenderNoise
     glDispatchCompute(TEXTURE_WIDTH, TEXTURE_HEIGHT, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    map<pair<int, int>, pair<float, float>> minMaxValues;
+    MinMaxMap minMaxValues;
 
     int currentSize = TEXTURE_WIDTH;
 

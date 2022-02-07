@@ -177,6 +177,7 @@
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="VertexTypes.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

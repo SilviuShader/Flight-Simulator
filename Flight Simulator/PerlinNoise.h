@@ -1,9 +1,10 @@
 #pragma once
 
 #include <random>
-#include <map>
+#include <unordered_map>
 #include <glm/glm.hpp>
 
+#include "Utils.h"
 #include "RenderTexture.h"
 #include "Shader.h"
 
@@ -36,10 +37,15 @@ private:
 
 public:
 
+    typedef std::unordered_map<std::pair<int, int>, std::pair<float, float>, HashPair> MinMaxMap;
+    typedef std::pair<Texture*, MinMaxMap> NoiseData;
+
+public:
+
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
-    std::pair<Texture*, std::map<std::pair<int, int>, std::pair<float, float>>> RenderNoise(glm::vec2, glm::vec2, int);
+    NoiseData RenderNoise(glm::vec2, glm::vec2, int);
     
 private:
 
