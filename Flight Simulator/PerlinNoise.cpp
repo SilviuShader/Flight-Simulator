@@ -103,7 +103,7 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
 
     glDispatchCompute(GetComputeShaderGroupsCount(TEXTURE_WIDTH,  COMPUTE_SHADER_BLOCKS_COUNT), 
                       GetComputeShaderGroupsCount(TEXTURE_HEIGHT, COMPUTE_SHADER_BLOCKS_COUNT), 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     MinMaxMap minMaxValues;
 
@@ -111,24 +111,41 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
 
     Texture* currentTexture = noiseTexture;
     Texture* newTexture = nullptr;
+    
+    int itersCount = 0;
+    int cs = currentSize;
+    while (cs > divisionsCount)
+    {
+        cs /= 2;
+        itersCount++;
+    }
 
-    while (currentSize > divisionsCount)
+    int add = std::min(MAX_MIN_MAX_SHADER_STEPS, itersCount);
+    bool initial = true;
+    for (int iter = add;
+        iter <= itersCount;
+        iter += ((iter + MAX_MIN_MAX_SHADER_STEPS > itersCount) ? add = itersCount - iter : add = MAX_MIN_MAX_SHADER_STEPS))
     {
         if (!newTexture)
-            newTexture = new Texture(currentSize / 2, currentSize / 2, GL_RGBA32F, GL_RGBA);
-
+        {
+            newTexture = new Texture(currentSize / (1 << iter),
+                                     currentSize / (1 << iter),
+                                     GL_RGBA32F,
+                                     GL_RGBA);
+        }
         m_minMaxShader->Use();
-        
+
         m_minMaxShader->SetImage2D("ImgInput", currentTexture, 0);
         m_minMaxShader->SetImage2D("ImgOutput", newTexture, 1);
 
-        m_minMaxShader->SetInt("InitialPhase", ((currentTexture == noiseTexture) ? 1 : 0));
+        m_minMaxShader->SetInt("Iterations", add);
+        m_minMaxShader->SetInt("InitialPhase", ((initial) ? 1 : 0));
 
-        glDispatchCompute(currentSize / 2, currentSize / 2, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        glDispatchCompute(GetComputeShaderGroupsCount(currentTexture->GetWidth()  >> 1, COMPUTE_SHADER_BLOCKS_COUNT),
+                          GetComputeShaderGroupsCount(currentTexture->GetHeight() >> 1, COMPUTE_SHADER_BLOCKS_COUNT), 1);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        if (currentTexture && 
-            currentTexture != noiseTexture)
+        if (currentTexture && currentTexture != noiseTexture)
         {
             delete currentTexture;
             currentTexture = nullptr;
@@ -136,23 +153,39 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
 
         currentTexture = newTexture;
         newTexture = nullptr;
-        currentSize /= 2;
+
+        initial = false;
+
+        if (iter == 4)
+        {
+            /*float pixels[64 * 64 * 4];
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, currentTexture->GetTextureID());
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+
+            int a;
+            a = 0;*/
+        }
+
+        if (iter >= itersCount)
+            break;
     }
 
-    float* pixels = new float[currentSize * currentSize * 4];
+    float* pixels = new float[currentTexture->GetWidth() * currentTexture->GetHeight() * 4];
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, currentTexture->GetTextureID());
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
 
-    for (int height = 0; height < currentSize; height++)
+    for (int height = 0; height < currentTexture->GetHeight(); height++)
     {
-        for (int width = 0; width < currentSize; width++)
+        for (int width = 0; width < currentTexture->GetWidth(); width++)
         {
             int i = height;
             int j = width;
-            minMaxValues[make_pair(width, height)] = make_pair(pixels[(i * currentSize + j) * 4],
-                pixels[(i * currentSize + j) * 4 + 1]);
+            minMaxValues[make_pair(width, height)] = make_pair(pixels[(i * currentTexture->GetWidth() + j) * 4],
+                pixels[(i * currentTexture->GetWidth() + j) * 4 + 1]);
         }
     }
 
@@ -160,6 +193,12 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
     {
         delete[] pixels;
         pixels = nullptr;
+    }
+
+    if (newTexture)
+    {
+        delete newTexture;
+        newTexture = nullptr;
     }
 
     if (currentTexture && currentTexture != noiseTexture)

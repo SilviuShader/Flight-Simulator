@@ -36,6 +36,7 @@ private:
     static const int       SAMPLES_COUNT               = 1 << 8;
 
            const int       COMPUTE_SHADER_BLOCKS_COUNT = 8;
+           const int       MAX_MIN_MAX_SHADER_STEPS    = 4;
 
 public:
 

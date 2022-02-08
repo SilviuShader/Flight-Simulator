@@ -110,7 +110,7 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     DrawNode(MathHelper::GetCameraFrustum(camera), m_quadTree);
-    //DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
+    DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
 }
 
 void Chunk::CreateTerrainBuffers()
