@@ -49,6 +49,9 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     BuildQuadTree(noiseData.second);
 
     int divisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
+
+    m_drawZonesRanges = new vec4[divisionsCount * divisionsCount];
+
     for (int i = 0; i < divisionsCount; i++)
     {
         if (noiseData.second[i])
@@ -67,6 +70,12 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
 
 Chunk::~Chunk()
 {
+    if (m_drawZonesRanges)
+    {
+        delete[] m_drawZonesRanges;
+        m_drawZonesRanges = nullptr;
+    }
+
     if (m_quadTree)
     {
         delete m_quadTree;
@@ -80,6 +89,16 @@ Chunk::~Chunk()
     }
 
     FreeTerrainBuffers();
+}
+
+void Chunk::Update(Camera* camera, float deltaTime)
+{
+    m_zoneRangesIndex = 0;
+    FillZoneRanges(MathHelper::GetCameraFrustum(camera), m_quadTree);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec4) * m_zoneRangesIndex, m_drawZonesRanges, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
@@ -125,8 +144,11 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    DrawNode(MathHelper::GetCameraFrustum(camera), m_quadTree);
-    DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
+    //DrawNode(MathHelper::GetCameraFrustum(camera), m_quadTree);
+    //DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
+
+    //glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+    glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -186,6 +208,14 @@ void Chunk::CreateTerrainBuffers()
 
     VertexPositionTexture::SetLayout();
 
+    glGenBuffers(1, &m_instanceVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribDivisor(2, 1);
+
     glGenBuffers(1, &m_ebo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -209,6 +239,7 @@ void Chunk::FreeTerrainBuffers()
     glBindVertexArray(m_vao);
 
     VertexPositionTexture::ResetLayout();
+    glDisableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_vbo);
@@ -229,21 +260,21 @@ void Chunk::BuildQuadTree(PerlinNoise::MinMax** minMax)
                             minMax);
 }
 
-void Chunk::DrawNode(const MathHelper::Frustum& frustum, Node* node)
+void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node)
 {
     if (!node->BoundingBox.IsOnFrustum(frustum))
         return;
     
     if (node->IsLeaf)
     {
-        m_terrainShader->SetVec2("BottomLeft", node->BottomLeft);
-        m_terrainShader->SetVec2("TopRight", node->TopRight);
-        glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+        m_drawZonesRanges[m_zoneRangesIndex++] = node->ZoneRange;
+        //m_terrainShader->SetVec4("ZoneRange", node->ZoneRange);
+        //glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
     }
     else
     {
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
-            DrawNode(frustum, node->Children[i]);
+            FillZoneRanges(frustum, node->Children[i]);
     }
 }
 
@@ -276,8 +307,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
     Node* result = new Node();
 
-    result->BottomLeft = bottomLeft;
-    result->TopRight   = topRight;
+    result->ZoneRange = vec4(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y);
     result->PositionId = positionId;
 
     vec3 boundingBoxCenter = vec3((bottomLeft.x + topRight.x) * 0.5f, 0.0f, (bottomLeft.y + topRight.y) * 0.5f) + GetTranslation();

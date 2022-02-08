@@ -45,7 +45,7 @@ private:
 	void CreateTerrainObjects();
 	void FreeTerrainObjects();
 
-	void UpdateChunks();
+	void UpdateChunks(float);
 
 private:
 

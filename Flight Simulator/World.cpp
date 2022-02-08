@@ -73,7 +73,7 @@ void World::Update(float deltaTime)
 {
 	m_camera->Update(deltaTime);
 
-	UpdateChunks();
+	UpdateChunks(deltaTime);
 }
 
 void World::Draw()
@@ -160,7 +160,7 @@ void World::FreeTerrainObjects()
 	}
 }
 
-void World::UpdateChunks()
+void World::UpdateChunks(float deltaTime)
 {
 	vec3 cameraPos = m_camera->GetPosition();
 	vec3 cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f, 0.0f, (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
@@ -219,4 +219,7 @@ void World::UpdateChunks()
 			m_chunks[targetChunk] = chunk;
 		}
 	}
+
+	for (auto& keyVal : m_chunks)
+		keyVal.second->Update(m_camera, deltaTime);
 }

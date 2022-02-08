@@ -30,8 +30,7 @@ private:
 
         Node*               Children[CHILDREN_COUNT];
         bool                IsLeaf;
-        glm::vec2           BottomLeft;
-        glm::vec2           TopRight;
+        glm::vec4           ZoneRange;
 
         std::pair<int, int> PositionId;
 
@@ -66,6 +65,7 @@ public:
     Chunk(PerlinNoise*, Shader*, std::pair<int, int>);
     ~Chunk();
 
+    void Update(Camera*, float);
     void Draw(Light*, Camera*, const std::vector<Material*>&, Texture*);
 
 private:
@@ -74,26 +74,28 @@ private:
     void      FreeTerrainBuffers();
 
     void      BuildQuadTree(PerlinNoise::MinMax**);
-    void      DrawNode(const MathHelper::Frustum&, Node*);
+    void      FillZoneRanges(const MathHelper::Frustum&, Node*);
     void      DrawQuadTrees(const MathHelper::Frustum&, Camera*, Node*);
 
     glm::vec3 GetTranslation() const;
 
-private:
-
-    Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**);
+    Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**);
 
 private:
 
     std::pair<int, int>    m_chunkID;
 
     unsigned int           m_vbo;
+    unsigned int           m_instanceVbo;
     unsigned int           m_ebo;
     unsigned int           m_vao;
                            
     Shader*                m_terrainShader;
     PerlinNoise*           m_perlinNoise;
     Texture*               m_noiseTexture;
+    glm::vec4*             m_drawZonesRanges; 
+
+    int                    m_zoneRangesIndex;
 
     Node*                  m_quadTree;
 };
