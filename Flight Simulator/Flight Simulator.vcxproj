@@ -146,6 +146,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="InputWrapper.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="glad\glad.h" />
+    <ClInclude Include="InputWrapper.h" />
     <ClInclude Include="KHR\khrplatform.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />

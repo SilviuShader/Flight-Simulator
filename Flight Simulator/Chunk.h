@@ -24,17 +24,18 @@ private:
 
     public:
 
+        Node();
         ~Node();
 
     public:
 
-        Node*               Children[CHILDREN_COUNT];
-        bool                IsLeaf;
-        glm::vec4           ZoneRange;
+        Node*            Children[CHILDREN_COUNT];
+        bool             IsLeaf;
+        glm::vec4        ZoneRange;
 
-        std::pair<int, int> PositionId;
+        Vec2Int          PositionId;
 
-        MathHelper::AABB    BoundingBox;
+        MathHelper::AABB BoundingBox;
     };
 
 public:
@@ -46,15 +47,15 @@ private:
            const float TERRAIN_AMPLITUDE     = 75.0f;
 
            const float DISTANCE_FOR_DETAILS  = 256.0f;
-           const float MAX_TESSELATION       = 10.0f;
+           const float MAX_TESSELATION       = 16.0f;
            const float TEX_COORDS_MULTIPLIER = 0.2f;
 
            const float GAMMA                 = 1.0f;
 
     static const int   COLORS_COUNT          = 5;
 
-    static const int   CHUNK_GRID_WIDTH      = 10;
-    static const int   CHUNK_GRID_HEIGHT     = 10;
+    static const int   CHUNK_GRID_WIDTH      = 8;
+    static const int   CHUNK_GRID_HEIGHT     = 8;
 
     static const int   QUAD_TREE_DEPTH       = 4;
 
@@ -66,7 +67,7 @@ public:
     ~Chunk();
 
     void Update(Camera*, float);
-    void Draw(Light*, Camera*, const std::vector<Material*>&, Texture*);
+    void Draw(Light*, Camera*, const std::vector<Material*>&, Texture*, bool);
 
 private:
 
@@ -75,6 +76,7 @@ private:
 
     void      BuildQuadTree(PerlinNoise::MinMax**);
     void      FillZoneRanges(const MathHelper::Frustum&, Node*);
+    void      UpdateZoneRangesBuffer();
     void      DrawQuadTrees(const MathHelper::Frustum&, Camera*, Node*);
 
     glm::vec3 GetTranslation() const;

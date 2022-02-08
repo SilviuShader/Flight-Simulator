@@ -3,12 +3,14 @@
 #include <glm/glm.hpp>
 
 #include "World.h"
+#include "InputWrapper.h"
 
 using namespace std;
 using namespace glm;
 
 World::World(int windowWidth, int windowHeight) :
-	m_moass(nullptr)
+	m_moass(nullptr),
+	m_renderDebug(false)
 {
 	m_light = new Light();
 	m_light->SetAmbientColor(vec4(0.75f, 0.75f, 0.75f, 1.0f));
@@ -64,14 +66,12 @@ void World::ProcessMouseInput(float diffX, float diffY)
 	m_camera->ProcessMouseInput(diffX, diffY);
 }
 
-void World::ProcessKeyboardInput(GLFWwindow* window)
-{
-	m_camera->ProcessKeybaordInput(window);
-}
-
 void World::Update(float deltaTime)
 {
 	m_camera->Update(deltaTime);
+
+	if (InputWrapper::GetInstance()->GetKeyUp(InputWrapper::Keys::Debug))
+		m_renderDebug = !m_renderDebug;
 
 	UpdateChunks(deltaTime);
 }
@@ -81,7 +81,7 @@ void World::Draw()
 	m_skybox->Draw(m_camera);
 
 	for (auto& keyVal : m_chunks)
-		keyVal.second->Draw(m_light, m_camera, m_terrainMaterials, m_terrainBiomesData);
+		keyVal.second->Draw(m_light, m_camera, m_terrainMaterials, m_terrainBiomesData, m_renderDebug);
 }
 
 Camera* World::GetCamera() const

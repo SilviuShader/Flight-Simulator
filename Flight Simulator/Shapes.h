@@ -28,13 +28,11 @@ private:
 
 private:
 
-	unsigned int m_vbo;
-	unsigned int m_ebo;
-	unsigned int m_vao;
+	       unsigned int m_vbo;
+	       unsigned int m_ebo;
+	       unsigned int m_vao;
 	
-	Shader*      m_colorShader;
-
-private:
-
-	static Shapes* g_instance;
+	       Shader*      m_colorShader;
+				        
+	static Shapes*      g_instance;
 };

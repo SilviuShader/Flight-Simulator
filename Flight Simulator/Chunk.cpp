@@ -12,6 +12,16 @@ using namespace glm;
 const float Chunk::CHUNK_WIDTH      = 64.0f;
 const float Chunk::CHUNK_CLOSE_BIAS = 1.0f;
 
+Chunk::Node::Node()
+{
+    memset(Children, 0, sizeof(Node*) * CHILDREN_COUNT);
+
+    IsLeaf      = false;
+    ZoneRange   = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    PositionId  = make_pair(0, 0);
+    BoundingBox = MathHelper::AABB();
+}
+
 Chunk::Node::~Node()
 {
     if (IsLeaf)
@@ -95,19 +105,16 @@ void Chunk::Update(Camera* camera, float deltaTime)
 {
     m_zoneRangesIndex = 0;
     FillZoneRanges(MathHelper::GetCameraFrustum(camera), m_quadTree);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vec4) * m_zoneRangesIndex, m_drawZonesRanges, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    UpdateZoneRangesBuffer();
 }
 
-void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
+void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData, bool renderDebug)
 {
     vec3 cameraPosition = camera->GetPosition();
 
-    mat4 model      = translate(mat4(1.0f), GetTranslation());
-    mat4 view       = camera->GetViewMatrix();
-    mat4 projection = camera->GetProjectionMatrix();
+    mat4 model          = translate(mat4(1.0f), GetTranslation());
+    mat4 view           = camera->GetViewMatrix();
+    mat4 projection     = camera->GetProjectionMatrix();
     
     m_terrainShader->Use();
 
@@ -144,11 +151,10 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    //DrawNode(MathHelper::GetCameraFrustum(camera), m_quadTree);
-    //DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
-
-    //glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
     glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
+
+    if (renderDebug)
+        DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -266,16 +272,17 @@ void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node)
         return;
     
     if (node->IsLeaf)
-    {
         m_drawZonesRanges[m_zoneRangesIndex++] = node->ZoneRange;
-        //m_terrainShader->SetVec4("ZoneRange", node->ZoneRange);
-        //glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
-    }
     else
-    {
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
             FillZoneRanges(frustum, node->Children[i]);
-    }
+}
+
+void Chunk::UpdateZoneRangesBuffer()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec4) * m_zoneRangesIndex, m_drawZonesRanges, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Chunk::DrawQuadTrees(const MathHelper::Frustum& frustum, Camera* camera, Node* node)

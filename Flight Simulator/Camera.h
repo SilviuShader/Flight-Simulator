@@ -15,7 +15,6 @@ public:
 
     Camera(float, float, float, float, float);
 
-    void      ProcessKeybaordInput(GLFWwindow*);
     void      ProcessMouseInput(float, float);
     void      UpdateWindowSize(float, float);
 
@@ -57,11 +56,6 @@ private:
 
     glm::mat4 m_viewMatrix;
     glm::mat4 m_projectionMatrix;
-
-    bool      m_upPressed;
-    bool      m_leftPressed;
-    bool      m_downPressed;
-    bool      m_rightPressed;
 
     float     m_width;
     float     m_height;

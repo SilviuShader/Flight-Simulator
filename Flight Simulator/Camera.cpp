@@ -5,6 +5,7 @@
 #include "glad/glad.h"
 
 #include "Camera.h"
+#include "InputWrapper.h"
 
 using namespace glm;
 
@@ -13,10 +14,6 @@ Camera::Camera(float fieldOfViewY, float width, float height, float near, float 
     m_rotation(vec3(0.0f, 0.0f, 0.0f)),
     m_width(width),
     m_height(height),
-    m_upPressed(false),
-    m_leftPressed(false),
-    m_downPressed(false),
-    m_rightPressed(false),
     m_fieldOfViewY(fieldOfViewY),
     m_near(near),
     m_far(far),
@@ -26,14 +23,6 @@ Camera::Camera(float fieldOfViewY, float width, float height, float near, float 
 {
     m_projectionMatrix = perspective(fieldOfViewY, width / height, near, far);
     UpdateViewMatrix();
-}
-
-void Camera::ProcessKeybaordInput(GLFWwindow* window)
-{
-    m_upPressed    = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
-    m_leftPressed  = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
-    m_downPressed  = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
-    m_rightPressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
 }
 
 void Camera::ProcessMouseInput(float diffX, float diffY)
@@ -65,25 +54,25 @@ void Camera::Update(float deltaTime)
     vec4 translation = vec4(0.0f, 0.0f, 0.0f, 0.0f);
     bool translated = false;
 
-    if (m_upPressed)
+    if (InputWrapper::GetInstance()->GetKey(InputWrapper::Keys::Up))
     {
         translation = vec4(translation.x, translation.y, translation.z - 1.0f, translation.w);
         translated = true;
     }
 
-    if (m_leftPressed)
+    if (InputWrapper::GetInstance()->GetKey(InputWrapper::Keys::Left))
     {
         translation = vec4(translation.x - 1.0f, translation.y, translation.z, translation.w);
         translated = true;
     }
 
-    if (m_downPressed)
+    if (InputWrapper::GetInstance()->GetKey(InputWrapper::Keys::Down))
     {
         translation = vec4(translation.x, translation.y, translation.z + 1.0f, translation.w);
         translated = true;
     }
 
-    if (m_rightPressed)
+    if (InputWrapper::GetInstance()->GetKey(InputWrapper::Keys::Right))
     {
         translation = vec4(translation.x + 1.0f, translation.y, translation.z, translation.w);
         translated = true;

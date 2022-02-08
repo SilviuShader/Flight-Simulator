@@ -2,6 +2,8 @@
 
 #include <utility>
 
+typedef std::pair<int, int> Vec2Int;
+
 struct HashPair
 {
 	template <class T1, class T2>

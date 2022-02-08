@@ -17,6 +17,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "stb_image.h"
 #include "Shapes.h"
+#include "InputWrapper.h"
 
 using namespace std;
 using namespace glm;
@@ -48,13 +49,9 @@ void mouse_callback(GLFWwindow* window, double posX, double posY)
         g_world->ProcessMouseInput(diffX, diffY);
 }
 
-void processInput(GLFWwindow* window)
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    if (g_world)
-        g_world->ProcessKeyboardInput(window);
+    InputWrapper::GetInstance()->KeyCallback(window, key, scancode, action, mods);
 }
 
 int main(int argc, char const* argv[])
@@ -103,6 +100,7 @@ int main(int argc, char const* argv[])
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     float previousTime = glfwGetTime();
 
@@ -118,7 +116,10 @@ int main(int argc, char const* argv[])
         float currentTime = glfwGetTime();
         float deltaTime = currentTime - previousTime;
 
-        processInput(window);
+        InputWrapper::GetInstance()->Update();
+        if (InputWrapper::GetInstance()->GetKey(InputWrapper::Keys::Exit))
+            glfwSetWindowShouldClose(window, true);
+
         g_world->Update(deltaTime);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -135,6 +136,7 @@ int main(int argc, char const* argv[])
         previousTime = currentTime;
     }
 
+    InputWrapper::FreeInstance();
     Shapes::FreeInstance();
 
     if (g_world)
