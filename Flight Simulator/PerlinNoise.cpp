@@ -72,10 +72,19 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
     int divisionsCount = 1 << (quadTreeLevels - 1);
     int div = TEXTURE_WIDTH / divisionsCount;
 
-    assert(TEXTURE_WIDTH == TEXTURE_HEIGHT);
-    assert(quadTreeLevels % quadTreeLevels == 0 && ((div & (div - 1)) == 0));
+    assert(TEXTURE_WIDTH == TEXTURE_HEIGHT && 
+           "The noise texture must have the width equal to the height.");
 
-    Texture* noiseTexture = new Texture(TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_RGBA32F, GL_RGBA);
+    assert(TEXTURE_WIDTH > divisionsCount && divisionsCount > 0 && 
+           "The width of the noise texture must be greater than the width of the texture containing the min and max values of the noise.");
+    
+    assert(TEXTURE_WIDTH % quadTreeLevels == 0 && ((div & (div - 1)) == 0) &&
+           "Texture width has to be equal to quadTreeLevels * pow(2, k), where k > 1.");
+
+    Texture* noiseTexture = new Texture(TEXTURE_WIDTH, 
+                                        TEXTURE_HEIGHT, 
+                                        GL_RGBA32F, 
+                                        GL_RGBA);
 
     m_noiseShader->Use();
 
@@ -103,33 +112,25 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
 
     glDispatchCompute(GetComputeShaderGroupsCount(TEXTURE_WIDTH,  COMPUTE_SHADER_BLOCKS_COUNT), 
                       GetComputeShaderGroupsCount(TEXTURE_HEIGHT, COMPUTE_SHADER_BLOCKS_COUNT), 1);
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-    MinMaxMap minMaxValues;
-
-    int currentSize = TEXTURE_WIDTH;
-
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    
     Texture* currentTexture = noiseTexture;
     Texture* newTexture = nullptr;
     
-    int itersCount = 0;
-    int cs = currentSize;
-    while (cs > divisionsCount)
-    {
-        cs /= 2;
-        itersCount++;
-    }
+    int itersCount = std::log2(TEXTURE_WIDTH / divisionsCount);
 
-    int add = std::min(MAX_MIN_MAX_SHADER_STEPS, itersCount);
+    int add = 0;
+    int iter = add;
     bool initial = true;
-    for (int iter = add;
-        iter <= itersCount;
-        iter += ((iter + MAX_MIN_MAX_SHADER_STEPS > itersCount) ? add = itersCount - iter : add = MAX_MIN_MAX_SHADER_STEPS))
+    do
     {
+        add = (iter + MAX_MIN_MAX_SHADER_STEPS > itersCount) ? itersCount - iter : MAX_MIN_MAX_SHADER_STEPS;
+        iter += add;
+
         if (!newTexture)
         {
-            newTexture = new Texture(currentSize / (1 << iter),
-                                     currentSize / (1 << iter),
+            newTexture = new Texture(TEXTURE_WIDTH >> iter,
+                                     TEXTURE_WIDTH >> iter,
                                      GL_RGBA32F,
                                      GL_RGBA);
         }
@@ -155,40 +156,26 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
         newTexture = nullptr;
 
         initial = false;
+    } while (iter < itersCount);
 
-        if (iter == 4)
-        {
-            /*float pixels[64 * 64 * 4];
+    int finalTexWidth  = currentTexture->GetWidth();
+    int finalTexHeight = currentTexture->GetHeight();
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, currentTexture->GetTextureID());
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+    float* pixels = new float[finalTexWidth * finalTexHeight * 4];
 
-            int a;
-            a = 0;*/
-        }
-
-        if (iter >= itersCount)
-            break;
-    }
-
-    float* pixels = new float[currentTexture->GetWidth() * currentTexture->GetHeight() * 4];
+    MinMax** minMaxValues = new MinMax*[finalTexWidth];
+    for (int i = 0; i < finalTexWidth; i++)
+        minMaxValues[i] = new MinMax[finalTexHeight];
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, currentTexture->GetTextureID());
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
 
-    for (int height = 0; height < currentTexture->GetHeight(); height++)
-    {
-        for (int width = 0; width < currentTexture->GetWidth(); width++)
-        {
-            int i = height;
-            int j = width;
-            minMaxValues[make_pair(width, height)] = make_pair(pixels[(i * currentTexture->GetWidth() + j) * 4],
-                pixels[(i * currentTexture->GetWidth() + j) * 4 + 1]);
-        }
-    }
-
+    for (int width = 0; width < finalTexWidth; width++)
+        for (int height = 0; height < finalTexHeight; height++)
+            minMaxValues[width][height] = make_pair(pixels[(height * finalTexWidth + width) * 4],
+                                                    pixels[(height * finalTexWidth + width) * 4 + 1]);
+    
     if (pixels)
     {
         delete[] pixels;

@@ -47,6 +47,22 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     m_noiseTexture = noiseData.first;
 
     BuildQuadTree(noiseData.second);
+
+    int divisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
+    for (int i = 0; i < divisionsCount; i++)
+    {
+        if (noiseData.second[i])
+        {
+            delete[] noiseData.second[i];
+            noiseData.second[i] = nullptr;
+        }
+    }
+
+    if (noiseData.second)
+    {
+        delete[] noiseData.second;
+        noiseData.second = nullptr;
+    }
 }
 
 Chunk::~Chunk()
@@ -204,7 +220,7 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-void Chunk::BuildQuadTree(PerlinNoise::MinMaxMap& minMax)
+void Chunk::BuildQuadTree(PerlinNoise::MinMax** minMax)
 {
     m_quadTree = CreateNode(0, 
                             vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
@@ -253,7 +269,7 @@ vec3 Chunk::GetTranslation() const
     return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
 }
 
-Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, PerlinNoise::MinMaxMap& minMax)
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, PerlinNoise::MinMax** minMax)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;
@@ -271,8 +287,8 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
     {
         result->IsLeaf = true;
 
-        float minAmplitude = minMax[positionId].first * TERRAIN_AMPLITUDE;
-        float maxAmplitude = minMax[positionId].second * TERRAIN_AMPLITUDE;
+        float minAmplitude = minMax[positionId.first][positionId.second].first  * TERRAIN_AMPLITUDE;
+        float maxAmplitude = minMax[positionId.first][positionId.second].second * TERRAIN_AMPLITUDE;
 
         float center = (maxAmplitude + minAmplitude) / 2.0f;
         float extents = (maxAmplitude - minAmplitude) / 2.0f;
