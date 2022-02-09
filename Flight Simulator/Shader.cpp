@@ -154,68 +154,68 @@ void Shader::Use()
     glUseProgram(m_programId);
 }
 
-void Shader::SetBool(const string& name, bool value) const
+void Shader::SetBool(const string& name, bool value)
 {
-    glUniform1i(glGetUniformLocation(m_programId, name.c_str()), (int)value);
+    glUniform1i(GetUniformLocation(name), (int)value);
 }
 
-void Shader::SetInt(const string& name, int value) const
+void Shader::SetInt(const string& name, int value)
 {
-    glUniform1i(glGetUniformLocation(m_programId, name.c_str()), value);
+    glUniform1i(GetUniformLocation(name), value);
 }
 
-void Shader::SetFloat(const string& name, float value) const
+void Shader::SetFloat(const string& name, float value)
 {
-    glUniform1f(glGetUniformLocation(m_programId, name.c_str()), value);
+    glUniform1f(GetUniformLocation(name), value);
 }
 
-void Shader::SetVec2(const string& name, const vec2& value) const
+void Shader::SetVec2(const string& name, const vec2& value)
 {
-    glUniform2f(glGetUniformLocation(m_programId, name.c_str()), value.x, value.y);
+    glUniform2f(GetUniformLocation(name), value.x, value.y);
 }
 
-void Shader::SetVec3(const string& name, const vec3& value) const
+void Shader::SetVec3(const string& name, const vec3& value)
 {
-    glUniform3f(glGetUniformLocation(m_programId, name.c_str()), value.x, value.y, value.z);
+    glUniform3f(GetUniformLocation(name), value.x, value.y, value.z);
 }
 
-void Shader::SetVec4(const string& name, const vec4& value) const
+void Shader::SetVec4(const string& name, const vec4& value)
 {
-    glUniform4f(glGetUniformLocation(m_programId, name.c_str()), value.x, value.y, value.z, value.w);
+    glUniform4f(GetUniformLocation(name), value.x, value.y, value.z, value.w);
 }
 
-void Shader::SetMatrix4(const string& name, mat4& value) const
+void Shader::SetMatrix4(const string& name, mat4& value)
 {
     float* ptr = value_ptr(value);
-    glUniformMatrix4fv(glGetUniformLocation(m_programId, name.c_str()), 1, GL_FALSE, ptr);
+    glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, ptr);
 }
 
-void Shader::SetBlockBinding(const string& name, int binding) const
+void Shader::SetBlockBinding(const string& name, int binding)
 {
-    glUniformBlockBinding(m_programId, glGetUniformBlockIndex(m_programId, name.c_str()), binding);
+    glUniformBlockBinding(m_programId, GetUniformBlockIndex(name), binding);
 }
 
-void Shader::SetTexture(const string& name, Texture* texture, int textureNumber) const
+void Shader::SetTexture(const string& name, Texture* texture, int textureNumber)
 {
     glActiveTexture(GL_TEXTURE0 + textureNumber);
     glBindTexture(GL_TEXTURE_2D, texture->GetTextureID());
     SetInt(name, textureNumber);
 }
 
-void Shader::SetCubemap(const string& name, Cubemap* cubemap, int textureNumber) const
+void Shader::SetCubemap(const string& name, Cubemap* cubemap, int textureNumber)
 {
     glActiveTexture(GL_TEXTURE0 + textureNumber);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->GetTextureID());
     SetInt(name, textureNumber);
 }
 
-void Shader::SetImage2D(const string& name, Texture* texture, int textureNumber) const
+void Shader::SetImage2D(const string& name, Texture* texture, int textureNumber)
 {
     glBindImageTexture(textureNumber, texture->GetTextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
     SetInt(name, textureNumber);
 }
 
-int Shader::SetMaterials(const string& texturesName, const string& normalTexturesName, const string& specularTexturesName, const vector<Material*>& materials, int startingTextureNumber) const
+int Shader::SetMaterials(const string& texturesName, const string& normalTexturesName, const string& specularTexturesName, const vector<Material*>& materials, int startingTextureNumber)
 {
     int materialsCount = materials.size();
 
@@ -244,9 +244,9 @@ int Shader::SetMaterials(const string& texturesName, const string& normalTexture
         glBindTexture(GL_TEXTURE_2D, materials[i]->GetSpecularTexture()->GetTextureID());
     }
 
-    glUniform1iv(glGetUniformLocation(m_programId, texturesName.c_str()), materialsCount, textureNumbers);
-    glUniform1iv(glGetUniformLocation(m_programId, normalTexturesName.c_str()), materialsCount, normalTextureNumbers);
-    glUniform1iv(glGetUniformLocation(m_programId, specularTexturesName.c_str()), materialsCount, specularTextureNumbers);
+    glUniform1iv(GetUniformLocation(texturesName), materialsCount, textureNumbers);
+    glUniform1iv(GetUniformLocation(normalTexturesName), materialsCount, normalTextureNumbers);
+    glUniform1iv(GetUniformLocation(specularTexturesName), materialsCount, specularTextureNumbers);
 
     if (specularTextureNumbers)
     {
@@ -285,4 +285,38 @@ string Shader::ReadFile(const string filename)
     }
 
     return "";
+}
+
+int Shader::GetUniformLocation(const string& name)
+{
+    if (m_uniformLocations.find(name) != m_uniformLocations.end())
+        return m_uniformLocations[name];
+
+    int location = glGetUniformLocation(m_programId, name.c_str());
+    
+    if (location == -1)
+    {
+        cout << "ERROR::SHADER::UNIFORM::LOCATION::NOT_FOUND" << endl;
+        return location;
+    }
+
+    m_uniformLocations[name] = location;
+    return location;
+}
+
+int Shader::GetUniformBlockIndex(const string& name)
+{
+    if (m_uniformBlocksIndices.find(name) != m_uniformBlocksIndices.end())
+        return m_uniformBlocksIndices[name];
+
+    int index = glGetUniformBlockIndex(m_programId, name.c_str());
+
+    if (index == GL_INVALID_INDEX)
+    {
+        cout << "ERROR::SHADER::UNIFORM::BLOCK_INDEX::NOT_FOUND" << endl;
+        return index;
+    }
+
+    m_uniformBlocksIndices[name] = index;
+    return index;
 }

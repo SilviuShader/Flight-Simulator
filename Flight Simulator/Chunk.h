@@ -50,7 +50,7 @@ private:
            const float MAX_TESSELATION       = 16.0f;
            const float TEX_COORDS_MULTIPLIER = 0.2f;
 
-           const float GAMMA                 = 1.0f;
+           const float GAMMA                 = 1.2f;
 
     static const int   COLORS_COUNT          = 5;
 

@@ -83,8 +83,9 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
 
     Texture* noiseTexture = new Texture(TEXTURE_WIDTH, 
                                         TEXTURE_HEIGHT, 
-                                        GL_RGBA32F, 
-                                        GL_RGBA);
+                                        Texture::Format::RGBA32F, 
+                                        Texture::Format::RGBA,
+                                        Texture::Filter::Linear);
 
     m_noiseShader->Use();
 
@@ -131,8 +132,9 @@ PerlinNoise::NoiseData PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPo
         {
             newTexture = new Texture(TEXTURE_WIDTH >> iter,
                                      TEXTURE_WIDTH >> iter,
-                                     GL_RGBA32F,
-                                     GL_RGBA);
+                                     Texture::Format::RGBA32F,
+                                     Texture::Format::RGBA,
+                                     Texture::Filter::Linear);
         }
         m_minMaxShader->Use();
 

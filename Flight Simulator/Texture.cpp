@@ -52,7 +52,7 @@ Texture::Texture(unsigned int textureID) :
     glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &m_height);
 }
 
-Texture::Texture(int width, int height, int internalFormat, unsigned int format, float* texData)
+Texture::Texture(int width, int height, Format internalFormat, Format format, Filter filter, float* texData)
 {
     m_width = width;
     m_height = height;
@@ -62,10 +62,10 @@ Texture::Texture(int width, int height, int internalFormat, unsigned int format,
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParam(filter));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParam(filter));
 
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_FLOAT, texData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(internalFormat), width, height, 0, GetGLFormat(format), GL_FLOAT, texData);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
@@ -87,4 +87,41 @@ int Texture::GetWidth() const
 int Texture::GetHeight() const
 {
     return m_height;
+}
+
+int Texture::GetGLFormat(Format format)
+{
+    switch (format)
+    {
+    case Format::RGBA32F:
+        return GL_RGBA32F;
+        break;
+    case Format::RGBA:
+        return GL_RGBA;
+        break;
+    case Format::RED:
+        return GL_RED;
+        break;
+    }
+
+    cout << "ERROR::TEXTURE::INVALID::FORMAT" << endl;
+
+    return -1;
+}
+
+int Texture::GetGLParam(Filter filter)
+{
+    switch (filter)
+    {
+    case Filter::Linear:
+        return GL_LINEAR;
+        break;
+    case Filter::Point:
+        return GL_NEAREST;
+        break;
+    }
+
+    cout << "ERROR::TEXTURE::INVALID::FILTER" << endl;
+
+    return -1;
 }

@@ -20,7 +20,12 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 		for (int i = 0; i < textureSize; i++)
 			specularValues[i] = 0.0f;
 
-		m_specularTexture = new Texture(m_texture->GetWidth(), m_texture->GetHeight(), GL_RED, GL_RED, specularValues);
+		m_specularTexture = new Texture(m_texture->GetWidth(), 
+			                            m_texture->GetHeight(), 
+			                            Texture::Format::RED, 
+			                            Texture::Format::RED, 
+			                            Texture::Filter::Linear, 
+			                            specularValues);
 
 		if (specularValues)
 		{

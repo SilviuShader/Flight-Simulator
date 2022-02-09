@@ -37,7 +37,7 @@ void sampleMaterial(int materialIndex, out vec4 texColor, out vec3 normal, out f
     specularStrength = texture(TerrainSpecularTextures[materialIndex], FSInputTexCoords).r;
 
     normal *= 2.0f;
-    normal -= vec3(1.0f, 1.0f, 1.0f);
+    normal -= vec3(1.0, 1.0, 1.0);
 }
 
 void sampleMaterialCombined(out vec4 texColor, out vec3 normal, out float specularStrength)
@@ -75,7 +75,7 @@ void sampleMaterialCombined(out vec4 texColor, out vec3 normal, out float specul
     vec3  topNormal   = mix(nextAltitudeNormal,           nextBiomeAltitudeNormal,           biomePercentage);
     float topSpecular = mix(nextAltitudeSpecularStrength, nextBiomeAltitudeSpecularStrength, biomePercentage);
 
-    texColor         = mix(bottomTexture,  topTexture,  materialOrderPercentage);
+    texColor         = mix(bottomTexture,  topTexture,  materialOrderPercentage) * Gamma;
     normal           = mix(bottomNormal,   topNormal,   materialOrderPercentage);
     specularStrength = mix(bottomSpecular, topSpecular, materialOrderPercentage);
 }
