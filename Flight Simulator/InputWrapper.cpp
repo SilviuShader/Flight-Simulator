@@ -1,6 +1,7 @@
 #include "InputWrapper.h"
 
 using namespace std;
+using namespace glm;
 
 InputWrapper* InputWrapper::g_instance = nullptr;
 
@@ -31,6 +32,17 @@ void InputWrapper::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 		m_keysStates[(int)currentKey] = pressValue;
 }
 
+void InputWrapper::MouseCallback(GLFWwindow* window, double posX, double posY)
+{
+	m_mousePos = vec2((float)posX, (float)posY);
+
+	if (!m_movedMouseOnce)
+	{
+		m_previousMousePos = m_mousePos;
+		m_movedMouseOnce = true;
+	}
+}
+
 void InputWrapper::Update()
 {
 	memset(m_getKeysDown, false, sizeof(bool) * (int)Keys::Last);
@@ -46,24 +58,38 @@ void InputWrapper::Update()
 	}
 
 	memcpy(m_previousKeysStates, m_keysStates, sizeof(bool) * (int)Keys::Last);
+
+	if (m_movedMouseOnce)
+		m_mouseMoveDiff = m_mousePos - m_previousMousePos;
+	
+	m_previousMousePos = m_mousePos;
 }
 
-bool InputWrapper::GetKey(Keys key)
+bool InputWrapper::GetKey(Keys key) const
 {
 	return m_keysStates[(int)key];
 }
 
-bool InputWrapper::GetKeyDown(Keys key)
+bool InputWrapper::GetKeyDown(Keys key) const
 {
 	return m_getKeysDown[(int)key];
 }
 
-bool InputWrapper::GetKeyUp(Keys key)
+bool InputWrapper::GetKeyUp(Keys key) const
 {
 	return m_getKeysUp[(int)key];
 }
 
-InputWrapper::InputWrapper()
+vec2 InputWrapper::GetMouseMoveDiff() const
+{
+	return m_mouseMoveDiff;
+}
+
+InputWrapper::InputWrapper() :
+	m_mousePos(vec2(0.0f, 0.0f)),
+	m_previousMousePos(vec2(0.0f, 0.0f)),
+	m_mouseMoveDiff(vec2(0.0f, 0.0f)),
+	m_movedMouseOnce(false)
 {
 	memset(m_keysStates,         false, sizeof(bool) * (int)Keys::Last);
 	memset(m_previousKeysStates, false, sizeof(bool) * (int)Keys::Last);

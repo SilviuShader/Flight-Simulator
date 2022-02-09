@@ -25,9 +25,6 @@ using namespace glm;
 constexpr auto WINDOW_WIDTH = 1280;
 constexpr auto WINDOW_HEIGHT = 720;
 
-float lastMouseX = WINDOW_WIDTH / 2.0f;
-float lastMouseY = WINDOW_HEIGHT / 2.0f;
-
 World* g_world;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -40,13 +37,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double posX, double posY)
 {
-    float diffX = posX - lastMouseX;
-    float diffY = posY - lastMouseY;
-    lastMouseX = posX;
-    lastMouseY = posY;
-
-    if (g_world)
-        g_world->ProcessMouseInput(diffX, diffY);
+    InputWrapper::GetInstance()->MouseCallback(window, posX, posY);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

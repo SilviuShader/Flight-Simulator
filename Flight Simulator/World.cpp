@@ -10,12 +10,11 @@ using namespace std;
 using namespace glm;
 
 World::World(int windowWidth, int windowHeight) :
-	m_moass(nullptr),
 	m_renderDebug(false)
 {
 	m_light = new Light();
-	m_light->SetAmbientColor(vec4(0.75f, 0.75f, 0.75f, 1.0f));
-	m_light->SetDiffuseColor(vec4(0.8f, 0.8f, 0.9f, 1.0f));
+	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.3f, 1.0f));
+	m_light->SetDiffuseColor(vec4(0.9f, 0.9f, 1.0f, 1.0f));
 
 	m_camera = new Camera(radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 1000.0f);
 	m_skybox = new Skybox();
@@ -60,11 +59,6 @@ World::~World()
 void World::UpdateWindowSize(int width, int height)
 {
 	m_camera->UpdateWindowSize(width, height);
-}
-
-void World::ProcessMouseInput(float diffX, float diffY)
-{
-	m_camera->ProcessMouseInput(diffX, diffY);
 }
 
 void World::Update(float deltaTime)

@@ -14,13 +14,6 @@ class World
 {
 private:
 
-	struct GME 
-	{
-		inline void DiamondHands() const { std::cout << "NO CELL NO SELL" << std::endl; }
-	};
-
-private:
-
 	static const int BIOMES_COUNT        = 2;
 	static const int MATERIALS_PER_BIOME = 4;
 
@@ -32,7 +25,6 @@ public:
 	~World();
 
 	void    UpdateWindowSize(int, int);
-	void    ProcessMouseInput(float, float);
 
 	void    Update(float);
 	void    Draw();
@@ -48,9 +40,8 @@ private:
 
 private:
 
-	Light*                                                    m_light;  // lights
-	Camera*                                                   m_camera; // camera
-	GME*                                                      m_moass;  // ACTION! 
+	Light*                                                    m_light;
+	Camera*                                                   m_camera;
 
 	Skybox*                                                   m_skybox;
 	std::unordered_map<std::pair<int, int>, Chunk*, HashPair> m_chunks;

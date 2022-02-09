@@ -25,21 +25,6 @@ Camera::Camera(float fieldOfViewY, float width, float height, float near, float 
     UpdateViewMatrix();
 }
 
-void Camera::ProcessMouseInput(float diffX, float diffY)
-{
-    m_rotation.x += diffY * CAMERA_ROTATE_SPEED;
-    m_rotation.y += diffX * CAMERA_ROTATE_SPEED;
-
-    constexpr float halfPi = half_pi<float>();
-
-    if (m_rotation.x >= halfPi)
-        m_rotation.x = halfPi;
-    if (m_rotation.x <= -halfPi)
-        m_rotation.x = -halfPi;
-
-    UpdateViewMatrix();
-}
-
 void Camera::UpdateWindowSize(float width, float height)
 {
     m_width = width;
@@ -49,6 +34,20 @@ void Camera::UpdateWindowSize(float width, float height)
 
 void Camera::Update(float deltaTime)
 {
+    auto mouseDiff = InputWrapper::GetInstance()->GetMouseMoveDiff();
+
+    m_rotation.x += mouseDiff.y * CAMERA_ROTATE_SPEED;
+    m_rotation.y += mouseDiff.x * CAMERA_ROTATE_SPEED;
+
+    constexpr float halfPi = half_pi<float>();
+
+    if (m_rotation.x >= halfPi)
+        m_rotation.x = halfPi;
+    if (m_rotation.x <= -halfPi)
+        m_rotation.x = -halfPi;
+
+    UpdateViewMatrix();
+
     mat4 rotationMatrix = GetRotationMatrix();
 
     vec4 translation = vec4(0.0f, 0.0f, 0.0f, 0.0f);

@@ -15,7 +15,6 @@ public:
 
     Camera(float, float, float, float, float);
 
-    void      ProcessMouseInput(float, float);
     void      UpdateWindowSize(float, float);
 
     void      Update(float);
