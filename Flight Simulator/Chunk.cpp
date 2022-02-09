@@ -338,7 +338,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
             maxAmplitude = std::max(maxAmplitude, 
                                     result->Children[i]->BoundingBox.Center.y + result->Children[i]->BoundingBox.Extents.y);
 
-            minAmplitude = std::min(maxAmplitude, 
+            minAmplitude = std::min(minAmplitude, 
                                     result->Children[i]->BoundingBox.Center.y - result->Children[i]->BoundingBox.Extents.y);
         }
 
