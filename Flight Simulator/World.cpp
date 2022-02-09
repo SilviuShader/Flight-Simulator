@@ -85,7 +85,7 @@ void World::Draw()
 	m_skybox->Draw(m_camera);
 
 	for (auto& keyVal : m_chunks)
-		keyVal.second->Draw(m_light, m_camera, m_terrainMaterials, m_terrainBiomesData, m_renderDebug);
+		keyVal.second->Draw(m_light, m_terrainMaterials, m_terrainBiomesData);
 
 	if (m_renderDebug)
 		Shapes::GetInstance()->DrawRectangles(m_camera);

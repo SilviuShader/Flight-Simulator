@@ -44,7 +44,9 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     m_terrainShader(terrainShader),
     m_perlinNoise(perlinNoise),
     m_chunkID(chunkID),
-    m_quadTree(nullptr)
+    m_quadTree(nullptr),
+    m_camera(nullptr),
+    m_renderDebug(false)
 {
     CreateTerrainBuffers();
 
@@ -103,52 +105,57 @@ Chunk::~Chunk()
 
 void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
 {
+    m_camera      = camera;
+    m_renderDebug = renderDebug;
+
     m_zoneRangesIndex = 0;
 
-    FillZoneRanges(MathHelper::GetCameraFrustum(camera), m_quadTree, renderDebug);
+    FillZoneRanges(MathHelper::GetCameraFrustum(camera), m_quadTree);
     UpdateZoneRangesBuffer();
 }
 
-void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData, bool renderDebug)
+void Chunk::Draw(Light* light, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
 {
-    vec3 cameraPosition = camera->GetPosition();
+    vec3 cameraPosition = m_camera->GetPosition();
 
-    mat4 model = translate(mat4(1.0f), GetTranslation());
-    mat4 view = camera->GetViewMatrix();
-    mat4 projection = camera->GetProjectionMatrix();
+    mat4 model          = translate(mat4(1.0f), GetTranslation());
+    mat4 view           = m_camera->GetViewMatrix();
+    mat4 projection     = m_camera->GetProjectionMatrix();
 
     m_terrainShader->Use();
 
-    m_terrainShader->SetMatrix4("Model", model);
+    m_terrainShader->SetMatrix4("Model",                     model);
 
-    m_terrainShader->SetVec3("CameraPosition", cameraPosition);
-    m_terrainShader->SetFloat("DistanceForDetails", DISTANCE_FOR_DETAILS);
-    m_terrainShader->SetFloat("TessellationLevel", MAX_TESSELATION);
+    m_terrainShader->SetVec3("CameraPosition",               cameraPosition);
+    m_terrainShader->SetFloat("DistanceForDetails",          DISTANCE_FOR_DETAILS);
+    m_terrainShader->SetFloat("TessellationLevel",           MAX_TESSELATION);
 
-    m_terrainShader->SetTexture("NoiseTexture", m_noiseTexture, 0);
-    m_terrainShader->SetMatrix4("View", view);
-    m_terrainShader->SetMatrix4("Projection", projection);
+    m_terrainShader->SetTexture("NoiseTexture",              m_noiseTexture, 0);
+    m_terrainShader->SetMatrix4("View",                      view);
+    m_terrainShader->SetMatrix4("Projection",                projection);
 
-    m_terrainShader->SetFloat("TerrainWidth", CHUNK_WIDTH);
-    m_terrainShader->SetFloat("GridWidth", CHUNK_GRID_WIDTH);
-    m_terrainShader->SetFloat("GridHeight", CHUNK_GRID_HEIGHT);
-    m_terrainShader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
+    m_terrainShader->SetFloat("TerrainWidth",                CHUNK_WIDTH);
+    m_terrainShader->SetFloat("GridWidth",                   CHUNK_GRID_WIDTH);
+    m_terrainShader->SetFloat("GridHeight",                  CHUNK_GRID_HEIGHT);
+    m_terrainShader->SetFloat("TerrainAmplitude",            TERRAIN_AMPLITUDE);
 
-    m_terrainShader->SetFloat("Gamma", GAMMA);
+    m_terrainShader->SetFloat("Gamma",                       GAMMA);
 
-    m_terrainShader->SetVec4("AmbientColor", light->GetAmbientColor());
-    m_terrainShader->SetVec4("DiffuseColor", light->GetDiffuseColor());
-    m_terrainShader->SetVec3("LightDirection", light->GetLightDirection());
-    m_terrainShader->SetFloat("SpecularPower", light->GetSpecularPower());
+    m_terrainShader->SetVec4("AmbientColor",                 light->GetAmbientColor());
+    m_terrainShader->SetVec4("DiffuseColor",                 light->GetDiffuseColor());
+    m_terrainShader->SetVec3("LightDirection",               light->GetLightDirection());
+    m_terrainShader->SetFloat("SpecularPower",               light->GetSpecularPower());
 
-    m_terrainShader->SetVec3("CameraPosition", camera->GetPosition());
+    m_terrainShader->SetVec3("CameraPosition",               m_camera->GetPosition());
 
-    m_terrainShader->SetInt("BiomesCount", terrainBiomesData->GetWidth());
-    m_terrainShader->SetInt("MaterialsPerBiome", terrainBiomesData->GetHeight());
+    m_terrainShader->SetInt("BiomesCount",                   terrainBiomesData->GetWidth());
+    m_terrainShader->SetInt("MaterialsPerBiome",             terrainBiomesData->GetHeight());
 
-    m_terrainShader->SetTexture("BiomeMaterialsTexture", terrainBiomesData, 1);
+    m_terrainShader->SetTexture("BiomeMaterialsTexture",     terrainBiomesData, 1);
 
-    m_terrainShader->SetMaterials("TerrainTextures", "TerrainNormalTextures", "TerrainSpecularTextures", terrainMaterials, 2);
+    m_terrainShader->SetMaterials("TerrainTextures", 
+                                  "TerrainNormalTextures", 
+                                  "TerrainSpecularTextures", terrainMaterials, 2);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -157,10 +164,10 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
 
 void Chunk::CreateTerrainBuffers()
 {
-    constexpr int verticesWidth = CHUNK_GRID_WIDTH + 1;
-    constexpr int verticesHeight = CHUNK_GRID_HEIGHT + 1;
+    constexpr int verticesWidth     = CHUNK_GRID_WIDTH + 1;
+    constexpr int verticesHeight    = CHUNK_GRID_HEIGHT + 1;
 
-    constexpr int verticesCount = verticesWidth * verticesHeight;
+    constexpr int verticesCount     = verticesWidth * verticesHeight;
 
     VertexPositionTexture* vertices = new VertexPositionTexture[verticesCount];
 
@@ -168,7 +175,7 @@ void Chunk::CreateTerrainBuffers()
     {
         for (int j = 0; j < verticesWidth; j++)
         {
-            float adjustedI = (float)i / (float)(verticesWidth - 1);
+            float adjustedI = (float)i / (float)(verticesWidth  - 1);
             float adjustedJ = (float)j / (float)(verticesHeight - 1);
 
             vec2 planePosition = vec2(adjustedJ, adjustedI);
@@ -180,7 +187,7 @@ void Chunk::CreateTerrainBuffers()
 
     unsigned int* indices = new unsigned int[INDICES_COUNT];
 
-    int indicesIndex = 0;
+    int indicesIndex      = 0;
 
     for (int i = 0; i < CHUNK_GRID_HEIGHT; i++)
     {
@@ -342,12 +349,13 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
         boundingBoxExtents = vec3(boundingBoxExtents.x, extents, boundingBoxExtents.z);
     }
 
-    result->BoundingBox = MathHelper::AABB(boundingBoxCenter, boundingBoxExtents.x, boundingBoxExtents.y, boundingBoxExtents.z);
+    result->BoundingBox = MathHelper::AABB(boundingBoxCenter, 
+                                           boundingBoxExtents.x, boundingBoxExtents.y, boundingBoxExtents.z);
 
     return result;
 }
 
-void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node, bool renderDebug)
+void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node)
 {
     if (!node->BoundingBox.IsOnFrustum(frustum))
         return;
@@ -356,13 +364,13 @@ void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node, bool 
     {
         m_drawZonesRanges[m_zoneRangesIndex++] = node->ZoneRange;
 
-        if (renderDebug)
+        if (m_renderDebug)
             Shapes::GetInstance()->AddInstance(node->BoundingBox.Center, node->BoundingBox.Extents);
     }
     else
     {
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
-            FillZoneRanges(frustum, node->Children[i], renderDebug);
+            FillZoneRanges(frustum, node->Children[i]);
     }
 }
 
@@ -375,5 +383,7 @@ void Chunk::UpdateZoneRangesBuffer()
 
 vec3 Chunk::GetTranslation() const
 {
-    return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
+    return vec3(m_chunkID.first  * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 
+                0.0f, 
+                m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
 }

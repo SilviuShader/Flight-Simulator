@@ -67,7 +67,7 @@ public:
     ~Chunk();
 
     void Update(Camera*, float, bool);
-    void Draw(Light*, Camera*, const std::vector<Material*>&, Texture*, bool);
+    void Draw(Light*, const std::vector<Material*>&, Texture*);
 
 private:
 
@@ -77,7 +77,7 @@ private:
     void      BuildQuadTree(PerlinNoise::MinMax**);
     Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**);
 
-    void      FillZoneRanges(const MathHelper::Frustum&, Node*, bool);
+    void      FillZoneRanges(const MathHelper::Frustum&, Node*);
     void      UpdateZoneRangesBuffer();
 
     glm::vec3 GetTranslation() const;
@@ -99,4 +99,7 @@ private:
     int                    m_zoneRangesIndex;
 
     Node*                  m_quadTree;
+
+    Camera*                m_camera;
+    bool                   m_renderDebug;
 };
