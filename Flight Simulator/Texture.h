@@ -6,9 +6,9 @@ class Texture
 {
 public:
 
-    Texture(const std::string&);                                    // load texture from file
-    Texture(unsigned int);                                          // for textures that were already created
-    Texture(int, int, int, unsigned int, float* = NULL); // for red-only textures
+    Texture(const std::string&);                         // load texture from file
+    Texture(unsigned int);                               // for textures that were already created
+    Texture(int, int, int, unsigned int, float* = NULL); // for new textures
     ~Texture();
 
     unsigned int GetTextureID() const;
