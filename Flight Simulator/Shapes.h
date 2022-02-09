@@ -17,7 +17,9 @@ public:
 	static Shapes* GetInstance();
 	static void    FreeInstance();
 
-		   void    DrawRectangle(const glm::vec3&, const glm::vec3&, Camera*);
+		   void    ResetInstances();
+		   void    AddInstance(const glm::vec3&, const glm::vec3&);
+		   void    DrawRectangles(Camera*);
 
 private:
 
@@ -28,11 +30,14 @@ private:
 
 private:
 
-	       unsigned int m_vbo;
-	       unsigned int m_ebo;
-	       unsigned int m_vao;
+	       unsigned int           m_vbo;
+		   unsigned int           m_instanceVbo;
+	       unsigned int           m_ebo;
+	       unsigned int           m_vao;
 	
-	       Shader*      m_colorShader;
-				        
-	static Shapes*      g_instance;
+	       Shader*                m_colorShader;
+		   
+		   std::vector<glm::mat4> m_instances;
+
+	static Shapes*                g_instance;
 };

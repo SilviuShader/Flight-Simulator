@@ -35,23 +35,35 @@ void Shapes::FreeInstance()
 	}
 }
 
-void Shapes::DrawRectangle(const vec3& center, const vec3& extents, Camera* camera)
+void Shapes::ResetInstances()
 {
-	mat4 model = translate(mat4(1.0), center) * scale(mat4(1.0), extents);
-	mat4 view = camera->GetViewMatrix();
+	m_instances.clear();
+}
+
+void Shapes::AddInstance(const vec3& center, const vec3& extents)
+{
+	m_instances.push_back(translate(mat4(1.0), center) * scale(mat4(1.0), extents));
+}
+
+void Shapes::DrawRectangles(Camera* camera)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(mat4) * m_instances.size(), ((m_instances.size()) ? &m_instances[0] : NULL), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+	mat4 view       = camera->GetViewMatrix();
 	mat4 projection = camera->GetProjectionMatrix();
 
-	m_colorShader->SetMatrix4("Model",      model);
+	m_colorShader->Use();
+
 	m_colorShader->SetMatrix4("View",       view);
 	m_colorShader->SetMatrix4("Projection", projection);
-
-	m_colorShader->Use();
 
 	glLineWidth(1.0);
 
 	glBindVertexArray(m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+	glDrawElementsInstanced(GL_LINES, 24, GL_UNSIGNED_INT, 0, m_instances.size());
 }
 
 Shapes::Shapes()
@@ -108,6 +120,24 @@ void Shapes::CreateCubeBuffers()
 
 	VertexPositionColor::SetLayout();
 
+	glGenBuffers(1, &m_instanceVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
+	glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(vec4), (void*)0);
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(vec4), (void*)(sizeof(vec4)));
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(vec4), (void*)(sizeof(vec4) * 2));
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(vec4), (void*)(sizeof(vec4) * 3));
+
+	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+
 	glGenBuffers(1, &m_ebo);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -120,8 +150,16 @@ void Shapes::FreeCubeBuffers()
 
 	VertexPositionColor::ResetLayout();
 
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(3);
+	glDisableVertexAttribArray(4);
+	glDisableVertexAttribArray(5);
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &m_vbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &m_instanceVbo);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &m_ebo);

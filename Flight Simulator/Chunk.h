@@ -59,14 +59,14 @@ private:
 
     static const int   QUAD_TREE_DEPTH       = 4;
 
-    static const int   INDICES_COUNT        = CHUNK_GRID_WIDTH * CHUNK_GRID_HEIGHT * 6;
+    static const int   INDICES_COUNT         = CHUNK_GRID_WIDTH * CHUNK_GRID_HEIGHT * 6;
 
 public:
 
     Chunk(PerlinNoise*, Shader*, std::pair<int, int>);
     ~Chunk();
 
-    void Update(Camera*, float);
+    void Update(Camera*, float, bool);
     void Draw(Light*, Camera*, const std::vector<Material*>&, Texture*, bool);
 
 private:
@@ -75,13 +75,12 @@ private:
     void      FreeTerrainBuffers();
 
     void      BuildQuadTree(PerlinNoise::MinMax**);
-    void      FillZoneRanges(const MathHelper::Frustum&, Node*);
+    Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**);
+
+    void      FillZoneRanges(const MathHelper::Frustum&, Node*, bool);
     void      UpdateZoneRangesBuffer();
-    void      DrawQuadTrees(const MathHelper::Frustum&, Camera*, Node*);
 
     glm::vec3 GetTranslation() const;
-
-    Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**);
 
 private:
 

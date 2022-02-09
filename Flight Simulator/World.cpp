@@ -4,6 +4,7 @@
 
 #include "World.h"
 #include "InputWrapper.h"
+#include "Shapes.h"
 
 using namespace std;
 using namespace glm;
@@ -73,6 +74,9 @@ void World::Update(float deltaTime)
 	if (InputWrapper::GetInstance()->GetKeyUp(InputWrapper::Keys::Debug))
 		m_renderDebug = !m_renderDebug;
 
+	if (m_renderDebug)
+		Shapes::GetInstance()->ResetInstances();
+
 	UpdateChunks(deltaTime);
 }
 
@@ -82,6 +86,9 @@ void World::Draw()
 
 	for (auto& keyVal : m_chunks)
 		keyVal.second->Draw(m_light, m_camera, m_terrainMaterials, m_terrainBiomesData, m_renderDebug);
+
+	if (m_renderDebug)
+		Shapes::GetInstance()->DrawRectangles(m_camera);
 }
 
 Camera* World::GetCamera() const
@@ -221,5 +228,5 @@ void World::UpdateChunks(float deltaTime)
 	}
 
 	for (auto& keyVal : m_chunks)
-		keyVal.second->Update(m_camera, deltaTime);
+		keyVal.second->Update(m_camera, deltaTime, m_renderDebug);
 }

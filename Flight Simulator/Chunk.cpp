@@ -101,10 +101,11 @@ Chunk::~Chunk()
     FreeTerrainBuffers();
 }
 
-void Chunk::Update(Camera* camera, float deltaTime)
+void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
 {
     m_zoneRangesIndex = 0;
-    FillZoneRanges(MathHelper::GetCameraFrustum(camera), m_quadTree);
+
+    FillZoneRanges(MathHelper::GetCameraFrustum(camera), m_quadTree, renderDebug);
     UpdateZoneRangesBuffer();
 }
 
@@ -112,10 +113,10 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
 {
     vec3 cameraPosition = camera->GetPosition();
 
-    mat4 model          = translate(mat4(1.0f), GetTranslation());
-    mat4 view           = camera->GetViewMatrix();
-    mat4 projection     = camera->GetProjectionMatrix();
-    
+    mat4 model = translate(mat4(1.0f), GetTranslation());
+    mat4 view = camera->GetViewMatrix();
+    mat4 projection = camera->GetProjectionMatrix();
+
     m_terrainShader->Use();
 
     m_terrainShader->SetMatrix4("Model", model);
@@ -152,9 +153,6 @@ void Chunk::Draw(Light* light, Camera* camera, const vector<Material*>& terrainM
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
-
-    if (renderDebug)
-        DrawQuadTrees(MathHelper::GetCameraFrustum(camera), camera, m_quadTree);
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -250,6 +248,9 @@ void Chunk::FreeTerrainBuffers()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_vbo);
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &m_instanceVbo);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_ebo);
 
@@ -266,59 +267,21 @@ void Chunk::BuildQuadTree(PerlinNoise::MinMax** minMax)
                             minMax);
 }
 
-void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node)
-{
-    if (!node->BoundingBox.IsOnFrustum(frustum))
-        return;
-    
-    if (node->IsLeaf)
-        m_drawZonesRanges[m_zoneRangesIndex++] = node->ZoneRange;
-    else
-        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
-            FillZoneRanges(frustum, node->Children[i]);
-}
-
-void Chunk::UpdateZoneRangesBuffer()
-{
-    glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vec4) * m_zoneRangesIndex, m_drawZonesRanges, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void Chunk::DrawQuadTrees(const MathHelper::Frustum& frustum, Camera* camera, Node* node)
-{
-    if (!node->BoundingBox.IsOnFrustum(frustum))
-        return;
-
-    if (node->IsLeaf)
-    {
-        auto& boundingBox = node->BoundingBox;
-        Shapes::GetInstance()->DrawRectangle(boundingBox.Center, boundingBox.Extents, camera);
-    }
-    else
-    {
-        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
-            DrawQuadTrees(frustum, camera, node->Children[i]);
-    }
-}
-
-vec3 Chunk::GetTranslation() const
-{
-    return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
-}
-
 Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, PerlinNoise::MinMax** minMax)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;
 
-    Node* result = new Node();
+    Node* result            = new Node();
 
-    result->ZoneRange = vec4(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y);
-    result->PositionId = positionId;
+    result->ZoneRange       = vec4(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y);
+    result->PositionId      = positionId;
 
-    vec3 boundingBoxCenter = vec3((bottomLeft.x + topRight.x) * 0.5f, 0.0f, (bottomLeft.y + topRight.y) * 0.5f) + GetTranslation();
-    vec3 boundingBoxExtents = vec3((topRight.x - bottomLeft.x) * 0.5f, TERRAIN_AMPLITUDE, (topRight.y - bottomLeft.y) * 0.5f);
+    vec3 boundingBoxCenter  = vec3((bottomLeft.x + topRight.x) * 0.5f, 0.0f,
+                                   (bottomLeft.y + topRight.y) * 0.5f) + GetTranslation();
+
+    vec3 boundingBoxExtents = vec3((topRight.x - bottomLeft.x) * 0.5f, TERRAIN_AMPLITUDE, 
+                                   (topRight.y - bottomLeft.y) * 0.5f);
 
     if (depth == QUAD_TREE_DEPTH - 1)
     {
@@ -327,25 +290,23 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
         float minAmplitude = minMax[positionId.first][positionId.second].first  * TERRAIN_AMPLITUDE;
         float maxAmplitude = minMax[positionId.first][positionId.second].second * TERRAIN_AMPLITUDE;
 
-        float center = (maxAmplitude + minAmplitude) / 2.0f;
-        float extents = (maxAmplitude - minAmplitude) / 2.0f;
+        float center       = (maxAmplitude + minAmplitude) / 2.0f;
+        float extents      = (maxAmplitude - minAmplitude) / 2.0f;
 
-        boundingBoxCenter = vec3(boundingBoxCenter.x, center, boundingBoxCenter.z);
+        boundingBoxCenter  = vec3(boundingBoxCenter.x,  center,  boundingBoxCenter.z);
         boundingBoxExtents = vec3(boundingBoxExtents.x, extents, boundingBoxExtents.z);
-
-        memset(result->Children, 0, sizeof(Node*) * Node::CHILDREN_COUNT);
     }
     else
     {
-        result->IsLeaf = false;
-        result->Children[0] = CreateNode(depth + 1, 
-                                         bottomLeft, 
+        result->IsLeaf      = false;
+        result->Children[0] = CreateNode(depth + 1,
+                                         bottomLeft,
                                          (topRight + bottomLeft) * 0.5f,
                                          make_pair(positionId.first * 2, positionId.second * 2),
                                          minMax);
 
-        result->Children[1] = CreateNode(depth + 1, 
-                                         vec2((bottomLeft.x + topRight.x) * 0.5f, bottomLeft.y), 
+        result->Children[1] = CreateNode(depth + 1,
+                                         vec2((bottomLeft.x + topRight.x) * 0.5f, bottomLeft.y),
                                          vec2(topRight.x, (bottomLeft.y + topRight.y) * 0.5f),
                                          make_pair(1 + positionId.first * 2, positionId.second * 2),
                                          minMax);
@@ -362,23 +323,57 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                                          make_pair(positionId.first * 2 + 1, positionId.second * 2 + 1),
                                          minMax);
 
-        float maxAmplitude = -TERRAIN_AMPLITUDE;
-        float minAmplitude = TERRAIN_AMPLITUDE;
+        float maxAmplitude  = -TERRAIN_AMPLITUDE;
+        float minAmplitude  = TERRAIN_AMPLITUDE;
 
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
         {
-            maxAmplitude = std::max(maxAmplitude, result->Children[i]->BoundingBox.Center.y + result->Children[i]->BoundingBox.Extents.y);
-            minAmplitude = std::min(maxAmplitude, result->Children[i]->BoundingBox.Center.y - result->Children[i]->BoundingBox.Extents.y);
+            maxAmplitude = std::max(maxAmplitude, 
+                                    result->Children[i]->BoundingBox.Center.y + result->Children[i]->BoundingBox.Extents.y);
+
+            minAmplitude = std::min(maxAmplitude, 
+                                    result->Children[i]->BoundingBox.Center.y - result->Children[i]->BoundingBox.Extents.y);
         }
 
-        float center = (maxAmplitude + minAmplitude) / 2.0f;
-        float extents = (maxAmplitude - minAmplitude) / 2.0f;
+        float center       = (maxAmplitude + minAmplitude) / 2.0f;
+        float extents      = (maxAmplitude - minAmplitude) / 2.0f;
 
-        boundingBoxCenter = vec3(boundingBoxCenter.x, center, boundingBoxCenter.z);
+        boundingBoxCenter  = vec3(boundingBoxCenter.x,  center,  boundingBoxCenter.z);
         boundingBoxExtents = vec3(boundingBoxExtents.x, extents, boundingBoxExtents.z);
     }
 
     result->BoundingBox = MathHelper::AABB(boundingBoxCenter, boundingBoxExtents.x, boundingBoxExtents.y, boundingBoxExtents.z);
 
     return result;
+}
+
+void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node, bool renderDebug)
+{
+    if (!node->BoundingBox.IsOnFrustum(frustum))
+        return;
+    
+    if (node->IsLeaf)
+    {
+        m_drawZonesRanges[m_zoneRangesIndex++] = node->ZoneRange;
+
+        if (renderDebug)
+            Shapes::GetInstance()->AddInstance(node->BoundingBox.Center, node->BoundingBox.Extents);
+    }
+    else
+    {
+        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
+            FillZoneRanges(frustum, node->Children[i], renderDebug);
+    }
+}
+
+void Chunk::UpdateZoneRangesBuffer()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec4) * m_zoneRangesIndex, m_drawZonesRanges, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+vec3 Chunk::GetTranslation() const
+{
+    return vec3(m_chunkID.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 0.0f, m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
 }
