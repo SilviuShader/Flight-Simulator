@@ -25,9 +25,6 @@ public:
 	InputWrapper(const InputWrapper&)   = delete;
 	void operator=(const InputWrapper&) = delete;
 
-	static InputWrapper* GetInstance();
-	static void          FreeInstance();
-
 		   void          KeyCallback(GLFWwindow*, int, int, int, int);
 		   void          MouseCallback(GLFWwindow*, double, double);
 		   void          Update();
@@ -37,6 +34,9 @@ public:
 		   bool          GetKeyUp(Keys)     const;
 
 		   glm::vec2     GetMouseMoveDiff() const;
+
+	static InputWrapper* GetInstance();
+	static void          FreeInstance();
 
 private:
 

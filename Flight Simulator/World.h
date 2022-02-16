@@ -43,20 +43,20 @@ private:
 
 private:
 
-	Light*                                                    m_light;
-	Camera*                                                   m_camera;
+	Light*                                        m_light;
+	Camera*                                       m_camera;
 
-	Skybox*                                                   m_skybox;
-	std::unordered_map<std::pair<int, int>, Chunk*, HashPair> m_chunks;
+	Skybox*                                       m_skybox;
+	std::unordered_map<Vec2Int, Chunk*, HashPair> m_chunks;
 
 	// Terrain objects
-	PerlinNoise*                                              m_noise;
-	Shader*                                                   m_terrainShader;
-	std::vector<Material*>                                    m_terrainMaterials;
-	Texture*                                                  m_terrainBiomesData;
+	PerlinNoise*                                  m_noise;
+	Shader*                                       m_terrainShader;
+	std::vector<Material*>                        m_terrainMaterials;
+	Texture*                                      m_terrainBiomesData;
 
-	float                                                     m_accumulatedCurrentChunksTime;
+	float                                         m_accumulatedCurrentChunksTime;
 
-	bool                                                      m_firstFrame;
-	bool                                                      m_renderDebug;
+	bool                                          m_firstFrame;
+	bool                                          m_renderDebug;
 };

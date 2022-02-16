@@ -12,7 +12,7 @@ public:
 	public:
 
 		Plane(glm::vec3 = glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3 = glm::vec3(0.0f, 1.0f, 0.0f));
+			  glm::vec3 = glm::vec3(0.0f, 1.0f, 0.0f));
 
 		float GetSignedDistanceToPlane(const glm::vec3&) const;
 

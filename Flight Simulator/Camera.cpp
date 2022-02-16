@@ -43,6 +43,7 @@ void Camera::Update(float deltaTime)
 
     if (m_rotation.x >= halfPi)
         m_rotation.x = halfPi;
+
     if (m_rotation.x <= -halfPi)
         m_rotation.x = -halfPi;
 
@@ -50,8 +51,8 @@ void Camera::Update(float deltaTime)
 
     mat4 rotationMatrix = GetRotationMatrix();
 
-    vec4 translation = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-    bool translated = false;
+    vec4 translation    = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    bool translated     = false;
 
     if (InputWrapper::GetInstance()->GetKey(InputWrapper::Keys::Up))
     {
@@ -84,7 +85,7 @@ void Camera::Update(float deltaTime)
         return;
 
     vec4 transformedTranslation = translation * rotationMatrix;
-    vec4 normalizedTranslation = normalize(transformedTranslation);
+    vec4 normalizedTranslation  = normalize(transformedTranslation);
 
     m_position += vec3(normalizedTranslation.x, normalizedTranslation.y, normalizedTranslation.z) * deltaTime * CAMERA_MOVE_SPEED;
 
@@ -164,19 +165,19 @@ mat4 Camera::GetRotationMatrix()
 
 void Camera::UpdateViewMatrix()
 {
-    vec4 forward = vec4(0.0f, 0.0f, -1.0f, 0.0f);
-    vec4 right   = vec4(1.0f, 0.0f, 0.0f,  0.0f);
-    vec4 up      = vec4(0.0f, 1.0f, 0.0f,  0.0f);
+    vec4 forward        = vec4(0.0f, 0.0f, -1.0f, 0.0f);
+    vec4 right          = vec4(1.0f, 0.0f, 0.0f,  0.0f);
+    vec4 up             = vec4(0.0f, 1.0f, 0.0f,  0.0f);
 
     mat4 rotationMatrix = GetRotationMatrix();
     
-    forward = forward * rotationMatrix;
-    right   = right   * rotationMatrix;
-    up      = up      * rotationMatrix;
+         forward        = forward * rotationMatrix;
+         right          = right   * rotationMatrix;
+         up             = up      * rotationMatrix;
 
-    m_forward = normalize(vec3(forward.x, forward.y, forward.z));
-    m_right   = normalize(vec3(right.x,   right.y,   right.z));
-    m_up      = normalize(vec3(up.x,      up.y,      up.z));
+         m_forward      = normalize(vec3(forward.x, forward.y, forward.z));
+         m_right        = normalize(vec3(right.x,   right.y,   right.z  ));
+         m_up           = normalize(vec3(up.x,      up.y,      up.z     ));
     
-    m_viewMatrix = lookAt(m_position, m_position + m_forward, m_up);
+         m_viewMatrix   = lookAt(m_position, m_position + m_forward, m_up);
 }

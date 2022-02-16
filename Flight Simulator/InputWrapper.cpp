@@ -5,23 +5,6 @@ using namespace glm;
 
 InputWrapper* InputWrapper::g_instance = nullptr;
 
-InputWrapper* InputWrapper::GetInstance()
-{
-	if (!g_instance)
-		g_instance = new InputWrapper();
-
-	return g_instance;
-}
-
-void InputWrapper::FreeInstance()
-{
-	if (g_instance)
-	{
-		delete g_instance;
-		g_instance = nullptr;
-	}
-}
-
 void InputWrapper::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (m_glfwToKeysMapping.find(key) == m_glfwToKeysMapping.end())
@@ -83,6 +66,23 @@ bool InputWrapper::GetKeyUp(Keys key) const
 vec2 InputWrapper::GetMouseMoveDiff() const
 {
 	return m_mouseMoveDiff;
+}
+
+InputWrapper* InputWrapper::GetInstance()
+{
+	if (!g_instance)
+		g_instance = new InputWrapper();
+
+	return g_instance;
+}
+
+void InputWrapper::FreeInstance()
+{
+	if (g_instance)
+	{
+		delete g_instance;
+		g_instance = nullptr;
+	}
 }
 
 InputWrapper::InputWrapper() :

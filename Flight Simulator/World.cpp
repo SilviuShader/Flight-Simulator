@@ -175,31 +175,37 @@ void World::FreeTerrainObjects()
 
 void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 {
-	vec3 cameraPos = m_camera->GetPosition();
-	vec3 cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f, 0.0f, (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
+	vec3                             cameraPos         = m_camera->GetPosition();
+	vec3                             cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f, 
+		                                                                 0.0f, 
+		                                                                 (Chunk::CHUNK_WIDTH  - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
 
-	pair<int, int> currentID = make_pair(int(cameraChunkOrigin.x / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)),
-		int(cameraChunkOrigin.z / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
+	Vec2Int                          currentID         = make_pair(int(cameraChunkOrigin.x / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)),
+		                                                           int(cameraChunkOrigin.z / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
 
-	queue<pair<int, int>> exploreChunksQueue;
-	unordered_set<pair<int, int>, HashPair> targetChunksSet;
+	queue<Vec2Int>                   exploreChunksQueue;
+	unordered_set<Vec2Int, HashPair> targetChunksSet;
+
 	exploreChunksQueue.push(currentID);
 	targetChunksSet.insert(currentID);
 
+	int dx[] = { -1, 0, 1, 0 };
+	int dy[] = { 0, -1, 0, 1 };
+	int directionsCount = sizeof(dx) / sizeof(int);
+
 	while (targetChunksSet.size() < MAX_CHUNKS)
 	{
-		pair<int, int> currentChunk = exploreChunksQueue.front();
+		Vec2Int currentChunk = exploreChunksQueue.front();
 		exploreChunksQueue.pop();
 
-		int dx[] = { -1, 0, 1, 0 };
-		int dy[] = { 0, -1, 0, 1 };
-		int dirCount = sizeof(dx) / sizeof(int);
-		for (int i = 0; i < dirCount; i++)
+		for (int i = 0; i < directionsCount; i++)
 		{
 			if (targetChunksSet.size() >= MAX_CHUNKS)
 				break;
 
-			pair<int, int> neighbour = make_pair(currentChunk.first + dx[i], currentChunk.second + dy[i]);
+			Vec2Int neighbour = make_pair(currentChunk.first + dx[i], 
+				                          currentChunk.second + dy[i]);
+
 			if (targetChunksSet.find(neighbour) == targetChunksSet.end())
 			{
 				targetChunksSet.insert(neighbour);
@@ -212,8 +218,8 @@ void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 
 	sort(toErase.begin(), toErase.end(), [&](Vec2Int a, Vec2Int b)
 		{
-			float distA = distance(cameraPos, Chunk::GetPositionForChunkId(a));
-			float distB = distance(cameraPos, Chunk::GetPositionForChunkId(b));
+			float distA = abs(currentID.first - a.first) + abs(currentID.second - a.second);
+			float distB = abs(currentID.first - b.first) + abs(currentID.second - b.second);
 			return distB < distA;
 		});
 
@@ -241,8 +247,8 @@ void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 
 	sort(targetChunks.begin(), targetChunks.end(), [&](Vec2Int a, Vec2Int b)
 		{
-			float distA = distance(cameraPos, Chunk::GetPositionForChunkId(a));
-			float distB = distance(cameraPos, Chunk::GetPositionForChunkId(b));
+			float distA = abs(currentID.first - a.first) + abs(currentID.second - a.second);
+			float distB = abs(currentID.first - b.first) + abs(currentID.second - b.second);
 			return distA < distB;
 		});
 

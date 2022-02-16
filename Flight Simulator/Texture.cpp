@@ -3,7 +3,7 @@
 #include "glad/glad.h"
 #include "Texture.h"
 
-#include "stb_image.h"
+#include "TextureLoadHelper.h"
 
 using namespace std;
 
@@ -17,21 +17,20 @@ Texture::Texture(const string& filename)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrChannels, 0);
+    TextureLoadHelper::ImageData imageData = TextureLoadHelper::GetInstance()->LoadImage(filename);
+    
+    m_width  = imageData.Width;
+    m_height = imageData.Height;
 
-    m_width  = width;
-    m_height = height;
-
-    if (data)
+    if (imageData.Data)
     {
         int internalFormat = GL_RGB;
-        if (nrChannels == 4)
+        if (imageData.ChannelsCount == 4)
             internalFormat = GL_RGBA;
-        if (nrChannels == 1)
+        if (imageData.ChannelsCount == 1)
             internalFormat = GL_RED;
 
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageData.Width, imageData.Height, 0, internalFormat, GL_UNSIGNED_BYTE, imageData.Data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -39,7 +38,7 @@ Texture::Texture(const string& filename)
         cout << "Failed to load texture: " << filename << endl;
     }
 
-    stbi_image_free(data);
+    TextureLoadHelper::GetInstance()->FreeImage(imageData);
 }
 
 Texture::Texture(unsigned int textureID) :
@@ -48,7 +47,7 @@ Texture::Texture(unsigned int textureID) :
     m_height(-1)
 {
     int miplevel = 0;
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &m_width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH,  &m_width);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &m_height);
 }
 
@@ -95,13 +94,10 @@ int Texture::GetGLFormat(Format format)
     {
     case Format::RGBA32F:
         return GL_RGBA32F;
-        break;
     case Format::RGBA:
         return GL_RGBA;
-        break;
     case Format::RED:
         return GL_RED;
-        break;
     }
 
     cout << "ERROR::TEXTURE::INVALID::FORMAT" << endl;
@@ -115,10 +111,8 @@ int Texture::GetGLParam(Filter filter)
     {
     case Filter::Linear:
         return GL_LINEAR;
-        break;
     case Filter::Point:
         return GL_NEAREST;
-        break;
     }
 
     cout << "ERROR::TEXTURE::INVALID::FILTER" << endl;

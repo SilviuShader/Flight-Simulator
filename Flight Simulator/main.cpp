@@ -18,6 +18,7 @@
 #include "stb_image.h"
 #include "Shapes.h"
 #include "InputWrapper.h"
+#include "TextureLoadHelper.h"
 
 using namespace std;
 using namespace glm;
@@ -73,8 +74,8 @@ int main(int argc, char const* argv[])
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    stbi_set_flip_vertically_on_load(true);
-
+    TextureLoadHelper::GetInstance()->SetFlipVerticallyOnLoad(true);
+    
     glEnable(GL_DEPTH_TEST);
 
     int maxPatchVertices = 0;
@@ -127,6 +128,7 @@ int main(int argc, char const* argv[])
         previousTime = currentTime;
     }
 
+    TextureLoadHelper::FreeInstance();
     InputWrapper::FreeInstance();
     Shapes::FreeInstance();
 
