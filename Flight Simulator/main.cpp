@@ -94,7 +94,7 @@ int main(int argc, char const* argv[])
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetKeyCallback(window, key_callback);
 
-    float previousTime = glfwGetTime();
+    float previousTime = (float)glfwGetTime();
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -105,7 +105,7 @@ int main(int argc, char const* argv[])
 
     while (!glfwWindowShouldClose(window))
     {
-        float currentTime = glfwGetTime();
+        float currentTime = (float)glfwGetTime();
         float deltaTime = currentTime - previousTime;
 
         InputWrapper::GetInstance()->Update();
@@ -115,7 +115,7 @@ int main(int argc, char const* argv[])
         g_world->Update(deltaTime);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, g_world->GetCamera()->GetWidth(), g_world->GetCamera()->GetHeight());
+        glViewport(0, 0, (int)g_world->GetCamera()->GetWidth(), (int)g_world->GetCamera()->GetHeight());
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
