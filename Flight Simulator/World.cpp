@@ -10,7 +10,9 @@ using namespace std;
 using namespace glm;
 
 World::World(int windowWidth, int windowHeight) :
-	m_renderDebug(false)
+	m_renderDebug(false),
+	m_accumulatedCurrentChunksTime(0.0f),
+	m_firstFrame(true)
 {
 	m_light = new Light();
 	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.3f, 1.0f));
@@ -71,7 +73,12 @@ void World::Update(float deltaTime)
 	if (m_renderDebug)
 		Shapes::GetInstance()->ResetInstances();
 
-	UpdateChunks(deltaTime);
+	UpdateCurrentChunks(deltaTime);
+
+	for (auto& keyVal : m_chunks)
+		keyVal.second->Update(m_camera, deltaTime, m_renderDebug);
+
+	m_firstFrame = false;
 }
 
 void World::Draw()
@@ -166,7 +173,7 @@ void World::FreeTerrainObjects()
 	}
 }
 
-void World::UpdateChunks(float deltaTime)
+void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 {
 	vec3 cameraPos = m_camera->GetPosition();
 	vec3 cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f, 0.0f, (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
@@ -175,11 +182,11 @@ void World::UpdateChunks(float deltaTime)
 		int(cameraChunkOrigin.z / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
 
 	queue<pair<int, int>> exploreChunksQueue;
-	unordered_set<pair<int, int>, HashPair> targetChunks;
+	unordered_set<pair<int, int>, HashPair> targetChunksSet;
 	exploreChunksQueue.push(currentID);
-	targetChunks.insert(currentID);
+	targetChunksSet.insert(currentID);
 
-	while (targetChunks.size() < MAX_CHUNKS)
+	while (targetChunksSet.size() < MAX_CHUNKS)
 	{
 		pair<int, int> currentChunk = exploreChunksQueue.front();
 		exploreChunksQueue.pop();
@@ -189,43 +196,81 @@ void World::UpdateChunks(float deltaTime)
 		int dirCount = sizeof(dx) / sizeof(int);
 		for (int i = 0; i < dirCount; i++)
 		{
-			if (targetChunks.size() >= MAX_CHUNKS)
+			if (targetChunksSet.size() >= MAX_CHUNKS)
 				break;
 
 			pair<int, int> neighbour = make_pair(currentChunk.first + dx[i], currentChunk.second + dy[i]);
-			if (targetChunks.find(neighbour) == targetChunks.end())
+			if (targetChunksSet.find(neighbour) == targetChunksSet.end())
 			{
-				targetChunks.insert(neighbour);
+				targetChunksSet.insert(neighbour);
 				exploreChunksQueue.push(neighbour);
 			}
 		}
 	}
 
-	vector<pair<int, int>> toErase;
+	vector<Vec2Int> toErase;
+
+	sort(toErase.begin(), toErase.end(), [&](Vec2Int a, Vec2Int b)
+		{
+			float distA = distance(cameraPos, Chunk::GetPositionForChunkId(a));
+			float distB = distance(cameraPos, Chunk::GetPositionForChunkId(b));
+			return distB < distA;
+		});
 
 	for (auto& keyVal : m_chunks)
 	{
-		if (targetChunks.find(keyVal.first) == targetChunks.end())
+		if (targetChunksSet.find(keyVal.first) == targetChunksSet.end())
 		{
-			delete keyVal.second;
-			keyVal.second = nullptr;
+			if (toErase.size() < diffSize)
+			{
+				delete keyVal.second;
+				keyVal.second = nullptr;
 
-			toErase.push_back(keyVal.first);
+				toErase.push_back(keyVal.first);
+			}
 		}
 	}
 
 	for (auto& id : toErase)
 		m_chunks.erase(id);
 
+
+	vector<Vec2Int> targetChunks;
+	for (auto& targetChunk : targetChunksSet)
+		targetChunks.push_back(targetChunk);
+
+	sort(targetChunks.begin(), targetChunks.end(), [&](Vec2Int a, Vec2Int b)
+		{
+			float distA = distance(cameraPos, Chunk::GetPositionForChunkId(a));
+			float distB = distance(cameraPos, Chunk::GetPositionForChunkId(b));
+			return distA < distB;
+		});
+
+	int additions = 0;
+
 	for (auto& targetChunk : targetChunks)
 	{
 		if (m_chunks.find(targetChunk) == m_chunks.end())
 		{
-			Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk);
-			m_chunks[targetChunk] = chunk;
+			if (additions < diffSize)
+			{
+				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk);
+				m_chunks[targetChunk] = chunk;
+
+				additions++;
+			}
 		}
 	}
+}
 
-	for (auto& keyVal : m_chunks)
-		keyVal.second->Update(m_camera, deltaTime, m_renderDebug);
+void World::UpdateCurrentChunks(float deltaTime)
+{
+	m_accumulatedCurrentChunksTime += deltaTime;
+
+	if (m_accumulatedCurrentChunksTime < TIME_TO_UPDATE_CURRENT_CHUNKS && !m_firstFrame)
+		return;
+
+	m_accumulatedCurrentChunksTime -= m_firstFrame ? 0.0f : TIME_TO_UPDATE_CURRENT_CHUNKS;
+
+	UpdateChunksVisibility(deltaTime, m_firstFrame ? MAX_CHUNKS : 1);
 }

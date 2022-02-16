@@ -162,6 +162,13 @@ void Chunk::Draw(Light* light, const vector<Material*>& terrainMaterials, Textur
     glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
 }
 
+vec3 Chunk::GetPositionForChunkId(Vec2Int chunkId)
+{
+    return vec3(chunkId.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS),
+                0.0f,
+                chunkId.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
+}
+
 void Chunk::CreateTerrainBuffers()
 {
     constexpr int verticesWidth     = CHUNK_GRID_WIDTH + 1;
@@ -383,7 +390,5 @@ void Chunk::UpdateZoneRangesBuffer()
 
 vec3 Chunk::GetTranslation() const
 {
-    return vec3(m_chunkID.first  * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS), 
-                0.0f, 
-                m_chunkID.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
+    return GetPositionForChunkId(m_chunkID);
 }

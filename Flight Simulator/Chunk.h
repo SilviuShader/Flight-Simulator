@@ -46,7 +46,7 @@ public:
 private:
            const float TERRAIN_AMPLITUDE     = 75.0f;
 
-           const float DISTANCE_FOR_DETAILS  = 256.0f;
+           const float DISTANCE_FOR_DETAILS  = 512.0f;
            const float MAX_TESSELATION       = 16.0f;
            const float TEX_COORDS_MULTIPLIER = 0.2f;
 
@@ -66,17 +66,19 @@ public:
     Chunk(PerlinNoise*, Shader*, std::pair<int, int>);
     ~Chunk();
 
-    void Update(Camera*, float, bool);
-    void Draw(Light*, const std::vector<Material*>&, Texture*);
+           void      Update(Camera*, float, bool);
+           void      Draw(Light*, const std::vector<Material*>&, Texture*);
+
+    static glm::vec3 GetPositionForChunkId(Vec2Int);
 
 private:
 
     void      CreateTerrainBuffers();
     void      FreeTerrainBuffers();
-
+           
     void      BuildQuadTree(PerlinNoise::MinMax**);
     Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**);
-
+           
     void      FillZoneRanges(const MathHelper::Frustum&, Node*);
     void      UpdateZoneRangesBuffer();
 
@@ -84,7 +86,7 @@ private:
 
 private:
 
-    std::pair<int, int>    m_chunkID;
+    Vec2Int                m_chunkID;
 
     unsigned int           m_vbo;
     unsigned int           m_instanceVbo;

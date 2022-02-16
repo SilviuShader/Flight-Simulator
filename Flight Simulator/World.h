@@ -14,10 +14,12 @@ class World
 {
 private:
 
-	static const int BIOMES_COUNT        = 2;
-	static const int MATERIALS_PER_BIOME = 4;
+	static const int   BIOMES_COUNT                  = 2;
+	static const int   MATERIALS_PER_BIOME           = 4;
+					   					             
+	       const int   MAX_CHUNKS                    = 64;
 
-	       const int MAX_CHUNKS          = 48;
+		   const float TIME_TO_UPDATE_CURRENT_CHUNKS = 0.5;
 
 public:
 
@@ -36,7 +38,8 @@ private:
 	void CreateTerrainObjects();
 	void FreeTerrainObjects();
 
-	void UpdateChunks(float);
+	void UpdateChunksVisibility(float, int);
+	void UpdateCurrentChunks(float);
 
 private:
 
@@ -51,7 +54,9 @@ private:
 	Shader*                                                   m_terrainShader;
 	std::vector<Material*>                                    m_terrainMaterials;
 	Texture*                                                  m_terrainBiomesData;
-						                                      
-						                                      
+
+	float                                                     m_accumulatedCurrentChunksTime;
+
+	bool                                                      m_firstFrame;
 	bool                                                      m_renderDebug;
 };
