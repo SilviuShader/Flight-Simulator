@@ -61,3 +61,29 @@ void VertexPositionTexture::ResetLayout()
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 }
+
+VertexNormalTexture::VertexNormalTexture(vec3 const& position, vec3 const& normal, vec2 const& texCoord) noexcept :
+	Position(position),
+	Normal(normal),
+	TexCoord(texCoord)
+{
+}
+
+void VertexNormalTexture::SetLayout()
+{
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTexture), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTexture), (void*)(sizeof(vec3)));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTexture), (void*)(sizeof(vec3) + sizeof(vec2)));
+	glEnableVertexAttribArray(2);
+}
+
+void VertexNormalTexture::ResetLayout()
+{
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
+}

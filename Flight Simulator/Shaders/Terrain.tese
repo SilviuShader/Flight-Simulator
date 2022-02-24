@@ -56,22 +56,22 @@ vec3 get3Dcoord(vec2 pos)
 
 void calculateNormal(vec3 currentPos, out vec3 normal, out vec3 binormal, out vec3 tangent)
 {
-    float offset = 1.0 / 32.0;
+    float offset     = 1.0 / 32.0;
 
-    vec2 posx    = currentPos.xz + vec2(offset, 0.0);
-    vec2 posxneg = currentPos.xz - vec2(offset, 0.0);
-    vec2 posy    = currentPos.xz + vec2(0.0, offset);
-    vec2 posyneg = currentPos.xz - vec2(0.0, offset);
+    vec2  posx       = currentPos.xz + vec2(offset, 0.0);
+    vec2  posxneg    = currentPos.xz - vec2(offset, 0.0);
+    vec2  posy       = currentPos.xz + vec2(0.0,    offset);
+    vec2  posyneg    = currentPos.xz - vec2(0.0,    offset);
 
-    currentPos = get3Dcoord(currentPos.xz);
-    vec3 right = get3Dcoord(posx);
-    vec3 left = get3Dcoord(posxneg);
-    vec3 top = get3Dcoord(posy);
-    vec3 bottom = get3Dcoord(posyneg);
-    
-    tangent = normalize(right - left);
-    binormal = normalize(top - bottom);
-    normal = normalize(cross(binormal, tangent));
+          currentPos = get3Dcoord(currentPos.xz);
+    vec3  right      = get3Dcoord(posx);
+    vec3  left       = get3Dcoord(posxneg);
+    vec3  top        = get3Dcoord(posy);
+    vec3  bottom     = get3Dcoord(posyneg);
+                    
+          tangent    = normalize(right - left);
+          binormal   = normalize(top - bottom);
+          normal     = normalize(cross(binormal, tangent));
 }
 
 vec2 calculateBiome(vec2 pos, float height)
@@ -85,7 +85,7 @@ vec2 calculateBiome(vec2 pos, float height)
 
 void main()
 {
-    vec3 rawPosition     = interpolate3D(TESInputPosition[0], TESInputPosition[1], TESInputPosition[2]);
+    vec3 rawPosition     = interpolate3D(TESInputPosition[0],      TESInputPosition[1],      TESInputPosition[2]);
     vec3 worldPosition   = interpolate3D(TESInputWorldPosition[0], TESInputWorldPosition[1], TESInputWorldPosition[2]);
     
     worldPosition.y      = get3Dcoord(rawPosition.xz).y;

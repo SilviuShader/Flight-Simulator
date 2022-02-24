@@ -32,15 +32,15 @@ out vec4 FSOutFragColor;
 
 void sampleMaterial(int materialIndex, out vec4 texColor, out vec3 normal, out float specularStrength)
 {
-    texColor = texture(TerrainTextures[materialIndex], FSInputTexCoords);
-    normal = texture(TerrainNormalTextures[materialIndex], FSInputTexCoords).rgb;
-    specularStrength = texture(TerrainSpecularTextures[materialIndex], FSInputTexCoords).r;
+    texColor          = texture(TerrainTextures[materialIndex],         FSInputTexCoords);
+    normal            = texture(TerrainNormalTextures[materialIndex],   FSInputTexCoords).rgb;
+    specularStrength  = texture(TerrainSpecularTextures[materialIndex], FSInputTexCoords).r;
 
-    normal *= 2.0f;
-    normal -= vec3(1.0, 1.0, 1.0);
+    normal           *= 2.0f;
+    normal           -= vec3(1.0, 1.0, 1.0);
 }
 
-void StepsGradient(int totalValues, float t, out int index, out float percentage)
+void stepsGradient(int totalValues, float t, out int index, out float percentage)
 {
     int intervalsCount = 1 + (totalValues - 1) * 2;
     float floatVal = t * intervalsCount;
@@ -56,7 +56,6 @@ void StepsGradient(int totalValues, float t, out int index, out float percentage
     }
     else
     {
-        
         index = (intVal - 1) / 2;
         percentage = floatVal - intVal;
     }
@@ -67,22 +66,22 @@ void sampleMaterialCombined(out vec4 texColor, out vec3 normal, out float specul
     int biomeIndex;
     float biomePercentage;
 
-    StepsGradient(BiomesCount, FSInputBiomeData.x, biomeIndex, biomePercentage);
+    stepsGradient(BiomesCount, FSInputBiomeData.x, biomeIndex, biomePercentage);
 
     int materialOrderIndex;
     float materialOrderPercentage;
     
-    StepsGradient(MaterialsPerBiome, FSInputBiomeData.y, materialOrderIndex, materialOrderPercentage);
+    stepsGradient(MaterialsPerBiome, FSInputBiomeData.y, materialOrderIndex, materialOrderPercentage);
         
-    float materialsCount = TERRAIN_MATERIALS_COUNT - 1;
-    vec2 inputBiomeData = vec2(float(biomeIndex)         / float(BiomesCount       - 1), 
-                               float(materialOrderIndex) / float(MaterialsPerBiome - 1)) * 
-                          vec2(1.0 - 1.0 / float(BiomesCount), 
-                               1.0 - 1.0 / float(MaterialsPerBiome));
+    float materialsCount          = TERRAIN_MATERIALS_COUNT - 1;
+    vec2  inputBiomeData          = vec2(float(biomeIndex)         / float(BiomesCount       - 1), 
+                                         float(materialOrderIndex) / float(MaterialsPerBiome - 1)) * 
+                                    vec2(1.0 - 1.0 / float(BiomesCount), 
+                                         1.0 - 1.0 / float(MaterialsPerBiome));
 
-    int currentMaterial           = int(texture(BiomeMaterialsTexture, inputBiomeData).r * materialsCount);
-    int nextBiomeMaterial         = int(texture(BiomeMaterialsTexture, inputBiomeData + vec2(1.0 / float(BiomesCount), 0.0)).r * materialsCount);
-    int nextAltitudeMaterial      = int(texture(BiomeMaterialsTexture, inputBiomeData + vec2(0.0, 1.0 / float(MaterialsPerBiome))).r * materialsCount);
+    int currentMaterial           = int(texture(BiomeMaterialsTexture, inputBiomeData).r                                                                  * materialsCount);
+    int nextBiomeMaterial         = int(texture(BiomeMaterialsTexture, inputBiomeData + vec2(1.0 / float(BiomesCount), 0.0)).r                            * materialsCount);
+    int nextAltitudeMaterial      = int(texture(BiomeMaterialsTexture, inputBiomeData + vec2(0.0,                      1.0 / float(MaterialsPerBiome))).r * materialsCount);
     int nextBiomeAltitudeMaterial = int(texture(BiomeMaterialsTexture, inputBiomeData + vec2(1.0 / float(BiomesCount), 1.0 / float(MaterialsPerBiome))).r * materialsCount);
 
     vec4  currentTexture,          nextBiomeTexture,          nextAltitudeTexture,          nextBiomeAltitudeTexture;
@@ -98,13 +97,13 @@ void sampleMaterialCombined(out vec4 texColor, out vec3 normal, out float specul
     vec3  bottomNormal   = mix(currentNormal,           nextBiomeNormal,           biomePercentage);
     float bottomSpecular = mix(currentSpecularStrength, nextBiomeSpecularStrength, biomePercentage);
 
-    vec4  topTexture  = mix(nextAltitudeTexture,          nextBiomeAltitudeTexture,          biomePercentage);
-    vec3  topNormal   = mix(nextAltitudeNormal,           nextBiomeAltitudeNormal,           biomePercentage);
-    float topSpecular = mix(nextAltitudeSpecularStrength, nextBiomeAltitudeSpecularStrength, biomePercentage);
+    vec4  topTexture     = mix(nextAltitudeTexture,          nextBiomeAltitudeTexture,          biomePercentage);
+    vec3  topNormal      = mix(nextAltitudeNormal,           nextBiomeAltitudeNormal,           biomePercentage);
+    float topSpecular    = mix(nextAltitudeSpecularStrength, nextBiomeAltitudeSpecularStrength, biomePercentage);
 
-    texColor         = mix(bottomTexture,  topTexture,  materialOrderPercentage) * Gamma;
-    normal           = mix(bottomNormal,   topNormal,   materialOrderPercentage);
-    specularStrength = mix(bottomSpecular, topSpecular, materialOrderPercentage);
+    texColor             = mix(bottomTexture,  topTexture,  materialOrderPercentage) * Gamma;
+    normal               = mix(bottomNormal,   topNormal,   materialOrderPercentage);
+    specularStrength     = mix(bottomSpecular, topSpecular, materialOrderPercentage);
 }
 
 void main()

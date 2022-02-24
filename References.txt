@@ -23,3 +23,7 @@ https://github.com/microsoft/DirectXTK/blob/main/Inc/VertexTypes.h
 https://www.geeksforgeeks.org/how-to-create-an-unordered_map-of-pairs-in-c/
 
 https://www.3dgep.com/learning-directx-12-4/#Compute_Shaders
+
+https://github.com/assimp/assimp/blob/master/Build.md
+
+https://learnopengl.com/Model-Loading/Mesh + Model

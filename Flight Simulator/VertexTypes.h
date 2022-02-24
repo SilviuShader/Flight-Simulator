@@ -69,3 +69,26 @@ public:
     glm::vec3 Position;
     glm::vec2 TexCoord;
 };
+
+struct VertexNormalTexture
+{
+public:
+
+    VertexNormalTexture()                                                    = default;
+    VertexNormalTexture(const VertexNormalTexture&)                          = default;
+    VertexNormalTexture& operator=(const VertexNormalTexture&)               = default;
+                                                                             
+    VertexNormalTexture(VertexNormalTexture&&)                               = default;
+    VertexNormalTexture& operator=(VertexNormalTexture&&)                    = default;
+
+    VertexNormalTexture(glm::vec3 const&, glm::vec3 const&, glm::vec2 const&) noexcept;
+
+    static void SetLayout();
+    static void ResetLayout();
+
+public:
+
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 TexCoord;
+};
