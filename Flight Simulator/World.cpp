@@ -15,8 +15,8 @@ World::World(int windowWidth, int windowHeight) :
 	m_firstFrame(true)
 {
 	m_light = new Light();
-	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.3f, 1.0f));
-	m_light->SetDiffuseColor(vec4(0.9f, 0.9f, 1.0f, 1.0f));
+	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.2f, 1.0f));
+	m_light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	m_camera = new Camera(radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 1000.0f);
 	m_skybox = new Skybox();
@@ -115,17 +115,17 @@ void World::CreateTerrainObjects()
 	          float  materialsCount = m_terrainMaterials.size() - 1;
 	          float* biomesData     = new float[biomesDataSize];
 
-	biomesData[0] = 0.0f / materialsCount;
+	biomesData[0] = 4.0f / materialsCount;
 	biomesData[1] = 3.0f / materialsCount;
 
-	biomesData[2] = 0.0f / materialsCount;
+	biomesData[2] = 5.0f / materialsCount;
 	biomesData[3] = 2.0f / materialsCount;
 
 	biomesData[4] = 0.0f / materialsCount;
-	biomesData[5] = 0.0f / materialsCount;
+	biomesData[5] = 1.0f / materialsCount;
 
 	biomesData[6] = 0.0f / materialsCount;
-	biomesData[7] = 4.0f / materialsCount;
+	biomesData[7] = 5.0f / materialsCount;
 
 	m_terrainBiomesData = new Texture(BIOMES_COUNT, 
 		                              MATERIALS_PER_BIOME, 

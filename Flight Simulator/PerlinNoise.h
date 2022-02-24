@@ -16,7 +16,7 @@ private:
                                                        
            const float     DEFAULT_FREQUENCY           = 0.025f;
                                                        
-           const float     BIOMES_DEFAULT_FREQUENCY    = 0.1f;
+           const float     BIOMES_DEFAULT_FREQUENCY    = 0.01f;
                                                        
            const float     FUDGE_FACTOR                = 1.2f;
            const float     EXPONENT                    = 4.0f;

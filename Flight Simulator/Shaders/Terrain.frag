@@ -40,18 +40,45 @@ void sampleMaterial(int materialIndex, out vec4 texColor, out vec3 normal, out f
     normal -= vec3(1.0, 1.0, 1.0);
 }
 
+void StepsGradient(int totalValues, float t, out int index, out float percentage)
+{
+    int intervalsCount = 1 + (totalValues - 1) * 2;
+    float floatVal = t * intervalsCount;
+
+    int intVal = int(floor(floatVal));
+    if (intVal >= intervalsCount)
+        intVal = intervalsCount - 1;
+
+    if (intVal % 2 == 0)
+    {
+        index =  (intVal / 2);
+        percentage = 0.0;
+    }
+    else
+    {
+        
+        index = (intVal - 1) / 2;
+        percentage = floatVal - intVal;
+    }
+}
+
 void sampleMaterialCombined(out vec4 texColor, out vec3 normal, out float specularStrength)
 {
-    float biomeFloat = FSInputBiomeData.x * (BiomesCount - 1.0);
-    float biomeIndex = int(biomeFloat);
-    float biomePercentage = biomeFloat - biomeIndex;
+    int biomeIndex;
+    float biomePercentage;
 
-    float materialOrderFloat = FSInputBiomeData.y * (MaterialsPerBiome - 1.0);
-    float materialOrderIndex = int(materialOrderFloat);
-    float materialOrderPercentage = materialOrderFloat - materialOrderIndex;
+    StepsGradient(BiomesCount, FSInputBiomeData.x, biomeIndex, biomePercentage);
+
+    int materialOrderIndex;
+    float materialOrderPercentage;
     
+    StepsGradient(MaterialsPerBiome, FSInputBiomeData.y, materialOrderIndex, materialOrderPercentage);
+        
     float materialsCount = TERRAIN_MATERIALS_COUNT - 1;
-    vec2 inputBiomeData = FSInputBiomeData * vec2(1.0 - 1.0 / float(BiomesCount), 1.0 - 1.0 / float(MaterialsPerBiome));
+    vec2 inputBiomeData = vec2(float(biomeIndex)         / float(BiomesCount       - 1), 
+                               float(materialOrderIndex) / float(MaterialsPerBiome - 1)) * 
+                          vec2(1.0 - 1.0 / float(BiomesCount), 
+                               1.0 - 1.0 / float(MaterialsPerBiome));
 
     int currentMaterial           = int(texture(BiomeMaterialsTexture, inputBiomeData).r * materialsCount);
     int nextBiomeMaterial         = int(texture(BiomeMaterialsTexture, inputBiomeData + vec2(1.0 / float(BiomesCount), 0.0)).r * materialsCount);
