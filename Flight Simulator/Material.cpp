@@ -6,8 +6,75 @@ using namespace std;
 
 Material::Material(const string textureFilename, const string normalTextureFilename, const string specularTextureFilename)
 {
-	m_texture       = new Texture(textureFilename);
-	m_normalTexture = new Texture(normalTextureFilename);
+	if (textureFilename.size())
+	{
+		m_texture = new Texture(textureFilename);
+	}
+	else
+	{
+		float* textureData = new float[16];
+		for (int i = 0; i < 16;)
+		{
+			if (i == 0 || i == 8)
+			{
+				textureData[i++] = 1.0f;
+				textureData[i++] = 0.0f;
+				textureData[i++] = 1.0f;
+				textureData[i++] = 1.0f;
+			}
+			else
+			{
+				textureData[i++] = 0.0f;
+				textureData[i++] = 0.0f;
+				textureData[i++] = 0.0f;
+				textureData[i++] = 1.0f;
+			}
+		}
+
+		m_texture = new Texture(4, 
+			                    4,
+			                    Texture::Format::RGBA,
+			                    Texture::Format::RGBA32F,
+			                    Texture::Filter::Point,
+			                    textureData);
+
+		if (textureData)
+		{
+			delete[] textureData;
+			textureData = nullptr;
+		}
+	}
+
+	int textureSize = m_texture->GetWidth() * m_texture->GetHeight();
+
+	if (normalTextureFilename.size())
+	{
+		m_normalTexture = new Texture(normalTextureFilename);
+	}
+	else
+	{
+		float* normalValues = new float[textureSize * 4];
+		for (int i = 0; i < textureSize * 4;)
+		{
+			normalValues[i++] = 0.0f;
+			normalValues[i++] = 0.0f;
+			normalValues[i++] = 1.0f;
+			normalValues[i++] = 1.0f;
+		}
+
+		m_normalTexture = new Texture(m_texture->GetWidth(),
+			                          m_texture->GetHeight(),
+			                          Texture::Format::RGBA,
+			                          Texture::Format::RGBA32F,
+			                          Texture::Filter::Linear,
+			                          normalValues);
+
+		if (normalValues)
+		{
+			delete[] normalValues;
+			normalValues = nullptr;
+		}
+	}
 
 	if (specularTextureFilename.size())
 	{
@@ -15,7 +82,6 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 	}
 	else
 	{
-		int textureSize = m_texture->GetWidth() * m_texture->GetHeight();
 		float* specularValues = new float[textureSize];
 		for (int i = 0; i < textureSize; i++)
 			specularValues[i] = 0.0f;

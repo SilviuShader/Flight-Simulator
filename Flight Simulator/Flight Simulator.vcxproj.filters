@@ -28,6 +28,9 @@
     <Filter Include="Resource Files\Assets\Skybox">
       <UniqueIdentifier>{9ce550cb-5cd8-402c-baa2-250bba734007}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Assets\Models">
+      <UniqueIdentifier>{5ff0ba74-1bcd-439c-a502-d53cb94e13c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -88,6 +91,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -153,6 +159,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -263,6 +272,36 @@
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Noise.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\ao.jpg">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\backpack.mtl">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\backpack.obj">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\diffuse.jpg">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\normal.png">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\roughness.jpg">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\source_attribution.txt">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\specular.jpg">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Model.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Model.frag">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
   </ItemGroup>

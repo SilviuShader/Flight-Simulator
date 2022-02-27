@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 class Texture
 {
@@ -17,6 +18,17 @@ public:
     {
         Linear,
         Point
+    };
+
+private:
+
+    struct TextureInfo
+    {
+    public:
+
+        unsigned int TextureID;
+        int          Width;
+        int          Height;
     };
 
 public:
@@ -38,12 +50,15 @@ public:
 
 private:
 
-    int GetGLFormat(Format);
-    int GetGLParam(Filter);
+    int         GetGLFormat(Format);
+    int         GetGLParam(Filter);
+
+    TextureInfo GetCurrentTextureInfo() const;
 
 private:
 
-    unsigned int m_textureID;
-    int          m_width;
-    int          m_height;
+           std::string                                                  m_path;
+           TextureInfo                                                  m_textureInfo;
+
+    static std::unordered_map<std::string, std::pair<TextureInfo, int>> g_texturesCache;
 };

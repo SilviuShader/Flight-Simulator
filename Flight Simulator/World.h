@@ -9,6 +9,7 @@
 #include "Chunk.h"
 #include "Camera.h"
 #include "Utils.h"
+#include "Model.h"
 
 class World
 {
@@ -54,6 +55,9 @@ private:
 	Shader*                                       m_terrainShader;
 	std::vector<Material*>                        m_terrainMaterials;
 	Texture*                                      m_terrainBiomesData;
+
+	Model*                                        m_testModel;
+	Shader*                                       m_modelShader;
 
 	float                                         m_accumulatedCurrentChunksTime;
 

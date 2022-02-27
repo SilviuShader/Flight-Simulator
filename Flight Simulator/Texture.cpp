@@ -7,57 +7,76 @@
 
 using namespace std;
 
+unordered_map<string, pair<Texture::TextureInfo, int>> Texture::g_texturesCache = unordered_map<string, pair<Texture::TextureInfo, int>>();
+
 Texture::Texture(const string& filename)
 {
-    glGenTextures(1, &m_textureID);
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    memset(&m_textureInfo, 0, sizeof(m_textureInfo));
+    m_path = filename;
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    TextureInfo textureInfo;
+    int         referencesCount;
 
-    TextureLoadHelper::ImageData imageData = TextureLoadHelper::GetInstance()->LoadImage(filename);
-    
-    m_width  = imageData.Width;
-    m_height = imageData.Height;
-
-    if (imageData.Data)
+    if (g_texturesCache.find(m_path) == g_texturesCache.end())
     {
-        int internalFormat = GL_RGB;
-        if (imageData.ChannelsCount == 4)
-            internalFormat = GL_RGBA;
-        if (imageData.ChannelsCount == 1)
-            internalFormat = GL_RED;
+        glGenTextures(1, &textureInfo.TextureID);
+        glBindTexture(GL_TEXTURE_2D, textureInfo.TextureID);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageData.Width, imageData.Height, 0, internalFormat, GL_UNSIGNED_BYTE, imageData.Data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        TextureLoadHelper::ImageData imageData = TextureLoadHelper::GetInstance()->LoadImage(filename);
+
+        textureInfo.Width = imageData.Width;
+        textureInfo.Height = imageData.Height;
+
+        if (imageData.Data)
+        {
+            int internalFormat = GL_RGB;
+            if (imageData.ChannelsCount == 4)
+                internalFormat = GL_RGBA;
+            if (imageData.ChannelsCount == 1)
+                internalFormat = GL_RED;
+
+            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageData.Width, imageData.Height, 0, internalFormat, GL_UNSIGNED_BYTE, imageData.Data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else
+        {
+            cout << "Failed to load texture: " << filename << endl;
+        }
+
+        TextureLoadHelper::GetInstance()->FreeImage(imageData);
+
+        referencesCount = 0;
     }
     else
     {
-        cout << "Failed to load texture: " << filename << endl;
+        textureInfo     = g_texturesCache[m_path].first;
+        referencesCount = g_texturesCache[m_path].second;
     }
 
-    TextureLoadHelper::GetInstance()->FreeImage(imageData);
+    g_texturesCache[m_path] = make_pair(textureInfo, referencesCount);
 }
 
 Texture::Texture(unsigned int textureID) :
-    m_textureID(textureID),
-    m_width(-1),
-    m_height(-1)
+    m_textureInfo { textureID, -1, -1 },
+    m_path("")
 {
     int miplevel = 0;
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH,  &m_width);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &m_height);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH,  &m_textureInfo.Width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &m_textureInfo.Height);
 }
 
 Texture::Texture(int width, int height, Format internalFormat, Format format, Filter filter, float* texData)
 {
-    m_width = width;
-    m_height = height;
+    m_textureInfo.Width  = width;
+    m_textureInfo.Height = height;
 
-    glGenTextures(1, &m_textureID);
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glGenTextures(1, &m_textureInfo.TextureID);
+    glBindTexture(GL_TEXTURE_2D, m_textureInfo.TextureID);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -70,22 +89,41 @@ Texture::Texture(int width, int height, Format internalFormat, Format format, Fi
 
 Texture::~Texture()
 {
-    glDeleteTextures(1, &m_textureID);
+    if (m_path.size())
+    {
+        TextureInfo info    = g_texturesCache[m_path].first;
+        int referencesCount = g_texturesCache[m_path].second;
+
+        referencesCount--;
+        if (referencesCount <= 0)
+        {
+            glDeleteTextures(1, &info.TextureID);
+            g_texturesCache.erase(m_path);
+        }
+        else
+        {
+            g_texturesCache[m_path] = make_pair(info, referencesCount);
+        }
+    }
+    else
+    {
+        glDeleteTextures(1, &m_textureInfo.TextureID);
+    }
 }
 
 unsigned int Texture::GetTextureID() const
 {
-    return m_textureID;
+    return GetCurrentTextureInfo().TextureID;
 }
 
 int Texture::GetWidth() const
 {
-    return m_width;
+    return GetCurrentTextureInfo().Width;
 }
 
 int Texture::GetHeight() const
 {
-    return m_height;
+    return GetCurrentTextureInfo().Height;
 }
 
 int Texture::GetGLFormat(Format format)
@@ -118,4 +156,13 @@ int Texture::GetGLParam(Filter filter)
     cout << "ERROR::TEXTURE::INVALID::FILTER" << endl;
 
     return -1;
+}
+
+Texture::TextureInfo Texture::GetCurrentTextureInfo() const
+{
+    TextureInfo result = m_textureInfo;
+    if (m_path != "")
+        result = g_texturesCache[m_path].first;
+
+    return result;
 }

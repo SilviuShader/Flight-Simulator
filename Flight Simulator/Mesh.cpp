@@ -42,6 +42,11 @@ int Mesh::Draw(Shader* shader, const string& texturesName, const string& normalT
     return resultTextureNumber;
 }
 
+std::vector<Material*>& Mesh::GetMaterials()
+{
+    return m_materials;
+}
+
 void Mesh::SetupMesh()
 {
     glGenVertexArrays(1, &m_vao);

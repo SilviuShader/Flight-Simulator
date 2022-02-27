@@ -13,7 +13,8 @@ public:
 	Mesh(std::vector<VertexNormalTexture>, std::vector<unsigned int>, std::vector<Material*>);
 	~Mesh();
 
-	int Draw(Shader*, const std::string&, const std::string&, const std::string&, int);
+	int                     Draw(Shader*, const std::string&, const std::string&, const std::string&, int);
+	std::vector<Material*>& GetMaterials();
 
 private:
 
