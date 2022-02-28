@@ -187,8 +187,8 @@ void Chunk::CreateTerrainBuffers()
 
             vec2 planePosition = vec2(adjustedJ, adjustedI);
 
-            vertices[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
-            vertices[i * verticesWidth + j].TexCoord = vec2(j * TEX_COORDS_MULTIPLIER, verticesHeight - i * TEX_COORDS_MULTIPLIER - 1);
+            vertices[i * verticesWidth + j].Position  = vec3(planePosition.x, 0.0f, planePosition.y);
+            vertices[i * verticesWidth + j].TexCoords = vec2(j * TEX_COORDS_MULTIPLIER, verticesHeight - i * TEX_COORDS_MULTIPLIER - 1);
         }
     }
 

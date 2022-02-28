@@ -42,4 +42,5 @@ void main()
     FSOutFragColor = FSOutFragColor * textureColor;
 
     FSOutFragColor += specularStrength * specular * DiffuseColor;
+    FSOutFragColor = FSOutFragColor;
 }

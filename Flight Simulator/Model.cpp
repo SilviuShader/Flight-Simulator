@@ -92,11 +92,11 @@ Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		if (mesh->mTextureCoords[0])
 		{
 			auto& texCoord  = mesh->mTextureCoords[0][i];
-			vertex.TexCoord = vec2(texCoord.x, texCoord.y);
+			vertex.TexCoords = vec2(texCoord.x, texCoord.y);
 		}
 		else
 		{
-			vertex.TexCoord = vec2(0.0f, 0.0f);
+			vertex.TexCoords = vec2(0.0f, 0.0f);
 		}
 
 		vertices.push_back(vertex);
