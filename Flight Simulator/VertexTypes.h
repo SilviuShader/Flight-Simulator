@@ -92,3 +92,28 @@ public:
     glm::vec3 Normal;
     glm::vec2 TexCoords;
 };
+
+struct VertexNormalTextureBinormalTangent
+{
+public:
+
+    VertexNormalTextureBinormalTangent()                                                                                        = default;
+    VertexNormalTextureBinormalTangent(const VertexNormalTextureBinormalTangent&)                                               = default;
+    VertexNormalTextureBinormalTangent& operator=(const VertexNormalTextureBinormalTangent&)                                    = default;
+
+    VertexNormalTextureBinormalTangent(VertexNormalTextureBinormalTangent&&)                                                    = default;
+    VertexNormalTextureBinormalTangent& operator=(VertexNormalTextureBinormalTangent&&)                                         = default;
+
+    VertexNormalTextureBinormalTangent(glm::vec3 const&, glm::vec3 const&, glm::vec2 const&, glm::vec3 const&, glm::vec3 const&) noexcept;
+
+    static void SetLayout();
+    static void ResetLayout();
+
+public:
+
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 TexCoords;
+    glm::vec3 Binormal;
+    glm::vec3 Tangent;
+};

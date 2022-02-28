@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Mesh::Mesh(vector<VertexNormalTexture> vertices, vector<unsigned int> indices, vector<Material*> materials) :
+Mesh::Mesh(vector<VertexNormalTextureBinormalTangent> vertices, vector<unsigned int> indices, vector<Material*> materials) :
 	m_vertices(vertices),
 	m_indices(indices),
 	m_materials(materials),
@@ -19,7 +19,7 @@ Mesh::~Mesh()
 {
     glBindVertexArray(m_vao);
 
-    VertexNormalTexture::ResetLayout();
+    VertexNormalTextureBinormalTangent::ResetLayout();
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_vbo);
@@ -56,12 +56,12 @@ void Mesh::SetupMesh()
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VertexNormalTexture), &m_vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VertexNormalTextureBinormalTangent), &m_vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices[0], GL_STATIC_DRAW);
 
-    VertexNormalTexture::SetLayout();
+    VertexNormalTextureBinormalTangent::SetLayout();
 
     glBindVertexArray(0);
 }

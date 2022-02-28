@@ -18,6 +18,7 @@ World::World(int windowWidth, int windowHeight) :
 	m_light = new Light();
 	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.2f, 1.0f));
 	m_light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	m_light->SetSpecularPower(4.0f);
 
 	m_camera = new Camera(radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 1000.0f);
 	m_skybox = new Skybox();

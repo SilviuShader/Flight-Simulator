@@ -4,6 +4,8 @@
 in vec3 FSInputWorldPosition;
 in vec3 FSInputNormal;
 in vec2 FSInputTexCoords;
+in vec3 FSInputBinormal;
+in vec3 FSInputTangent;
 
 uniform vec4  AmbientColor;
 uniform vec4  DiffuseColor;
@@ -24,7 +26,7 @@ void main()
     vec3  normalData        = texture(NormalTextures[0],   FSInputTexCoords).rgb;
     float specularStrength  = texture(SpecularTextures[0], FSInputTexCoords).r;
 
-    vec3 normal = (FSInputNormal * normalData.z);
+    vec3 normal = (FSInputTangent * normalData.x) + (FSInputBinormal * normalData.y) + (FSInputNormal * normalData.z);
     FSOutFragColor = AmbientColor;
 
     vec3 lightDir = normalize(-LightDirection);

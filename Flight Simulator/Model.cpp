@@ -48,7 +48,7 @@ int Model::Draw(Shader* shader, const string& texturesName, const string& normal
 void Model::LoadModel(const string& path)
 {
 	Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -75,29 +75,35 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
 
 Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
-	vector<VertexNormalTexture> vertices;
-	vector<unsigned int>        indices;
-	vector<Material*>           materials;
+	vector<VertexNormalTextureBinormalTangent> vertices;
+	vector<unsigned int>                       indices;
+	vector<Material*>                          materials;
 
 	for (int i = 0; i < mesh->mNumVertices; i++)
 	{
 		auto& position = mesh->mVertices[i];
 		auto& normal   = mesh->mNormals[i];
-
-		VertexNormalTexture vertex;
+		
+		VertexNormalTextureBinormalTangent vertex;
 
 		vertex.Position = vec3(position.x, position.y, position.z);
 		vertex.Normal   = vec3(normal.x,   normal.y,   normal.z);
-
+		
 		if (mesh->mTextureCoords[0])
 		{
-			auto& texCoord  = mesh->mTextureCoords[0][i];
+			auto& texCoord   = mesh->mTextureCoords[0][i];
 			vertex.TexCoords = vec2(texCoord.x, texCoord.y);
 		}
 		else
 		{
 			vertex.TexCoords = vec2(0.0f, 0.0f);
 		}
+
+		auto& binormal  = mesh->mBitangents[i];
+		auto& tangent   = mesh->mTangents[i];
+
+		vertex.Binormal = vec3(binormal.x, binormal.y, binormal.z);
+		vertex.Tangent  = vec3(tangent.x,  tangent.y,  tangent.z);
 
 		vertices.push_back(vertex);
 	}

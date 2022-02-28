@@ -87,3 +87,39 @@ void VertexNormalTexture::ResetLayout()
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(2);
 }
+
+VertexNormalTextureBinormalTangent::VertexNormalTextureBinormalTangent(vec3 const& position, vec3 const& normal, vec2 const& texCoords, vec3 const& binormal, vec3 const& tangent) noexcept :
+	Position(position),
+	Normal(normal),
+	TexCoords(texCoords),
+	Binormal(binormal),
+	Tangent(tangent)
+{
+}
+
+void VertexNormalTextureBinormalTangent::SetLayout()
+{
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTextureBinormalTangent), (void*)0);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTextureBinormalTangent), (void*)offsetof(VertexNormalTextureBinormalTangent, Normal));
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTextureBinormalTangent), (void*)offsetof(VertexNormalTextureBinormalTangent, TexCoords));
+
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTextureBinormalTangent), (void*)offsetof(VertexNormalTextureBinormalTangent, Binormal));
+
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalTextureBinormalTangent), (void*)offsetof(VertexNormalTextureBinormalTangent, Tangent));
+}
+
+void VertexNormalTextureBinormalTangent::ResetLayout()
+{
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(3);
+	glDisableVertexAttribArray(4);
+}
