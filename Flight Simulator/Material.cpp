@@ -34,7 +34,7 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 		m_texture = new Texture(4, 
 			                    4,
 			                    Texture::Format::RGBA,
-			                    Texture::Format::RGBA32F,
+			                    Texture::Format::RGBA,
 			                    Texture::Filter::Point,
 			                    textureData);
 
@@ -54,10 +54,11 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 	else
 	{
 		float* normalValues = new float[textureSize * 4];
+
 		for (int i = 0; i < textureSize * 4;)
 		{
-			normalValues[i++] = 0.0f;
-			normalValues[i++] = 0.0f;
+			normalValues[i++] = 0.5f;
+			normalValues[i++] = 0.5f;
 			normalValues[i++] = 1.0f;
 			normalValues[i++] = 1.0f;
 		}
@@ -65,7 +66,7 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 		m_normalTexture = new Texture(m_texture->GetWidth(),
 			                          m_texture->GetHeight(),
 			                          Texture::Format::RGBA,
-			                          Texture::Format::RGBA32F,
+			                          Texture::Format::RGBA,
 			                          Texture::Filter::Linear,
 			                          normalValues);
 

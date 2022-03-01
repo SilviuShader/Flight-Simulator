@@ -11,6 +11,7 @@
 #include "Light.h"
 #include "Material.h"
 #include "MathHelper.h"
+#include "Model.h"
 
 class Chunk
 {
@@ -63,7 +64,7 @@ private:
 
 public:
 
-    Chunk(PerlinNoise*, Shader*, std::pair<int, int>);
+    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Model*, Shader*);
     ~Chunk();
 
            void      Update(Camera*, float, bool);
@@ -82,6 +83,9 @@ private:
     void      FillZoneRanges(const MathHelper::Frustum&, Node*);
     void      UpdateZoneRangesBuffer();
 
+    void      DrawFolliage(Light*);
+    void      DrawNodeFolliage(Light*, const MathHelper::Frustum&, Node*);
+
     glm::vec3 GetTranslation() const;
 
 private:
@@ -97,6 +101,9 @@ private:
     PerlinNoise*           m_perlinNoise;
     Texture*               m_noiseTexture;
     glm::vec4*             m_drawZonesRanges; 
+
+    Model*                 m_folliageModel;
+    Shader*                m_folliageShader;
 
     int                    m_zoneRangesIndex;
 

@@ -39,7 +39,7 @@ public:
             Format = Format::RGBA32F, 
             Format = Format::RGBA, 
             Filter = Filter::Linear, 
-            float* = NULL);                              // for new textures
+            float*  = NULL);                              // for new textures
 
     ~Texture();
 

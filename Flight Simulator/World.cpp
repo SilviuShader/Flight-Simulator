@@ -25,7 +25,7 @@ World::World(int windowWidth, int windowHeight) :
 
 	CreateTerrainObjects();
 
-	m_testModel   = new Model("Assets/Models/backpack.obj");
+	m_grassModel   = new Model("Assets/Models/grass.obj");
 	m_modelShader = new Shader("Shaders/Model.vert", "Shaders/Model.frag");
 }
 
@@ -37,10 +37,10 @@ World::~World()
 		m_modelShader = nullptr;
 	}
 
-	if (m_testModel)
+	if (m_grassModel)
 	{
-		delete m_testModel;
-		m_testModel = nullptr;
+		delete m_grassModel;
+		m_grassModel = nullptr;
 	}
 
 	for (auto& keyVal : m_chunks)
@@ -107,24 +107,6 @@ void World::Draw()
 
 	if (m_renderDebug)
 		Shapes::GetInstance()->DrawRectangles(m_camera);
-
-	m_modelShader->Use();
-
-	auto modelMatrix      = translate(mat4(1.0f), m_camera->GetPosition() + m_camera->GetForward() * 10.0f);
-	auto viewMatrix       = m_camera->GetViewMatrix();
-	auto projectionMatrix = m_camera->GetProjectionMatrix();
-
-	m_modelShader->SetMatrix4("Model", modelMatrix);
-	m_modelShader->SetMatrix4("View", viewMatrix);
-	m_modelShader->SetMatrix4("Projection", projectionMatrix);
-
-	m_modelShader->SetVec4("AmbientColor", m_light->GetAmbientColor());
-	m_modelShader->SetVec4("DiffuseColor", m_light->GetDiffuseColor());
-	m_modelShader->SetVec3("LightDirection", m_light->GetLightDirection());
-	m_modelShader->SetFloat("SpecularPower", m_light->GetSpecularPower());
-	m_modelShader->SetVec3("CameraPosition", m_camera->GetPosition());
-
-	m_testModel->Draw(m_modelShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 0);
 }
 
 Camera* World::GetCamera() const
@@ -295,7 +277,7 @@ void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk);
+				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_grassModel, m_modelShader);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

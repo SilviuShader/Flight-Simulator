@@ -161,7 +161,7 @@ int Texture::GetGLParam(Filter filter)
 Texture::TextureInfo Texture::GetCurrentTextureInfo() const
 {
     TextureInfo result = m_textureInfo;
-    if (m_path != "")
+    if (m_path.size())
         result = g_texturesCache[m_path].first;
 
     return result;

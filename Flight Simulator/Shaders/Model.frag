@@ -23,7 +23,7 @@ out vec4 FSOutFragColor;
 void main()
 {
 	vec4  textureColor      = texture(DiffuseTextures[0],  FSInputTexCoords);
-    vec3  normalData        = texture(NormalTextures[0],   FSInputTexCoords).rgb;
+    vec3  normalData        = texture(NormalTextures[0],   FSInputTexCoords).rgb * 2.0 - vec3(1.0, 1.0, 1.0);
     float specularStrength  = texture(SpecularTextures[0], FSInputTexCoords).r;
 
     vec3 normal = (FSInputTangent * normalData.x) + (FSInputBinormal * normalData.y) + (FSInputNormal * normalData.z);
@@ -39,7 +39,7 @@ void main()
     vec3 reflectDir = reflect(-lightDir, normal);
     float specular = pow(max(dot(viewDir, reflectDir), 0.0), SpecularPower);
     
-    FSOutFragColor = clamp(FSOutFragColor, 0.0f, 1.0f);
+    FSOutFragColor = clamp(FSOutFragColor, 0.0, 1.0);
 
     FSOutFragColor = FSOutFragColor * textureColor;
 

@@ -304,5 +304,20 @@
     <CopyFileToFolders Include="Shaders\Model.frag">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\grass.mtl">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\grass.obj">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Map__1359796413_Mix.tga">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Map__1359796415_Mix.tga">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\petal.png">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

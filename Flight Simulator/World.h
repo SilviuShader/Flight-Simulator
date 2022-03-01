@@ -56,7 +56,7 @@ private:
 	std::vector<Material*>                        m_terrainMaterials;
 	Texture*                                      m_terrainBiomesData;
 
-	Model*                                        m_testModel;
+	Model*                                        m_grassModel;
 	Shader*                                       m_modelShader;
 
 	float                                         m_accumulatedCurrentChunksTime;

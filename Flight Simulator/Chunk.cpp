@@ -37,13 +37,15 @@ Chunk::Node::~Node()
     }
 }
 
-Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID) :
+Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Model* folliageModel, Shader* folliageShader) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
     m_terrainShader(terrainShader),
     m_perlinNoise(perlinNoise),
     m_chunkID(chunkID),
+    m_folliageModel(folliageModel),
+    m_folliageShader(folliageShader),
     m_quadTree(nullptr),
     m_camera(nullptr),
     m_renderDebug(false)
@@ -160,6 +162,8 @@ void Chunk::Draw(Light* light, const vector<Material*>& terrainMaterials, Textur
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
+
+    DrawFolliage(light);
 }
 
 vec3 Chunk::GetPositionForChunkId(Vec2Int chunkId)
@@ -386,6 +390,44 @@ void Chunk::UpdateZoneRangesBuffer()
     glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vec4) * m_zoneRangesIndex, m_drawZonesRanges, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Chunk::DrawFolliage(Light* light)
+{
+    m_folliageShader->Use();
+
+    DrawNodeFolliage(light, MathHelper::GetCameraFrustum(m_camera), m_quadTree);
+}
+
+void Chunk::DrawNodeFolliage(Light* light, const MathHelper::Frustum& frustum, Node* node)
+{
+    //if (!node->BoundingBox.IsOnFrustum(frustum))
+    //    return;
+
+    if (node->IsLeaf)
+    {
+        auto translation = node->BoundingBox.Center;
+        auto model = translate(mat4(1.0f), translation) * scale(mat4(1.0f), vec3(0.05f, 0.05f, 0.05f));
+        auto view = m_camera->GetViewMatrix();
+        auto projection = m_camera->GetProjectionMatrix();
+
+        m_folliageShader->SetMatrix4("Model", model);
+        m_folliageShader->SetMatrix4("View", view);
+        m_folliageShader->SetMatrix4("Projection", projection);
+
+        m_folliageShader->SetVec4("AmbientColor", light->GetAmbientColor());
+        m_folliageShader->SetVec4("DiffuseColor", light->GetDiffuseColor());
+        m_folliageShader->SetVec3("LightDirection", light->GetLightDirection());
+        m_folliageShader->SetFloat("SpecularPower", light->GetSpecularPower());
+        m_folliageShader->SetVec3("CameraPosition", m_camera->GetPosition());
+
+        m_folliageModel->Draw(m_folliageShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 0);
+    }
+    else
+    {
+        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
+            DrawNodeFolliage(light, frustum, node->Children[i]);
+    }
 }
 
 vec3 Chunk::GetTranslation() const
