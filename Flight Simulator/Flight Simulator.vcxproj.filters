@@ -319,5 +319,11 @@
     <CopyFileToFolders Include="Assets\Models\petal.png">
       <Filter>Resource Files\Assets\Models</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Folliage.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Folliage.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

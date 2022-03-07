@@ -25,16 +25,16 @@ World::World(int windowWidth, int windowHeight) :
 
 	CreateTerrainObjects();
 
-	m_grassModel   = new Model("Assets/Models/grass.obj");
-	m_modelShader = new Shader("Shaders/Model.vert", "Shaders/Model.frag");
+	m_grassModel     = new Model("Assets/Models/grass.obj");
+	m_folliageShader = new Shader("Shaders/Folliage.vert", "Shaders/Folliage.frag");
 }
 
 World::~World()
 {
-	if (m_modelShader)
+	if (m_folliageShader)
 	{
-		delete m_modelShader;
-		m_modelShader = nullptr;
+		delete m_folliageShader;
+		m_folliageShader = nullptr;
 	}
 
 	if (m_grassModel)
@@ -277,7 +277,7 @@ void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_grassModel, m_modelShader);
+				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_grassModel, m_folliageShader);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

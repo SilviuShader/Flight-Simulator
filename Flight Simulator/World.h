@@ -57,7 +57,7 @@ private:
 	Texture*                                      m_terrainBiomesData;
 
 	Model*                                        m_grassModel;
-	Shader*                                       m_modelShader;
+	Shader*                                       m_folliageShader;
 
 	float                                         m_accumulatedCurrentChunksTime;
 

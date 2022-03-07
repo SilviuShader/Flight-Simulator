@@ -407,6 +407,7 @@ void Chunk::DrawNodeFolliage(Light* light, const MathHelper::Frustum& frustum, N
     if (node->IsLeaf)
     {
         auto translation = node->BoundingBox.Center;
+        translation = vec3(translation.x, 0.0f, translation.z);
         auto model = translate(mat4(1.0f), translation) * scale(mat4(1.0f), vec3(0.05f, 0.05f, 0.05f));
         auto view = m_camera->GetViewMatrix();
         auto projection = m_camera->GetProjectionMatrix();
@@ -415,13 +416,22 @@ void Chunk::DrawNodeFolliage(Light* light, const MathHelper::Frustum& frustum, N
         m_folliageShader->SetMatrix4("View", view);
         m_folliageShader->SetMatrix4("Projection", projection);
 
+        m_folliageShader->SetVec3("ChunkCenter", GetTranslation());
+
+        m_folliageShader->SetFloat("TerrainWidth", CHUNK_WIDTH);
+        m_folliageShader->SetFloat("GridWidth", CHUNK_GRID_WIDTH);
+        m_folliageShader->SetFloat("GridHeight", CHUNK_GRID_HEIGHT);
+        m_folliageShader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
+
+        m_folliageShader->SetTexture("NoiseTexture", m_noiseTexture, 0);
+
         m_folliageShader->SetVec4("AmbientColor", light->GetAmbientColor());
         m_folliageShader->SetVec4("DiffuseColor", light->GetDiffuseColor());
         m_folliageShader->SetVec3("LightDirection", light->GetLightDirection());
         m_folliageShader->SetFloat("SpecularPower", light->GetSpecularPower());
         m_folliageShader->SetVec3("CameraPosition", m_camera->GetPosition());
 
-        m_folliageModel->Draw(m_folliageShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 0);
+        m_folliageModel->Draw(m_folliageShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
     }
     else
     {
