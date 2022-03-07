@@ -18,7 +18,7 @@ private:
 	static const int   BIOMES_COUNT                  = 2;
 	static const int   MATERIALS_PER_BIOME           = 4;
 					   					             
-	       const int   MAX_CHUNKS                    = 64;
+	       const int   MAX_CHUNKS                    = 54;
 
 		   const float TIME_TO_UPDATE_CURRENT_CHUNKS = 0.5;
 

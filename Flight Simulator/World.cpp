@@ -25,7 +25,7 @@ World::World(int windowWidth, int windowHeight) :
 
 	CreateTerrainObjects();
 
-	m_grassModel     = new Model("Assets/Models/grass.obj");
+	m_grassModel     = new Model("Assets/Models/grass.obj", true);
 	m_folliageShader = new Shader("Shaders/Folliage.vert", "Shaders/Folliage.frag");
 }
 

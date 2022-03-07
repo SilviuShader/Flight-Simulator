@@ -6,8 +6,9 @@ using namespace std;
 using namespace glm;
 using namespace Assimp;
 
-Model::Model(const string& path) :
-	m_directory("")
+Model::Model(const string& path, bool instanced) :
+	m_directory(""),
+	m_instanced(instanced)
 {
 	LoadModel(path);
 }
@@ -33,6 +34,15 @@ Model::~Model()
 	}
 
 	m_meshes.clear();
+}
+
+void Model::SetInstances(const vector<mat4>& instances)
+{
+	if (!m_instanced)
+		return;
+
+	for (auto& mesh : m_meshes)
+		mesh->SetInstances(instances);
 }
 
 int Model::Draw(Shader* shader, const string& texturesName, const string& normalTexturesName, const string& specularTexturesName, int startingTextureNumber)
@@ -121,7 +131,7 @@ Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		materials.push_back(LoadMaterial(material));
 	}
 
-	return new Mesh(vertices, indices, materials);
+	return new Mesh(vertices, indices, materials, m_instanced);
 }
 
 Material* Model::LoadMaterial(aiMaterial* mat)

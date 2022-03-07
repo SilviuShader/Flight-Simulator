@@ -10,8 +10,10 @@ class Mesh
 {
 public:
 
-	Mesh(std::vector<VertexNormalTextureBinormalTangent>, std::vector<unsigned int>, std::vector<Material*>);
+	Mesh(std::vector<VertexNormalTextureBinormalTangent>, std::vector<unsigned int>, std::vector<Material*>, bool);
 	~Mesh();
+
+	void                    SetInstances(const std::vector<glm::mat4>&);
 
 	int                     Draw(Shader*, const std::string&, const std::string&, const std::string&, int);
 	std::vector<Material*>& GetMaterials();
@@ -27,6 +29,11 @@ private:
 	std::vector<Material*>                          m_materials;
 									                
 	unsigned int                                    m_vao;
+	unsigned int                                    m_instanceVbo;
 	unsigned int                                    m_vbo;
 	unsigned int                                    m_ebo;
+
+	bool                                            m_instanced;
+
+	int                                             m_instancesCount;
 };

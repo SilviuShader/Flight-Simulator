@@ -14,10 +14,12 @@ class Model
 {
 public:
 
-	Model(const std::string&);
+	Model(const std::string&, bool = false);
 	~Model();
 
-	int Draw(Shader*, const std::string&, const std::string&, const std::string&, int);
+	void SetInstances(const std::vector<glm::mat4>&);
+
+	int  Draw(Shader*, const std::string&, const std::string&, const std::string&, int);
 
 private:
 
@@ -31,4 +33,6 @@ private:
 
 	std::vector<Mesh*> m_meshes;
 	std::string        m_directory;
+
+	bool               m_instanced;
 };

@@ -46,6 +46,7 @@ public:
 
 private:
            const float TERRAIN_AMPLITUDE     = 75.0f;
+           const float FOLLIAGE_HEIGHT_BIAS  = 2.5f;
 
            const float DISTANCE_FOR_DETAILS  = 512.0f;
            const float MAX_TESSELATION       = 16.0f;
@@ -83,8 +84,7 @@ private:
     void      FillZoneRanges(const MathHelper::Frustum&, Node*);
     void      UpdateZoneRangesBuffer();
 
-    void      DrawFolliage(Light*);
-    void      DrawNodeFolliage(Light*, const MathHelper::Frustum&, Node*);
+    void      FillFolliageInstances(const MathHelper::Frustum&, Node*);
 
     glm::vec3 GetTranslation() const;
 
@@ -104,6 +104,7 @@ private:
 
     Model*                 m_folliageModel;
     Shader*                m_folliageShader;
+    std::vector<glm::mat4> m_folliageInstances;
 
     int                    m_zoneRangesIndex;
 

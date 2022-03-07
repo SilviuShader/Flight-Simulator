@@ -5,7 +5,8 @@ layout (location = 2) in vec2 VSInputTexCoords;
 layout (location = 3) in vec3 VSInputBinormal;
 layout (location = 4) in vec3 VSInputTangent;
 
-uniform mat4 Model;
+layout (location = 5) in mat4 VSInputModelMatrix;
+
 uniform mat4 View;
 uniform mat4 Projection;
 
@@ -44,15 +45,17 @@ vec3 get3Dcoord(vec2 pos)
 
 void main()
 {
-	FSInputWorldPosition    = (Model * vec4(VSInputPosition, 1.0)).xyz;
+    mat4 model = mat4(1.0);
+
+	FSInputWorldPosition    = (VSInputModelMatrix * vec4(VSInputPosition, 1.0)).xyz;
 
 	vec3 positionInChunk    = FSInputWorldPosition - ChunkCenter;
 	FSInputWorldPosition.y += get3Dcoord(positionInChunk.xz).y;
 
-	FSInputNormal           = mat3(transpose(inverse(Model))) * VSInputNormal;
+	FSInputNormal           = mat3(transpose(inverse(VSInputModelMatrix))) * VSInputNormal;
 	FSInputTexCoords        = VSInputTexCoords;
-	FSInputBinormal         = mat3(transpose(inverse(Model))) * VSInputBinormal;
-	FSInputTangent          = mat3(transpose(inverse(Model))) * VSInputTangent;
+	FSInputBinormal         = mat3(transpose(inverse(VSInputModelMatrix))) * VSInputBinormal;
+	FSInputTangent          = mat3(transpose(inverse(VSInputModelMatrix))) * VSInputTangent;
                             
 	gl_Position             = Projection * View * vec4(FSInputWorldPosition, 1.0);
 }
