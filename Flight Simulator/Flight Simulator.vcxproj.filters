@@ -331,5 +331,8 @@
     <CopyFileToFolders Include="Shaders\Folliage.frag">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\HeightBiomeMipMap.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

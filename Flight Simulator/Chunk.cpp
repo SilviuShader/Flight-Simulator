@@ -56,29 +56,45 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
 
     auto noiseData = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f),
                                                 vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f),
-                                                QUAD_TREE_DEPTH);
+                                                QUAD_TREE_DEPTH, HEIGHT_BIOME_DEPTH);
 
-    m_noiseTexture = noiseData.first;
+    m_noiseTexture = noiseData.NoiseTexture;
 
-    BuildQuadTree(noiseData.second);
+    BuildQuadTree(noiseData.MinMax);
 
-    int divisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
+    int quadTreesDivisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
+    m_drawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
 
-    m_drawZonesRanges = new vec4[divisionsCount * divisionsCount];
-
-    for (int i = 0; i < divisionsCount; i++)
+    for (int i = 0; i < quadTreesDivisionsCount; i++)
     {
-        if (noiseData.second[i])
+        if (noiseData.MinMax[i])
         {
-            delete[] noiseData.second[i];
-            noiseData.second[i] = nullptr;
+            delete[] noiseData.MinMax[i];
+            noiseData.MinMax[i] = nullptr;
         }
     }
 
-    if (noiseData.second)
+    if (noiseData.MinMax)
     {
-        delete[] noiseData.second;
-        noiseData.second = nullptr;
+        delete[] noiseData.MinMax;
+        noiseData.MinMax = nullptr;
+    }
+
+    int heightBiomeDivisionsCount = 1 << (HEIGHT_BIOME_DEPTH - 1);
+    
+    for (int i = 0; i < heightBiomeDivisionsCount; i++)
+    {
+        if (noiseData.HeightBiome[i])
+        {
+            delete[] noiseData.HeightBiome[i];
+            noiseData.HeightBiome[i] = nullptr;
+        }
+    }
+
+    if (noiseData.HeightBiome)
+    {
+        delete[] noiseData.HeightBiome;
+        noiseData.HeightBiome = nullptr;
     }
 }
 

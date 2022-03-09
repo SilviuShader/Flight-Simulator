@@ -11,6 +11,8 @@ public:
 
 	struct TerrainLevel
 	{
+	public:
+
 		Material*           Material;
 		std::vector<Model*> FolliageModels;
 	};

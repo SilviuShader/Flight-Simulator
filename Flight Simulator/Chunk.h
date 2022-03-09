@@ -60,6 +60,7 @@ private:
     static const int   CHUNK_GRID_HEIGHT     = 8;
 
     static const int   QUAD_TREE_DEPTH       = 4;
+    static const int   HEIGHT_BIOME_DEPTH    = 8;
 
     static const int   INDICES_COUNT         = CHUNK_GRID_WIDTH * CHUNK_GRID_HEIGHT * 6;
 

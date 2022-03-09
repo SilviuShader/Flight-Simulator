@@ -71,6 +71,12 @@ Texture* Biome::CreateBiomesTexture()
 
 	g_createdTextures.push_back(resultTexture);
 
+	if (biomesData)
+	{
+		delete[] biomesData;
+		biomesData = nullptr;
+	}
+
 	return resultTexture;
 }
 
@@ -84,7 +90,7 @@ vector<Material*> Biome::GetBiomesMaterials()
 	return result;
 }
 
-vector<Model*> Biome::GetBiomeModels(float biome, float amplitude)
+vector<Model*> Biome::GetBiomeModels(float height, float biome)
 {
 	// TODO: Properly implement this method.
 	for (auto& biome : g_biomeInstances)
