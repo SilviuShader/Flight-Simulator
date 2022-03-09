@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Biome.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="glad.c" />
@@ -166,6 +167,7 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Biome.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="glad\glad.h" />

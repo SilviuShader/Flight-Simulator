@@ -65,7 +65,7 @@ private:
 
 public:
 
-    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Model*, Shader*);
+    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Shader*);
     ~Chunk();
 
            void      Update(Camera*, float, bool);
@@ -90,26 +90,25 @@ private:
 
 private:
 
-    Vec2Int                m_chunkID;
+    Vec2Int                                            m_chunkID;
+                                                       
+    unsigned int                                       m_vbo;
+    unsigned int                                       m_instanceVbo;
+    unsigned int                                       m_ebo;
+    unsigned int                                       m_vao;
+                                                       
+    Shader*                                            m_terrainShader;
+    PerlinNoise*                                       m_perlinNoise;
+    Texture*                                           m_noiseTexture;
+    glm::vec4*                                         m_drawZonesRanges; 
 
-    unsigned int           m_vbo;
-    unsigned int           m_instanceVbo;
-    unsigned int           m_ebo;
-    unsigned int           m_vao;
-                           
-    Shader*                m_terrainShader;
-    PerlinNoise*           m_perlinNoise;
-    Texture*               m_noiseTexture;
-    glm::vec4*             m_drawZonesRanges; 
-
-    Model*                 m_folliageModel;
-    Shader*                m_folliageShader;
-    std::vector<glm::mat4> m_folliageInstances;
-
-    int                    m_zoneRangesIndex;
-
-    Node*                  m_quadTree;
-
-    Camera*                m_camera;
-    bool                   m_renderDebug;
+    std::unordered_map<Model*, std::vector<glm::mat4>> m_folliageModelsInstances;
+    Shader*                                            m_folliageShader;
+                                                       
+    int                                                m_zoneRangesIndex;
+                                                       
+    Node*                                              m_quadTree;
+                                                       
+    Camera*                                            m_camera;
+    bool                                               m_renderDebug;
 };

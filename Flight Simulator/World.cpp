@@ -6,6 +6,7 @@
 #include "InputWrapper.h"
 #include "Shapes.h"
 #include <glm/ext/matrix_transform.hpp>
+#include "Biome.h"
 
 using namespace std;
 using namespace glm;
@@ -25,7 +26,6 @@ World::World(int windowWidth, int windowHeight) :
 
 	CreateTerrainObjects();
 
-	m_grassModel     = new Model("Assets/Models/grass.obj", true);
 	m_folliageShader = new Shader("Shaders/Folliage.vert", "Shaders/Folliage.frag");
 }
 
@@ -35,12 +35,6 @@ World::~World()
 	{
 		delete m_folliageShader;
 		m_folliageShader = nullptr;
-	}
-
-	if (m_grassModel)
-	{
-		delete m_grassModel;
-		m_grassModel = nullptr;
 	}
 
 	for (auto& keyVal : m_chunks)
@@ -120,62 +114,35 @@ void World::CreateTerrainObjects()
 	m_terrainShader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag",
 		                         "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 
-	m_terrainMaterials = vector<Material*>();
-	m_terrainMaterials.push_back(new Material("Assets/snow_02_diff_1k.png", "Assets/snow_02_nor_gl_1k.png", "Assets/snow_02_spec_1k.png"));
-	m_terrainMaterials.push_back(new Material("Assets/medieval_blocks_02_diff_1k.png", "Assets/medieval_blocks_02_nor_gl_1k.png", "Assets/medieval_blocks_02_spec_1k.png"));
-	m_terrainMaterials.push_back(new Material("Assets/brown_mud_leaves_01_diff_1k.png", "Assets/brown_mud_leaves_01_nor_gl_1k.png", "Assets/brown_mud_leaves_01_spec_1k.png"));
-	m_terrainMaterials.push_back(new Material("Assets/forest_leaves_03_diff_1k.png", "Assets/forest_leaves_03_nor_gl_1k.png"));
-	m_terrainMaterials.push_back(new Material("Assets/snow_field_aerial_col_1k.png", "Assets/snow_field_aerial_nor_gl_1k.png"));
-	m_terrainMaterials.push_back(new Material("Assets/snow_03_diff_1k.png", "Assets/snow_03_nor_gl_1k.png", "Assets/snow_03_spec_1k.png"));
+	Material* snow2           = new Material("Assets/snow_02_diff_1k.png",             "Assets/snow_02_nor_gl_1k.png",             "Assets/snow_02_spec_1k.png");
+	Material* medievalBlocks  = new Material("Assets/medieval_blocks_02_diff_1k.png",  "Assets/medieval_blocks_02_nor_gl_1k.png",  "Assets/medieval_blocks_02_spec_1k.png");
+	Material* brownMudLeaves  = new Material("Assets/brown_mud_leaves_01_diff_1k.png", "Assets/brown_mud_leaves_01_nor_gl_1k.png", "Assets/brown_mud_leaves_01_spec_1k.png");
+	Material* forestLeaves    = new Material("Assets/forest_leaves_03_diff_1k.png",    "Assets/forest_leaves_03_nor_gl_1k.png");
+	Material* snowFieldAerial = new Material("Assets/snow_field_aerial_col_1k.png",    "Assets/snow_field_aerial_nor_gl_1k.png");
+	Material* snow3           = new Material("Assets/snow_03_diff_1k.png",             "Assets/snow_03_nor_gl_1k.png",             "Assets/snow_03_spec_1k.png");
 
-	constexpr auto   biomesDataSize = BIOMES_COUNT * MATERIALS_PER_BIOME;
-	          float  materialsCount = m_terrainMaterials.size() - 1;
-	          float* biomesData     = new float[biomesDataSize];
 
-	biomesData[0] = 4.0f / materialsCount;
-	biomesData[1] = 3.0f / materialsCount;
+	Biome* iceBiome = Biome::CreateBiome();
 
-	biomesData[2] = 5.0f / materialsCount;
-	biomesData[3] = 2.0f / materialsCount;
+	iceBiome->AddTerrainLevel(snowFieldAerial);
+	iceBiome->AddTerrainLevel(snow3);
+	iceBiome->AddTerrainLevel(snow2);
+	iceBiome->AddTerrainLevel(snow2);
 
-	biomesData[4] = 0.0f / materialsCount;
-	biomesData[5] = 1.0f / materialsCount;
+	Biome* forestBiome = Biome::CreateBiome();
 
-	biomesData[6] = 0.0f / materialsCount;
-	biomesData[7] = 5.0f / materialsCount;
+	forestBiome->AddTerrainLevel(forestLeaves, { new Model("Assets/Models/grass.obj", true) });
+	forestBiome->AddTerrainLevel(brownMudLeaves);
+	forestBiome->AddTerrainLevel(medievalBlocks);
+	forestBiome->AddTerrainLevel(snow3);
 
-	m_terrainBiomesData = new Texture(BIOMES_COUNT, 
-		                              MATERIALS_PER_BIOME, 
-		                              Texture::Format::RED, 
-		                              Texture::Format::RED, 
-		                              Texture::Filter::Point, 
-		                              biomesData);
-
-	if (biomesData)
-	{
-		delete[] biomesData;
-		biomesData = nullptr;
-	}
+	m_terrainBiomesData = Biome::CreateBiomesTexture();
+	m_terrainMaterials  = Biome::GetBiomesMaterials();
 }
 
 void World::FreeTerrainObjects()
 {
-	if (m_terrainBiomesData)
-	{
-		delete m_terrainBiomesData;
-		m_terrainBiomesData = nullptr;
-	}
-
-	for (auto& material : m_terrainMaterials)
-	{
-		if (material)
-		{
-			delete material;
-			material = nullptr;
-		}
-	}
-
-	m_terrainMaterials.clear();
+	Biome::Free();
 
 	if (m_terrainShader)
 	{
@@ -277,7 +244,7 @@ void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_grassModel, m_folliageShader);
+				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_folliageShader);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

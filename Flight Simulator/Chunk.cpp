@@ -5,6 +5,7 @@
 #include "Chunk.h"
 #include "Shapes.h"
 #include "VertexTypes.h"
+#include "Biome.h"
 
 using namespace std;
 using namespace glm;
@@ -37,14 +38,13 @@ Chunk::Node::~Node()
     }
 }
 
-Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Model* folliageModel, Shader* folliageShader) :
+Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Shader* folliageShader) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
     m_terrainShader(terrainShader),
     m_perlinNoise(perlinNoise),
     m_chunkID(chunkID),
-    m_folliageModel(folliageModel),
     m_folliageShader(folliageShader),
     m_quadTree(nullptr),
     m_camera(nullptr),
@@ -117,7 +117,9 @@ void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
     FillZoneRanges(cameraFrustum, m_quadTree);
     UpdateZoneRangesBuffer();
 
-    m_folliageInstances.clear();
+    for (auto& folliageModel : m_folliageModelsInstances)
+        m_folliageModelsInstances[folliageModel.first].clear();
+    
     FillFolliageInstances(cameraFrustum, m_quadTree);
 }
 
@@ -168,8 +170,6 @@ void Chunk::Draw(Light* light, const vector<Material*>& terrainMaterials, Textur
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
 
-    m_folliageModel->SetInstances(m_folliageInstances);
-
     m_folliageShader->Use();
 
     m_folliageShader->SetMatrix4("View", view);
@@ -190,7 +190,11 @@ void Chunk::Draw(Light* light, const vector<Material*>& terrainMaterials, Textur
     m_folliageShader->SetFloat("SpecularPower", light->GetSpecularPower());
     m_folliageShader->SetVec3("CameraPosition", m_camera->GetPosition());
 
-    m_folliageModel->Draw(m_folliageShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
+    for (auto& model : m_folliageModelsInstances)
+    {
+        model.first->SetInstances(model.second);
+        model.first->Draw(m_folliageShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
+    }
 }
 
 vec3 Chunk::GetPositionForChunkId(Vec2Int chunkId)
@@ -433,7 +437,14 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
         translation = vec3(translation.x, 0.0f, translation.z);
         auto model = translate(mat4(1.0f), translation) * scale(mat4(1.0f), vec3(0.05f, 0.05f, 0.05f));
 
-        m_folliageInstances.push_back(model);
+        auto biomeModels = Biome::GetBiomeModels(0.0f, 0.0f);
+        for (auto& biomeModel : biomeModels)
+        {
+            if (m_folliageModelsInstances.find(biomeModel) == m_folliageModelsInstances.end())
+                m_folliageModelsInstances[biomeModel] = vector<mat4>();
+
+            m_folliageModelsInstances[biomeModel].push_back(model);
+        }
     }
     else
     {
