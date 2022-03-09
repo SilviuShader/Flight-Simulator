@@ -39,6 +39,10 @@ public:
 
 private:
 
+	static std::pair<int, float> StepGradient(int, float);
+
+private:
+
 	Biome();
 
 private:

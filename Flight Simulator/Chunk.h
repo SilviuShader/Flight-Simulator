@@ -30,13 +30,15 @@ private:
 
     public:
 
-        Node*            Children[CHILDREN_COUNT];
-        bool             IsLeaf;
-        glm::vec4        ZoneRange;
+        Node*                                              Children[CHILDREN_COUNT];
+        bool                                               IsLeaf;
+        glm::vec4                                          ZoneRange;
+                                                           
+        Vec2Int                                            PositionId;
+                                                           
+        MathHelper::AABB                                   BoundingBox;
 
-        Vec2Int          PositionId;
-
-        MathHelper::AABB BoundingBox;
+        std::unordered_map<Model*, std::vector<glm::mat4>> DesiredInstances;
     };
 
 public:
@@ -79,8 +81,8 @@ private:
     void      CreateTerrainBuffers();
     void      FreeTerrainBuffers();
            
-    void      BuildQuadTree(PerlinNoise::MinMax**);
-    Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**);
+    void      BuildQuadTree(PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
+    Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
            
     void      FillZoneRanges(const MathHelper::Frustum&, Node*);
     void      UpdateZoneRangesBuffer();

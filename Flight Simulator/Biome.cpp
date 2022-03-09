@@ -92,14 +92,12 @@ vector<Material*> Biome::GetBiomesMaterials()
 
 vector<Model*> Biome::GetBiomeModels(float height, float biome)
 {
-	// TODO: Properly implement this method.
-	for (auto& biome : g_biomeInstances)
-		for (auto& level : biome->m_terrainLevels)
-			if (level.FolliageModels.size())
-				return level.FolliageModels;
-	
+	auto biomeData  = StepGradient(g_biomeInstances.size(), biome);
+	auto heightData = StepGradient(4, height); // TODO: fix this hard-coded 4
 
-	return vector<Model*>();
+	// TODO: Code all the interpolations here.
+
+	return g_biomeInstances[biomeData.first]->m_terrainLevels[heightData.first].FolliageModels;
 }
 
 void Biome::Free()
@@ -137,6 +135,32 @@ void Biome::Free()
 			delete model;
 
 	g_folliageModels.clear();	
+}
+
+pair<int, float> Biome::StepGradient(int totalValues, float t)
+{
+	int index;
+	float percentage;
+
+	int intervalsCount = 1 + (totalValues - 1) * 2;
+	float floatVal = t * intervalsCount;
+
+	int intVal = int(floor(floatVal));
+	if (intVal >= intervalsCount)
+		intVal = intervalsCount - 1;
+
+	if (intVal % 2 == 0)
+	{
+		index = (intVal / 2);
+		percentage = 0.0;
+	}
+	else
+	{
+		index = (intVal - 1) / 2;
+		percentage = floatVal - intVal;
+	}
+
+	return make_pair(index, percentage);
 }
 
 Biome::Biome() :

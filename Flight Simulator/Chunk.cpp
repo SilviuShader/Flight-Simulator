@@ -17,10 +17,11 @@ Chunk::Node::Node()
 {
     memset(Children, 0, sizeof(Node*) * CHILDREN_COUNT);
 
-    IsLeaf      = false;
-    ZoneRange   = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-    PositionId  = make_pair(0, 0);
-    BoundingBox = MathHelper::AABB();
+    IsLeaf           = false;
+    ZoneRange        = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    PositionId       = make_pair(0, 0);
+    BoundingBox      = MathHelper::AABB();
+    DesiredInstances = unordered_map<Model*, vector<mat4>>();
 }
 
 Chunk::Node::~Node()
@@ -60,7 +61,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
 
     m_noiseTexture = noiseData.NoiseTexture;
 
-    BuildQuadTree(noiseData.MinMax);
+    BuildQuadTree(noiseData.MinMax, noiseData.HeightBiome);
 
     int quadTreesDivisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
     m_drawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
@@ -323,16 +324,17 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-void Chunk::BuildQuadTree(PerlinNoise::MinMax** minMax)
+void Chunk::BuildQuadTree(PerlinNoise::MinMax** minMax, PerlinNoise::HeightBiome** heightBiome)
 {
     m_quadTree = CreateNode(0, 
                             vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
                             vec2(CHUNK_WIDTH / 2.0f, CHUNK_WIDTH / 2.0f), 
                             make_pair(0, 0),
-                            minMax);
+                            minMax,
+                            heightBiome);
 }
 
-Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, PerlinNoise::MinMax** minMax)
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, PerlinNoise::MinMax** minMax, PerlinNoise::HeightBiome** heightBiome)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;
@@ -371,25 +373,29 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                                          bottomLeft,
                                          (topRight + bottomLeft) * 0.5f,
                                          make_pair(positionId.first * 2, positionId.second * 2),
-                                         minMax);
+                                         minMax,
+                                         heightBiome);
 
         result->Children[1] = CreateNode(depth + 1,
                                          vec2((bottomLeft.x + topRight.x) * 0.5f, bottomLeft.y),
                                          vec2(topRight.x, (bottomLeft.y + topRight.y) * 0.5f),
                                          make_pair(1 + positionId.first * 2, positionId.second * 2),
-                                         minMax);
+                                         minMax,
+                                         heightBiome);
 
         result->Children[2] = CreateNode(depth + 1,
                                          vec2(bottomLeft.x, (bottomLeft.y + topRight.y) * 0.5f),
                                          vec2((bottomLeft.x + topRight.x) * 0.5f, topRight.y),
                                          make_pair(positionId.first * 2, positionId.second * 2 + 1),
-                                         minMax);
+                                         minMax,
+                                         heightBiome);
 
         result->Children[3] = CreateNode(depth + 1,
                                          (topRight + bottomLeft) * 0.5f,
                                          topRight,
                                          make_pair(positionId.first * 2 + 1, positionId.second * 2 + 1),
-                                         minMax);
+                                         minMax,
+                                         heightBiome);
 
         float maxAmplitude  = -TERRAIN_AMPLITUDE;
         float minAmplitude  = TERRAIN_AMPLITUDE;
@@ -412,6 +418,43 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
     result->BoundingBox = MathHelper::AABB(boundingBoxCenter, 
                                            boundingBoxExtents.x, boundingBoxExtents.y, boundingBoxExtents.z);
+
+    if (result->IsLeaf)
+    {
+        int quadTreeWidth    = 1 << (QUAD_TREE_DEPTH    - 1);
+        int heightBiomeWidth = 1 << (HEIGHT_BIOME_DEPTH - 1);
+
+        int pixelsPerQuad    = heightBiomeWidth / quadTreeWidth;
+
+        for (int x = 0; x < pixelsPerQuad; x++)
+        {
+            for (int y = 0; y < pixelsPerQuad; y++)
+            {
+                if (rand() % 10 != 0)
+                    continue;
+
+                PerlinNoise::HeightBiome crtHeightBiome = heightBiome[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];
+
+                auto translation = vec3(bottomLeft.x + (topRight.x - bottomLeft.x) * ((float)x / (float)(pixelsPerQuad - 1)), 
+                                        0.0f, 
+                                        bottomLeft.y + (topRight.y - bottomLeft.y) * ((float)y / (float)(pixelsPerQuad - 1))) +
+                                   GetTranslation();
+
+                translation = vec3(translation.x, 0.0f, translation.z);
+                auto model = translate(mat4(1.0f), translation) * scale(mat4(1.0f), vec3(0.05f, 0.05f, 0.05f));
+
+                auto biomeModels = Biome::GetBiomeModels(crtHeightBiome.first, crtHeightBiome.second);
+
+                for (auto& biomeModel : biomeModels)
+                {
+                    if (result->DesiredInstances.find(biomeModel) == result->DesiredInstances.end())
+                        result->DesiredInstances[biomeModel] = vector<mat4>();
+
+                    result->DesiredInstances[biomeModel].push_back(model);
+                }
+            }
+        }
+    }
 
     return result;
 }
@@ -449,17 +492,13 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
 
     if (node->IsLeaf)
     {
-        auto translation = node->BoundingBox.Center;
-        translation = vec3(translation.x, 0.0f, translation.z);
-        auto model = translate(mat4(1.0f), translation) * scale(mat4(1.0f), vec3(0.05f, 0.05f, 0.05f));
-
-        auto biomeModels = Biome::GetBiomeModels(0.0f, 0.0f);
-        for (auto& biomeModel : biomeModels)
+        for (auto& biomeModel : node->DesiredInstances)
         {
-            if (m_folliageModelsInstances.find(biomeModel) == m_folliageModelsInstances.end())
-                m_folliageModelsInstances[biomeModel] = vector<mat4>();
+            if (m_folliageModelsInstances.find(biomeModel.first) == m_folliageModelsInstances.end())
+                m_folliageModelsInstances[biomeModel.first] = vector<mat4>();
 
-            m_folliageModelsInstances[biomeModel].push_back(model);
+            for (auto& model : biomeModel.second)
+                m_folliageModelsInstances[biomeModel.first].push_back(model);
         }
     }
     else
