@@ -430,12 +430,15 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
         {
             for (int y = 0; y < pixelsPerQuad; y++)
             {
-                // TODO: properly do this 
+                // TODO: properly do this (multiple noise maps, use one for this random)
                 if (rand() % 40 != 0)
                     continue;
 
                 PerlinNoise::HeightBiome crtHeightBiome = heightBiome[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];
 
+                // TODO:
+                // note that we can now calculate the height right here.
+                // This change may help improve instancing performance (one call per world instead of chunk).
                 auto translation = vec3(bottomLeft.x + (topRight.x - bottomLeft.x) * ((float)x / (float)(pixelsPerQuad - 1)), 
                                         0.0f, 
                                         bottomLeft.y + (topRight.y - bottomLeft.y) * ((float)y / (float)(pixelsPerQuad - 1))) +
@@ -531,7 +534,7 @@ const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biom
     for (auto& model : models)
         totalSum += model.Chance;
 
-    // TODO: replace this
+    // TODO: replace this (multiple noise maps)
     float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     float slice = r * totalSum;
 
@@ -561,7 +564,7 @@ const Biome::FolliageModelsVector& Chunk::RouletteWheelSelection(const std::vect
     for (auto& model : models)
         totalSum += model.Chance;
 
-    // TODO: replace this
+    // TODO: replace this (multiple noise maps)
     float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     float slice = r * totalSum;
 
