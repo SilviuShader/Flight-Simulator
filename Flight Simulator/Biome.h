@@ -13,9 +13,10 @@ public:
 	{
 	public:
 
-		FolliageModel(Model* model, float scale = 1.0f) :
+		FolliageModel(Model* model, float scale = 1.0f, float chance = 1.0f) :
 			Model(model),
-			Scale(scale)
+			Scale(scale),
+			Chance(chance)
 		{
 		}
 
@@ -23,6 +24,13 @@ public:
 
 		Model* Model;
 		float  Scale;
+		float  Chance;
+	};
+
+	struct FolliageModelsVector
+	{
+		std::vector<FolliageModel> Models;
+		float                      Chance;
 	};
 
 	struct TerrainLevel
@@ -33,6 +41,7 @@ public:
 		std::vector<FolliageModel> FolliageModels;
 	};
 
+
 public:
 
 	Biome(const Biome&)          = delete;
@@ -40,18 +49,18 @@ public:
 
 	~Biome();
 
-	       void                       AddTerrainLevel(Material*, const std::vector<FolliageModel>& = std::vector<FolliageModel>());
-				                      
-		   std::vector<TerrainLevel>& GetTerrainLevels();
+	       void                              AddTerrainLevel(Material*, const std::vector<FolliageModel>& = std::vector<FolliageModel>());
+				                             
+		   std::vector<TerrainLevel>&        GetTerrainLevels();
+									         
+	static Biome*                            CreateBiome();
+									         
+	static Texture*                          CreateBiomesTexture();
+	static std::vector<Material*>            GetBiomesMaterials();
 
-	static Biome*                     CreateBiome();
+	static std::vector<FolliageModelsVector> GetBiomeFolliageModels(float, float);
 
-	static Texture*                   CreateBiomesTexture();
-	static std::vector<Material*>     GetBiomesMaterials();
-
-	static std::vector<FolliageModel> GetBiomeFolliageModels(float, float);
-
-	static void                       Free();
+	static void                              Free();
 
 private:
 

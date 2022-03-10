@@ -443,18 +443,25 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
                 translation = vec3(translation.x, 0.0f, translation.z);
 
-                auto biomeModels = Biome::GetBiomeFolliageModels(crtHeightBiome.first, crtHeightBiome.second);
+                auto biomeModelsVectors = Biome::GetBiomeFolliageModels(crtHeightBiome.first, crtHeightBiome.second);
 
-                for (auto& biomeModel : biomeModels)
-                {
-                    auto model = translate(mat4(1.0f), translation) * 
-                                 scale(mat4(1.0f), vec3(biomeModel.Scale, biomeModel.Scale, biomeModel.Scale));
+                if (!biomeModelsVectors.size())
+                    continue;
 
-                    if (result->DesiredInstances.find(biomeModel.Model) == result->DesiredInstances.end())
-                        result->DesiredInstances[biomeModel.Model] = vector<mat4>();
+                auto biomeModels = RouletteWheelSelection(biomeModelsVectors);
 
-                    result->DesiredInstances[biomeModel.Model].push_back(model);
-                }
+                if (!biomeModels.Models.size())
+                    continue;
+
+                auto biomeModel = RouletteWheelSelection(biomeModels.Models);
+
+                auto model = translate(mat4(1.0f), translation) * 
+                             scale(mat4(1.0f), vec3(biomeModel.Scale, biomeModel.Scale, biomeModel.Scale));
+
+                if (result->DesiredInstances.find(biomeModel.Model) == result->DesiredInstances.end())
+                    result->DesiredInstances[biomeModel.Model] = vector<mat4>();
+
+                result->DesiredInstances[biomeModel.Model].push_back(model);
             }
         }
     }
@@ -514,4 +521,63 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
 vec3 Chunk::GetTranslation() const
 {
     return GetPositionForChunkId(m_chunkID);
+}
+
+const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModel>& models)
+{
+    int resultIndex = 0;
+    float totalSum = 0.0f;
+
+    for (auto& model : models)
+        totalSum += model.Chance;
+
+    // TODO: replace this
+    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    float slice = r * totalSum;
+
+    float accumulatedSum = 0.0f;
+
+    int index = 0;
+    for (auto& model : models)
+    {
+        accumulatedSum += model.Chance;
+        if (accumulatedSum >= slice)
+        {
+            resultIndex = index;
+            break;
+        }
+
+        index++;
+    }
+
+    return models[resultIndex];
+}
+
+const Biome::FolliageModelsVector& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>& models)
+{
+    int resultIndex = 0;
+    float totalSum = 0.0f;
+
+    for (auto& model : models)
+        totalSum += model.Chance;
+
+    // TODO: replace this
+    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    float slice = r * totalSum;
+
+    float accumulatedSum = 0.0f;
+
+    int index = 0;
+    for (auto& model : models)
+    {
+        accumulatedSum += model.Chance;
+        if (accumulatedSum >= slice)
+        {
+            resultIndex = index;
+            break;
+        }
+        index++;
+    }
+
+    return models[resultIndex];
 }

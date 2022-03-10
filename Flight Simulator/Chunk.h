@@ -12,6 +12,7 @@
 #include "Material.h"
 #include "MathHelper.h"
 #include "Model.h"
+#include "Biome.h"
 
 class Chunk
 {
@@ -78,18 +79,23 @@ public:
 
 private:
 
-    void      CreateTerrainBuffers();
-    void      FreeTerrainBuffers();
-           
-    void      BuildQuadTree(PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
-    Node*     CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
-           
-    void      FillZoneRanges(const MathHelper::Frustum&, Node*);
-    void      UpdateZoneRangesBuffer();
+          void                         CreateTerrainBuffers();
+          void                         FreeTerrainBuffers();
+                                       
+          void                         BuildQuadTree(PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
+          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
+                                       
+          void                         FillZoneRanges(const MathHelper::Frustum&, Node*);
+          void                         UpdateZoneRangesBuffer();
+                                       
+          void                         FillFolliageInstances(const MathHelper::Frustum&, Node*);
+                                       
+          glm::vec3                    GetTranslation() const;
 
-    void      FillFolliageInstances(const MathHelper::Frustum&, Node*);
+          // TODO: use templates here
+    const Biome::FolliageModel&        RouletteWheelSelection(const std::vector<Biome::FolliageModel>&);
 
-    glm::vec3 GetTranslation() const;
+    const Biome::FolliageModelsVector& RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>&);
 
 private:
 
