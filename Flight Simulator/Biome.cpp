@@ -13,7 +13,7 @@ Biome::~Biome()
 {
 }
 
-void Biome::AddTerrainLevel(Material* material, const std::vector<Model*>& models)
+void Biome::AddTerrainLevel(Material* material, const std::vector<FolliageModel>& models)
 {
 	int materialsCount = g_materials.size();
 
@@ -21,8 +21,11 @@ void Biome::AddTerrainLevel(Material* material, const std::vector<Model*>& model
 		g_materials[material] = materialsCount;
 
 	for (auto& model : models)
-		if (g_folliageModels.find(model) == g_folliageModels.end())
-			g_folliageModels.insert(model);
+	{
+		auto& actualModel = model.Model;
+		if (g_folliageModels.find(actualModel) == g_folliageModels.end())
+			g_folliageModels.insert(actualModel);
+	}
 
 	m_terrainLevels.push_back(TerrainLevel{ material, models });
 
@@ -90,7 +93,7 @@ vector<Material*> Biome::GetBiomesMaterials()
 	return result;
 }
 
-vector<Model*> Biome::GetBiomeModels(float height, float biome)
+vector<Biome::FolliageModel> Biome::GetBiomeFolliageModels(float height, float biome)
 {
 	auto biomeData  = StepGradient(g_biomeInstances.size(), biome);
 	auto heightData = StepGradient(g_levelsPerBiomeCount,   height);

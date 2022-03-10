@@ -430,6 +430,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
         {
             for (int y = 0; y < pixelsPerQuad; y++)
             {
+                // TODO: properly do this 
                 if (rand() % 40 != 0)
                     continue;
 
@@ -441,16 +442,18 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                                    GetTranslation();
 
                 translation = vec3(translation.x, 0.0f, translation.z);
-                auto model = translate(mat4(1.0f), translation) * scale(mat4(1.0f), vec3(0.05f, 0.05f, 0.05f));
 
-                auto biomeModels = Biome::GetBiomeModels(crtHeightBiome.first, crtHeightBiome.second);
+                auto biomeModels = Biome::GetBiomeFolliageModels(crtHeightBiome.first, crtHeightBiome.second);
 
                 for (auto& biomeModel : biomeModels)
                 {
-                    if (result->DesiredInstances.find(biomeModel) == result->DesiredInstances.end())
-                        result->DesiredInstances[biomeModel] = vector<mat4>();
+                    auto model = translate(mat4(1.0f), translation) * 
+                                 scale(mat4(1.0f), vec3(biomeModel.Scale, biomeModel.Scale, biomeModel.Scale));
 
-                    result->DesiredInstances[biomeModel].push_back(model);
+                    if (result->DesiredInstances.find(biomeModel.Model) == result->DesiredInstances.end())
+                        result->DesiredInstances[biomeModel.Model] = vector<mat4>();
+
+                    result->DesiredInstances[biomeModel.Model].push_back(model);
                 }
             }
         }

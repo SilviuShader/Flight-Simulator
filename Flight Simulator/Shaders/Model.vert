@@ -18,10 +18,13 @@ out vec3 FSInputTangent;
 void main()
 {
 	FSInputWorldPosition = (Model * vec4(VSInputPosition, 1.0)).xyz;
-	FSInputNormal        = mat3(transpose(inverse(Model))) * VSInputNormal;
+
+	mat3 normalWorldMat  = mat3(transpose(inverse(Model)));
+
+	FSInputNormal        = normalize(normalWorldMat * VSInputNormal);
 	FSInputTexCoords     = VSInputTexCoords;
-	FSInputBinormal      = mat3(transpose(inverse(Model))) * VSInputBinormal;
-	FSInputTangent       = mat3(transpose(inverse(Model))) * VSInputTangent;
+	FSInputBinormal      = normalize(normalWorldMat * VSInputBinormal);
+	FSInputTangent       = normalize(normalWorldMat * VSInputTangent);
 
 	gl_Position          = Projection * View * Model * vec4(VSInputPosition, 1.0);
 }

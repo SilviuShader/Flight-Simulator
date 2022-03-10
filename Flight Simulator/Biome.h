@@ -9,12 +9,28 @@ class Biome
 {
 public:
 
+	struct FolliageModel
+	{
+	public:
+
+		FolliageModel(Model* model, float scale = 1.0f) :
+			Model(model),
+			Scale(scale)
+		{
+		}
+
+	public:
+
+		Model* Model;
+		float  Scale;
+	};
+
 	struct TerrainLevel
 	{
 	public:
 
-		Material*           Material;
-		std::vector<Model*> FolliageModels;
+		Material*                  Material;
+		std::vector<FolliageModel> FolliageModels;
 	};
 
 public:
@@ -24,7 +40,7 @@ public:
 
 	~Biome();
 
-	       void                       AddTerrainLevel(Material*, const std::vector<Model*>& = std::vector<Model*>());
+	       void                       AddTerrainLevel(Material*, const std::vector<FolliageModel>& = std::vector<FolliageModel>());
 				                      
 		   std::vector<TerrainLevel>& GetTerrainLevels();
 
@@ -33,7 +49,7 @@ public:
 	static Texture*                   CreateBiomesTexture();
 	static std::vector<Material*>     GetBiomesMaterials();
 
-	static std::vector<Model*>        GetBiomeModels(float, float);
+	static std::vector<FolliageModel> GetBiomeFolliageModels(float, float);
 
 	static void                       Free();
 
