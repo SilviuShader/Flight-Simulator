@@ -2,10 +2,12 @@
 
 using namespace std;
 
-unordered_map<Material*, int> Biome::g_materials       = unordered_map<Material*, int>();
-unordered_set<Model*>         Biome::g_folliageModels  = unordered_set<Model*>();
-vector<Texture*>              Biome::g_createdTextures = vector<Texture*>();
-vector<Biome*>                Biome::g_biomeInstances  = vector<Biome*>();
+unordered_map<Material*, int> Biome::g_materials              = unordered_map<Material*, int>();
+unordered_set<Model*>         Biome::g_folliageModels         = unordered_set<Model*>();
+vector<Texture*>              Biome::g_createdTextures        = vector<Texture*>();
+vector<Biome*>                Biome::g_biomeInstances         = vector<Biome*>();
+
+int                           Biome::g_levelsPerBiomeCount = 0;
 
 Biome::~Biome()
 {
@@ -23,6 +25,8 @@ void Biome::AddTerrainLevel(Material* material, const std::vector<Model*>& model
 			g_folliageModels.insert(model);
 
 	m_terrainLevels.push_back(TerrainLevel{ material, models });
+
+	g_levelsPerBiomeCount = max(g_levelsPerBiomeCount, (int)m_terrainLevels.size());
 }
 
 vector<Biome::TerrainLevel>& Biome::GetTerrainLevels()
@@ -40,12 +44,8 @@ Biome* Biome::CreateBiome()
 Texture* Biome::CreateBiomesTexture()
 {
 	int biomesCount       = g_biomeInstances.size();
-	int materialsPerBiome = 0;
-	
-	for (auto& biome : g_biomeInstances)
-		materialsPerBiome = max(materialsPerBiome, (int)biome->m_terrainLevels.size());
 
-	int    biomesDataSize = biomesCount * materialsPerBiome;
+	int    biomesDataSize = biomesCount * g_levelsPerBiomeCount;
 	float* biomesData     = new float[biomesDataSize];
 
 	int maxMaterialId     = g_materials.size() - 1;
@@ -63,7 +63,7 @@ Texture* Biome::CreateBiomesTexture()
 	}
 
 	Texture* resultTexture = new Texture(biomesCount,
-		                                 materialsPerBiome,
+		                                 g_levelsPerBiomeCount,
 		                                 Texture::Format::RED,
 		                                 Texture::Format::RED,
 		                                 Texture::Filter::Point,
@@ -93,7 +93,7 @@ vector<Material*> Biome::GetBiomesMaterials()
 vector<Model*> Biome::GetBiomeModels(float height, float biome)
 {
 	auto biomeData  = StepGradient(g_biomeInstances.size(), biome);
-	auto heightData = StepGradient(4, height); // TODO: fix this hard-coded 4
+	auto heightData = StepGradient(g_levelsPerBiomeCount,   height);
 
 	// TODO: Code all the interpolations here.
 
@@ -135,6 +135,8 @@ void Biome::Free()
 			delete model;
 
 	g_folliageModels.clear();	
+
+	g_levelsPerBiomeCount = 0;
 }
 
 pair<int, float> Biome::StepGradient(int totalValues, float t)

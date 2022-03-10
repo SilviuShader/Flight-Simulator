@@ -53,4 +53,6 @@ private:
 	static std::unordered_set<Model*>         g_folliageModels;
 	static std::vector<Texture*>              g_createdTextures;
 	static std::vector<Biome*>                g_biomeInstances;
+
+	static int                                g_levelsPerBiomeCount;
 };

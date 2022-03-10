@@ -430,7 +430,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
         {
             for (int y = 0; y < pixelsPerQuad; y++)
             {
-                if (rand() % 10 != 0)
+                if (rand() % 40 != 0)
                     continue;
 
                 PerlinNoise::HeightBiome crtHeightBiome = heightBiome[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];

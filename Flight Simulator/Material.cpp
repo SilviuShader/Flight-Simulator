@@ -53,9 +53,11 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 	}
 	else
 	{
-		float* normalValues = new float[textureSize * 4];
+		int normalWidth = 4;
+		int normalHeight = 4;
+		float* normalValues = new float[normalWidth * normalHeight * 4];
 
-		for (int i = 0; i < textureSize * 4;)
+		for (int i = 0; i < normalWidth * normalHeight * 4;)
 		{
 			normalValues[i++] = 0.5f;
 			normalValues[i++] = 0.5f;
@@ -63,8 +65,8 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 			normalValues[i++] = 1.0f;
 		}
 
-		m_normalTexture = new Texture(m_texture->GetWidth(),
-			                          m_texture->GetHeight(),
+		m_normalTexture = new Texture(normalWidth,
+			                          normalHeight,
 			                          Texture::Format::RGBA,
 			                          Texture::Format::RGBA,
 			                          Texture::Filter::Linear,
@@ -83,12 +85,14 @@ Material::Material(const string textureFilename, const string normalTextureFilen
 	}
 	else
 	{
-		float* specularValues = new float[textureSize];
-		for (int i = 0; i < textureSize; i++)
+		int specularWidth = 4;
+		int specularHeight = 4;
+		float* specularValues = new float[specularWidth * specularHeight];
+		for (int i = 0; i < specularWidth * specularHeight; i++)
 			specularValues[i] = 0.0f;
 
-		m_specularTexture = new Texture(m_texture->GetWidth(), 
-			                            m_texture->GetHeight(), 
+		m_specularTexture = new Texture(specularWidth, 
+			                            specularHeight, 
 			                            Texture::Format::RED, 
 			                            Texture::Format::RED, 
 			                            Texture::Filter::Linear, 

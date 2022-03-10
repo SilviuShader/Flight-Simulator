@@ -47,15 +47,16 @@ void main()
 {
     mat4 model = mat4(1.0);
 
-	FSInputWorldPosition    = (VSInputModelMatrix * vec4(VSInputPosition, 1.0)).xyz;
+	FSInputWorldPosition     = (VSInputModelMatrix * vec4(VSInputPosition, 1.0)).xyz;
 
-	vec3 positionInChunk    = FSInputWorldPosition - ChunkCenter;
-	FSInputWorldPosition.y += get3Dcoord(positionInChunk.xz).y;
+    vec3 worldOriginPosition = (VSInputModelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+	vec3 positionInChunk     = worldOriginPosition - ChunkCenter;
+	FSInputWorldPosition.y  += get3Dcoord(positionInChunk.xz).y;
 
-	FSInputNormal           = mat3(transpose(inverse(VSInputModelMatrix))) * VSInputNormal;
-	FSInputTexCoords        = VSInputTexCoords;
-	FSInputBinormal         = mat3(transpose(inverse(VSInputModelMatrix))) * VSInputBinormal;
-	FSInputTangent          = mat3(transpose(inverse(VSInputModelMatrix))) * VSInputTangent;
-                            
-	gl_Position             = Projection * View * vec4(FSInputWorldPosition, 1.0);
+	FSInputNormal            = normalize(mat3(transpose(inverse(VSInputModelMatrix))) * VSInputNormal);
+	FSInputTexCoords         = VSInputTexCoords;
+	FSInputBinormal          = normalize(mat3(transpose(inverse(VSInputModelMatrix))) * VSInputBinormal);
+	FSInputTangent           = normalize(mat3(transpose(inverse(VSInputModelMatrix))) * VSInputTangent);
+                             
+	gl_Position              = Projection * View * vec4(FSInputWorldPosition, 1.0);
 }
