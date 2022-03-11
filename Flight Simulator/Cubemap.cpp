@@ -2,8 +2,6 @@
 
 #include "glad/glad.h"
 #include "Cubemap.h"
-
-#include "stb_image.h"
 #include "TextureLoadHelper.h"
 
 using namespace std;

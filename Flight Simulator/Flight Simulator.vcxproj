@@ -159,8 +159,8 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Shapes.cpp" />
     <ClCompile Include="Skybox.cpp" />
-    <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Chunk.cpp" />
+    <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureLoadHelper.cpp" />
     <ClCompile Include="VertexTypes.cpp" />
@@ -183,7 +183,6 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Shapes.h" />
     <ClInclude Include="Skybox.h" />
-    <ClInclude Include="stb_image.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLoadHelper.h" />
