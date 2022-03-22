@@ -136,7 +136,7 @@ void World::CreateTerrainObjects()
 
 	Biome::FolliageModel grassModel = Biome::FolliageModel(
 		{ 
-			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), 0.05f, 0.025f),
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), 0.05f, 0.2f),
 			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), 4.0f,  1.0f)
 		}, 1.0f);
 

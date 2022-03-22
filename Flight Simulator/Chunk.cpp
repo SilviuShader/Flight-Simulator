@@ -559,7 +559,7 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
 
                        vec3 diff = camPos - trans;
 
-                       float angle = atan2(diff.x, diff.z);
+                       float angle = lod.Bilboarded ? atan2(diff.x, diff.z) : 0.0f;
                        mat4 rotation = rotate(mat4(1.0f), angle, vec3(0.0f, 1.0f, 0.0f));
 
                        modelMatrix = translate(mat4(1.0f), trans) * scale(mat4(1.0f), vec3(lod.Scale, lod.Scale, lod.Scale)) * rotation;
