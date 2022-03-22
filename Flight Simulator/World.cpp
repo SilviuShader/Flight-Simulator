@@ -134,9 +134,15 @@ void World::CreateTerrainObjects()
 
 	Biome* forestBiome = Biome::CreateBiome();
 
-	forestBiome->AddTerrainLevel(forestLeaves,   { Biome::FolliageModel(new Model("Assets/Models/GrassBilboard.png",    true), 2.0f) });
-	forestBiome->AddTerrainLevel(brownMudLeaves, { Biome::FolliageModel(new Model("Assets/Models/backpack.obj", true))        });
-	forestBiome->AddTerrainLevel(medievalBlocks, { Biome::FolliageModel(new Model("Assets/Models/backpack.obj", true))        });
+	Biome::FolliageModel grassModel = Biome::FolliageModel(
+		{ 
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), 0.05f, 0.025f),
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), 4.0f,  1.0f)
+		}, 1.0f);
+
+	forestBiome->AddTerrainLevel(forestLeaves, { grassModel });
+	forestBiome->AddTerrainLevel(brownMudLeaves);
+	forestBiome->AddTerrainLevel(medievalBlocks);
 	forestBiome->AddTerrainLevel(snow3);
 
 	m_terrainBiomesData = Biome::CreateBiomesTexture();

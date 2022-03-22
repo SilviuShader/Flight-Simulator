@@ -22,7 +22,7 @@ Chunk::Node::Node()
     ZoneRange        = vec4(0.0f, 0.0f, 0.0f, 0.0f);
     PositionId       = make_pair(0, 0);
     BoundingBox      = MathHelper::AABB();
-    DesiredInstances = unordered_map<Model*, vector<mat4>>();
+    DesiredInstances = unordered_map<Biome::FolliageModel, vector<vec3>, Biome::HashFolliageModel>();
 }
 
 Chunk::Node::~Node()
@@ -482,13 +482,10 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
                 auto biomeModel = RouletteWheelSelection(biomeModels.Models);
 
-                auto model = translate(mat4(1.0f), translation) * 
-                             scale(mat4(1.0f), vec3(biomeModel.Scale, biomeModel.Scale, biomeModel.Scale));
+                if (result->DesiredInstances.find(biomeModel) == result->DesiredInstances.end())
+                    result->DesiredInstances[biomeModel] = vector<vec3>();
 
-                if (result->DesiredInstances.find(biomeModel.Model) == result->DesiredInstances.end())
-                    result->DesiredInstances[biomeModel.Model] = vector<mat4>();
-
-                result->DesiredInstances[biomeModel.Model].push_back(model);
+                result->DesiredInstances[biomeModel].push_back(translation);
             }
         }
     }
@@ -531,11 +528,48 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
     {
         for (auto& biomeModel : node->DesiredInstances)
         {
-            if (m_folliageModelsInstances.find(biomeModel.first) == m_folliageModelsInstances.end())
-                m_folliageModelsInstances[biomeModel.first] = vector<mat4>();
 
-            for (auto& model : biomeModel.second)
-                m_folliageModelsInstances[biomeModel.first].push_back(model);
+            
+            // TODO: Optimize this.
+
+            //float dist = distance(camPos, biomeModel.second);
+
+            //for (auto& lod : biomeModel.first.ModelLODs)
+            //{
+            //    if (lod.MaxDistance < )
+            //}
+
+            // TODO: Optimize this. (A LOT)
+            vec3 camPos = m_camera->GetPosition();
+            camPos = vec3(camPos.x, 0.0f, camPos.z);
+           for (auto& trans : biomeModel.second)
+           {
+               Model* modelPtr = nullptr;
+               mat4   modelMatrix = identity<mat4>();
+
+               float dist = distance(vec3(trans.x, 0.0f, trans.z), camPos);
+               // TODO: replace this hard-coded number.
+               float distPercentage = dist / 1000.0f;
+
+               for (auto& lod : biomeModel.first.ModelLODs)
+               {
+                   if (distPercentage < lod.MaxDistance)
+                   {
+                       modelPtr = lod.Model;
+                       modelMatrix = translate(mat4(1.0f), trans) * scale(mat4(1.0f), vec3(lod.Scale, lod.Scale, lod.Scale));
+                       break;
+                   }
+               }
+
+               if (!modelPtr)
+                   continue;
+
+
+               if (m_folliageModelsInstances.find(modelPtr) == m_folliageModelsInstances.end())
+                   m_folliageModelsInstances[modelPtr] = vector<mat4>();
+
+               m_folliageModelsInstances[modelPtr].push_back(modelMatrix);
+           }
         }
     }
     else

@@ -22,9 +22,13 @@ void Biome::AddTerrainLevel(Material* material, const std::vector<FolliageModel>
 
 	for (auto& model : models)
 	{
-		auto& actualModel = model.Model;
-		if (g_folliageModels.find(actualModel) == g_folliageModels.end())
-			g_folliageModels.insert(actualModel);
+		auto& modelLODs = model.ModelLODs;
+		for (auto& actualModel : modelLODs)
+		{
+			auto& actualModelPtr = actualModel.Model;
+			if (g_folliageModels.find(actualModelPtr) == g_folliageModels.end())
+				g_folliageModels.insert(actualModelPtr);
+		}
 	}
 
 	m_terrainLevels.push_back(TerrainLevel{ material, models });

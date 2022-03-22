@@ -9,22 +9,93 @@ class Biome
 {
 public:
 
-	struct FolliageModel
+	struct ModelLevelOfDetail
 	{
 	public:
 
-		FolliageModel(Model* model, float scale = 1.0f, float chance = 1.0f) :
+		ModelLevelOfDetail(Model* model, float scale = 1.0f, float maxDistance = 1.0f) :
 			Model(model),
 			Scale(scale),
-			Chance(chance)
+			MaxDistance(maxDistance)
 		{
+		}
+
+		bool operator==(const ModelLevelOfDetail& other) const
+		{
+			return Model       == other.Model &&
+				   Scale       == other.Scale &&
+			       MaxDistance == other.MaxDistance;
 		}
 
 	public:
 
 		Model* Model;
 		float  Scale;
-		float  Chance;
+		float  MaxDistance;
+	};
+
+	struct FolliageModel
+	{
+	public:
+
+		FolliageModel(std::vector<ModelLevelOfDetail> modelLODs, float chance = 1.0f) :
+			ModelLODs(modelLODs),
+			Chance(chance)
+		{
+			std::sort(modelLODs.begin(), modelLODs.end(), [&](const ModelLevelOfDetail& a, const ModelLevelOfDetail& b)
+				{
+					return a.MaxDistance < b.MaxDistance;
+				});
+		}
+
+		bool operator==(const FolliageModel& other) const
+		{
+			bool result = Chance == other.Chance;
+
+			if (!result)
+				return result;
+
+			result = result && ModelLODs.size() == other.ModelLODs.size();
+
+			if (!result)
+				return result;
+
+			for (int i = 0; i < ModelLODs.size(); i++)
+			{
+				if (!(ModelLODs[i] == other.ModelLODs[i]))
+				{
+					result = false;
+					break;
+				}
+			}
+
+			return result;
+		}
+
+	public:
+
+		std::vector<ModelLevelOfDetail> ModelLODs;
+		float                           Chance;
+	};
+
+	struct HashFolliageModel
+	{
+	public:
+
+		size_t operator() (const FolliageModel& model) const
+		{
+			size_t res = 17;
+			for (auto& lod : model.ModelLODs)
+			{
+				// TODO: create a hash-combine function.
+				res = res * 31 + std::hash<int>()((int)lod.Model);
+				res = res * 31 + std::hash<float>()(lod.Scale);
+				res = res * 31 + std::hash<float>()(lod.MaxDistance);
+			}
+			res = res * 31 + std::hash<float>()(model.Chance);
+
+			return res;
+		}
 	};
 
 	struct FolliageModelsVector
