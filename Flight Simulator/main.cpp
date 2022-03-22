@@ -97,6 +97,9 @@ int main(int argc, char const* argv[])
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     g_world = new World(WINDOW_WIDTH, WINDOW_HEIGHT);
 

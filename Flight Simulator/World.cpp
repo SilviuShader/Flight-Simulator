@@ -86,8 +86,8 @@ void World::Update(float deltaTime)
 
 	UpdateCurrentChunks(deltaTime);
 
-	for (auto& keyVal : m_chunks)
-		keyVal.second->Update(m_camera, deltaTime, m_renderDebug);
+	for (auto& chunk : m_chunksList)
+		chunk->Update(m_camera, deltaTime, m_renderDebug);
 
 	m_firstFrame = false;
 }
@@ -96,8 +96,11 @@ void World::Draw()
 {
 	m_skybox->Draw(m_camera);
 
-	for (auto& keyVal : m_chunks)
-		keyVal.second->Draw(m_light, m_terrainMaterials, m_terrainBiomesData);
+	for (auto& chunk : m_chunksList)
+		chunk->DrawTerrain(m_light, m_terrainMaterials, m_terrainBiomesData);
+
+	for (auto& chunk : m_chunksList)
+		chunk->DrawFolliage(m_light);
 
 	if (m_renderDebug)
 		Shapes::GetInstance()->DrawRectangles(m_camera);
@@ -131,7 +134,7 @@ void World::CreateTerrainObjects()
 
 	Biome* forestBiome = Biome::CreateBiome();
 
-	forestBiome->AddTerrainLevel(forestLeaves,   { Biome::FolliageModel(new Model("Assets/Models/grass.obj",    true), 0.05f) });
+	forestBiome->AddTerrainLevel(forestLeaves,   { Biome::FolliageModel(new Model("Assets/Models/GrassBilboard.png",    true), 2.0f) });
 	forestBiome->AddTerrainLevel(brownMudLeaves, { Biome::FolliageModel(new Model("Assets/Models/backpack.obj", true))        });
 	forestBiome->AddTerrainLevel(medievalBlocks, { Biome::FolliageModel(new Model("Assets/Models/backpack.obj", true))        });
 	forestBiome->AddTerrainLevel(snow3);
@@ -263,4 +266,13 @@ void World::UpdateCurrentChunks(float deltaTime)
 	m_accumulatedCurrentChunksTime -= m_firstFrame ? 0.0f : TIME_TO_UPDATE_CURRENT_CHUNKS;
 
 	UpdateChunksVisibility(deltaTime, m_firstFrame ? MAX_CHUNKS : 1);
+	m_chunksList.clear();
+
+	for (auto& keyVal : m_chunks)
+		m_chunksList.push_back(keyVal.second);
+
+	sort(m_chunksList.begin(), m_chunksList.end(), [&](Chunk* a, Chunk* b) 
+		{
+			return distance(a->GetTranslation(), m_camera->GetPosition()) > distance(b->GetTranslation(), m_camera->GetPosition());
+		});
 }

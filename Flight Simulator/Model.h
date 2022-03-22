@@ -23,11 +23,13 @@ public:
 
 private:
 
-	void      LoadModel(const std::string&);
-	void      ProcessNode(aiNode*, const aiScene*);
-	Mesh*     ProcessMesh(aiMesh*, const aiScene*);
+	void        LoadModel(const std::string&);
+	void        ProcessNode(aiNode*, const aiScene*);
+	Mesh*       ProcessMesh(aiMesh*, const aiScene*);
+			    
+	Material*   LoadMaterial(aiMaterial*);
 
-	Material* LoadMaterial(aiMaterial*);
+	std::string GetFileExtension(const std::string&);
 
 private:
 

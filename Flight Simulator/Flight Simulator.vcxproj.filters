@@ -331,5 +331,8 @@
     <CopyFileToFolders Include="Shaders\HeightBiomeMipMap.comp">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\GrassBilboard.png">
+      <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

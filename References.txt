@@ -27,3 +27,6 @@ https://www.3dgep.com/learning-directx-12-4/#Compute_Shaders
 https://github.com/assimp/assimp/blob/master/Build.md
 
 https://learnopengl.com/Model-Loading/Mesh + Model
+
+https://stackoverflow.com/questions/51949/how-to-get-file-extension-from-string-in-c
+https://stackoverflow.com/questions/313970/how-to-convert-an-instance-of-stdstring-to-lower-case

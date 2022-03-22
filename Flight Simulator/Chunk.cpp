@@ -6,6 +6,7 @@
 #include "Shapes.h"
 #include "VertexTypes.h"
 #include "Biome.h"
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 using namespace glm;
@@ -138,9 +139,20 @@ void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
         m_folliageModelsInstances[folliageModel.first].clear();
     
     FillFolliageInstances(cameraFrustum, m_quadTree);
+    
+    for (auto& model : m_folliageModelsInstances)
+    {
+        sort(model.second.begin(), model.second.end(), [&](const mat4& a, const mat4& b)
+            {
+                const float* valsA = value_ptr(a);
+                const float* valsB = value_ptr(b);
+
+                return distance(vec3(valsA[12], valsA[13], valsA[14]), camera->GetPosition()) > distance(vec3(valsB[12], valsB[13], valsB[14]), camera->GetPosition());
+            });
+    }
 }
 
-void Chunk::Draw(Light* light, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
+void Chunk::DrawTerrain(Light* light, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
 {
     vec3 cameraPosition = m_camera->GetPosition();
 
@@ -186,32 +198,44 @@ void Chunk::Draw(Light* light, const vector<Material*>& terrainMaterials, Textur
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
+}
+
+void Chunk::DrawFolliage(Light* light)
+{
+    mat4 model      = translate(mat4(1.0f), GetTranslation());
+    mat4 view       = m_camera->GetViewMatrix();
+    mat4 projection = m_camera->GetProjectionMatrix();
 
     m_folliageShader->Use();
 
-    m_folliageShader->SetMatrix4("View", view);
-    m_folliageShader->SetMatrix4("Projection", projection);
+    m_folliageShader->SetMatrix4("View",           view);
+    m_folliageShader->SetMatrix4("Projection",     projection);
 
-    m_folliageShader->SetVec3("ChunkCenter", GetTranslation());
+    m_folliageShader->SetVec3("ChunkCenter",       GetTranslation());
 
-    m_folliageShader->SetFloat("TerrainWidth", CHUNK_WIDTH);
-    m_folliageShader->SetFloat("GridWidth", CHUNK_GRID_WIDTH);
-    m_folliageShader->SetFloat("GridHeight", CHUNK_GRID_HEIGHT);
+    m_folliageShader->SetFloat("TerrainWidth",     CHUNK_WIDTH);
+    m_folliageShader->SetFloat("GridWidth",        CHUNK_GRID_WIDTH);
+    m_folliageShader->SetFloat("GridHeight",       CHUNK_GRID_HEIGHT);
     m_folliageShader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
 
-    m_folliageShader->SetTexture("NoiseTexture", m_noiseTexture, 0);
+    m_folliageShader->SetTexture("NoiseTexture",   m_noiseTexture, 0);
 
-    m_folliageShader->SetVec4("AmbientColor", light->GetAmbientColor());
-    m_folliageShader->SetVec4("DiffuseColor", light->GetDiffuseColor());
-    m_folliageShader->SetVec3("LightDirection", light->GetLightDirection());
-    m_folliageShader->SetFloat("SpecularPower", light->GetSpecularPower());
-    m_folliageShader->SetVec3("CameraPosition", m_camera->GetPosition());
+    m_folliageShader->SetVec4("AmbientColor",      light->GetAmbientColor());
+    m_folliageShader->SetVec4("DiffuseColor",      light->GetDiffuseColor());
+    m_folliageShader->SetVec3("LightDirection",    light->GetLightDirection());
+    m_folliageShader->SetFloat("SpecularPower",    light->GetSpecularPower());
+    m_folliageShader->SetVec3("CameraPosition",    m_camera->GetPosition());
 
     for (auto& model : m_folliageModelsInstances)
     {
         model.first->SetInstances(model.second);
         model.first->Draw(m_folliageShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
     }
+}
+
+vec3 Chunk::GetTranslation() const
+{
+    return GetPositionForChunkId(m_chunkID);
 }
 
 vec3 Chunk::GetPositionForChunkId(Vec2Int chunkId)
@@ -519,11 +543,6 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
             FillFolliageInstances(frustum, node->Children[i]);
     }
-}
-
-vec3 Chunk::GetTranslation() const
-{
-    return GetPositionForChunkId(m_chunkID);
 }
 
 const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModel>& models)

@@ -73,9 +73,13 @@ public:
     ~Chunk();
 
            void      Update(Camera*, float, bool);
-           void      Draw(Light*, const std::vector<Material*>&, Texture*);
+           void      DrawTerrain(Light*, const std::vector<Material*>&, Texture*);
+           void      DrawFolliage(Light*);
+
+           glm::vec3 GetTranslation() const;
 
     static glm::vec3 GetPositionForChunkId(Vec2Int);
+
 
 private:
 
@@ -89,8 +93,6 @@ private:
           void                         UpdateZoneRangesBuffer();
                                        
           void                         FillFolliageInstances(const MathHelper::Frustum&, Node*);
-                                       
-          glm::vec3                    GetTranslation() const;
 
           // TODO: use templates here
     const Biome::FolliageModel&        RouletteWheelSelection(const std::vector<Biome::FolliageModel>&);

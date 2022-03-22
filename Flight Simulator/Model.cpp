@@ -57,18 +57,42 @@ int Model::Draw(Shader* shader, const string& texturesName, const string& normal
 
 void Model::LoadModel(const string& path)
 {
-	Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
-
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	if (GetFileExtension(path) == "png")
 	{
-		cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
-		return;
+		vector<VertexNormalTextureBinormalTangent> vertices
+		{
+			  // POSITION              NORMAL                  TEX_COORDS        BINORMAL                TANGENT
+			{ vec3(-0.5f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f) },
+			{ vec3(0.5f,  0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f) },
+			{ vec3(0.5f,  1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f) },
+			{ vec3(-0.5f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f) }
+		};
+
+		vector<unsigned int>                       indices
+		{
+			0, 1, 2,
+			0, 2, 3
+		};
+		
+		vector<Material*>                          materials { new Material(path) };
+
+		m_meshes.push_back(new Mesh(vertices, indices, materials, m_instanced));
 	}
+	else
+	{
+		Importer importer;
+		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
-	m_directory = path.substr(0, path.find_last_of('/'));
+		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+		{
+			cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+			return;
+		}
 
-	ProcessNode(scene->mRootNode, scene);
+		m_directory = path.substr(0, path.find_last_of('/'));
+
+		ProcessNode(scene->mRootNode, scene);
+	}
 }
 
 void Model::ProcessNode(aiNode* node, const aiScene* scene)
@@ -162,4 +186,19 @@ Material* Model::LoadMaterial(aiMaterial* mat)
 	}
 
 	return new Material(diffuseFilename, normalFilename, specularFilename);
+}
+
+string Model::GetFileExtension(const string& filename)
+{
+	string result = "";
+
+	if (filename.find_last_of(".") != string::npos)
+		result = filename.substr(filename.find_last_of(".") + 1);
+
+	transform(result.begin(), result.end(), result.begin(),[](unsigned char c) 
+	{
+			return std::tolower(c); 
+	});
+
+	return result;
 }

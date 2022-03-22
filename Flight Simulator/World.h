@@ -45,6 +45,7 @@ private:
 
 	Skybox*                                       m_skybox;
 	std::unordered_map<Vec2Int, Chunk*, HashPair> m_chunks;
+	std::vector<Chunk*>                           m_chunksList;
 
 	// Terrain objects
 	PerlinNoise*                                  m_noise;
