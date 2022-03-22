@@ -13,18 +13,20 @@ public:
 	{
 	public:
 
-		ModelLevelOfDetail(Model* model, float scale = 1.0f, float maxDistance = 1.0f) :
+		ModelLevelOfDetail(Model* model, float scale = 1.0f, float maxDistance = 1.0f, bool bilboarded = false) :
 			Model(model),
 			Scale(scale),
-			MaxDistance(maxDistance)
+			MaxDistance(maxDistance),
+			Bilboarded(bilboarded)
 		{
 		}
 
 		bool operator==(const ModelLevelOfDetail& other) const
 		{
-			return Model       == other.Model &&
-				   Scale       == other.Scale &&
-			       MaxDistance == other.MaxDistance;
+			return Model       == other.Model       &&
+				   Scale       == other.Scale       &&
+			       MaxDistance == other.MaxDistance &&
+				   Bilboarded  == other.Bilboarded;
 		}
 
 	public:
@@ -32,6 +34,7 @@ public:
 		Model* Model;
 		float  Scale;
 		float  MaxDistance;
+		bool   Bilboarded;
 	};
 
 	struct FolliageModel
@@ -91,6 +94,7 @@ public:
 				res = res * 31 + std::hash<int>()((int)lod.Model);
 				res = res * 31 + std::hash<float>()(lod.Scale);
 				res = res * 31 + std::hash<float>()(lod.MaxDistance);
+				res = res * 31 + std::hash<bool>()(lod.Bilboarded);
 			}
 			res = res * 31 + std::hash<float>()(model.Chance);
 

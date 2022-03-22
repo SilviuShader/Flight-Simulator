@@ -31,13 +31,13 @@ private:
 
     public:
 
-        Node*                                                            Children[CHILDREN_COUNT];
-        bool                                                             IsLeaf;
-        glm::vec4                                                        ZoneRange;
-                                                                         
-        Vec2Int                                                          PositionId;
-                                                                         
-        MathHelper::AABB                                                 BoundingBox;
+        Node*                                                                                      Children[CHILDREN_COUNT];
+        bool                                                                                       IsLeaf;
+        glm::vec4                                                                                  ZoneRange;
+                                                                                                   
+        Vec2Int                                                                                    PositionId;
+                                                                                                   
+        MathHelper::AABB                                                                           BoundingBox;
 
         std::unordered_map<Biome::FolliageModel, std::vector<glm::vec3>, Biome::HashFolliageModel> DesiredInstances;
     };
