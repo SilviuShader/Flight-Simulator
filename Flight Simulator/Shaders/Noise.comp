@@ -3,24 +3,18 @@
 #define NOISE_SAMPLES_COUNT 256
 
 layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
-layout (rgba32f, binding = 0) uniform image2D ImgOutput;
+layout (r32f, binding = 0) uniform image2D ImgOutput;
 
 layout (std140, binding = 1) uniform NoiseValues
 {
     vec4 Samples[NOISE_SAMPLES_COUNT];
 };
 
-uniform float NoiseDefaultFrequency;
+uniform float NoiseFrequency;
 uniform int   OctavesAdd;
-
-uniform float BiomesDefaultFrequency;
-uniform int   BiomesOctavesAdd;
 
 uniform float FudgeFactor;
 uniform float Exponent;
-
-uniform float BiomesFudgeFactor;
-uniform float BiomesExponent;
 
 uniform vec2  OctaveOffset;
 
@@ -131,8 +125,7 @@ void main()
     vec2  texCoords      = vec2(pixelCoords) / vec2(imgSize);
 
     vec2  noisePosition  = vec2(texCoords.x * finalStartDiff.x, texCoords.y * finalStartDiff.y) + StartPosition;
-    float noise          = getCombinedNoiseValue(noisePosition, NoiseDefaultFrequency, OctavesAdd, FudgeFactor, Exponent);
-    float biomesNoise    = getCombinedNoiseValue(noisePosition, BiomesDefaultFrequency, BiomesOctavesAdd, BiomesFudgeFactor, BiomesExponent);
+    float noise          = getCombinedNoiseValue(noisePosition, NoiseFrequency, OctavesAdd, FudgeFactor, Exponent);
 
-    imageStore(ImgOutput, pixelCoords, vec4(noise, biomesNoise, noise, 1.0));
+    imageStore(ImgOutput, pixelCoords, vec4(noise));
 }

@@ -11,7 +11,9 @@ public:
     {
         RGBA32F,
         RGBA,
-        RED
+        RED,
+        R8,
+        R32F
     };
 
     enum class Filter
@@ -43,14 +45,15 @@ public:
 
     ~Texture();
 
-    unsigned int GetTextureID() const;
+           unsigned int GetTextureID() const;
+           
+           int          GetWidth()     const;
+           int          GetHeight()    const;
 
-    int          GetWidth()     const;
-    int          GetHeight()    const;
+    static int          GetGLFormat(Format);
 
 private:
 
-    int         GetGLFormat(Format);
     int         GetGLParam(Filter);
 
     TextureInfo GetCurrentTextureInfo() const;

@@ -56,47 +56,64 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
 
     vec3 translation = GetTranslation();
 
-    auto noiseData = m_perlinNoise->RenderNoise(vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f),
-                                                vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f),
-                                                QUAD_TREE_DEPTH, HEIGHT_BIOME_DEPTH);
+    vec2 startPosition = vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f);
+    vec2 endPosition   = vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f);
 
-    m_noiseTexture = noiseData.NoiseTexture;
+    // TODO: Replace these hard-coded values.
+    PerlinNoise::NoiseParameters heightParameters;
+    heightParameters.Frequency    = 0.025f;
+    heightParameters.FudgeFactor  = 1.2f;
+    heightParameters.Exponent     = 4.0f;
+    heightParameters.OctavesCount = 20;
 
-    BuildQuadTree(noiseData.MinMax, noiseData.HeightBiome);
+    m_heightTexture = m_perlinNoise->RenderNoise(startPosition, endPosition, heightParameters);
+
+    PerlinNoise::NoiseParameters biomeParameters;
+    biomeParameters.Frequency    = 0.01f;
+    biomeParameters.FudgeFactor  = 1.0f;
+    biomeParameters.Exponent     = 1.0f;
+    biomeParameters.OctavesCount = 10;
+
+    m_biomesTexture = m_perlinNoise->RenderNoise(startPosition, endPosition, biomeParameters);
+
+    PerlinNoise::MinMax**      minMax      = m_perlinNoise->GetMinMax(m_heightTexture,                       QUAD_TREE_DEPTH   );
+    PerlinNoise::HeightBiome** heightBiome = m_perlinNoise->GetHeightBiome(m_heightTexture, m_biomesTexture, HEIGHT_BIOME_DEPTH);
+
+    BuildQuadTree(minMax, heightBiome);
 
     int quadTreesDivisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
     m_drawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
 
     for (int i = 0; i < quadTreesDivisionsCount; i++)
     {
-        if (noiseData.MinMax[i])
+        if (minMax[i])
         {
-            delete[] noiseData.MinMax[i];
-            noiseData.MinMax[i] = nullptr;
+            delete[] minMax[i];
+            minMax[i] = nullptr;
         }
     }
 
-    if (noiseData.MinMax)
+    if (minMax)
     {
-        delete[] noiseData.MinMax;
-        noiseData.MinMax = nullptr;
+        delete[] minMax;
+        minMax = nullptr;
     }
 
     int heightBiomeDivisionsCount = 1 << (HEIGHT_BIOME_DEPTH - 1);
-    
+
     for (int i = 0; i < heightBiomeDivisionsCount; i++)
     {
-        if (noiseData.HeightBiome[i])
+        if (heightBiome[i])
         {
-            delete[] noiseData.HeightBiome[i];
-            noiseData.HeightBiome[i] = nullptr;
+            delete[] heightBiome[i];
+            heightBiome[i] = nullptr;
         }
     }
 
-    if (noiseData.HeightBiome)
+    if (heightBiome)
     {
-        delete[] noiseData.HeightBiome;
-        noiseData.HeightBiome = nullptr;
+        delete[] heightBiome;
+        heightBiome = nullptr;
     }
 }
 
@@ -114,10 +131,16 @@ Chunk::~Chunk()
         m_quadTree = nullptr;
     }
 
-    if (m_noiseTexture)
+    if (m_biomesTexture)
     {
-        delete m_noiseTexture;
-        m_noiseTexture = nullptr;
+        delete m_biomesTexture;
+        m_biomesTexture = nullptr;
+    }
+
+    if (m_heightTexture)
+    {
+        delete m_heightTexture;
+        m_heightTexture = nullptr;
     }
 
     FreeTerrainBuffers();
@@ -168,7 +191,9 @@ void Chunk::DrawTerrain(Light* light, const vector<Material*>& terrainMaterials,
     m_terrainShader->SetFloat("DistanceForDetails",          DISTANCE_FOR_DETAILS);
     m_terrainShader->SetFloat("TessellationLevel",           MAX_TESSELATION);
 
-    m_terrainShader->SetTexture("NoiseTexture",              m_noiseTexture, 0);
+    m_terrainShader->SetTexture("HeightTexture",             m_heightTexture, 0);
+    m_terrainShader->SetTexture("BiomeTexture",              m_biomesTexture, 1);
+
     m_terrainShader->SetMatrix4("View",                      view);
     m_terrainShader->SetMatrix4("Projection",                projection);
 
@@ -189,11 +214,11 @@ void Chunk::DrawTerrain(Light* light, const vector<Material*>& terrainMaterials,
     m_terrainShader->SetInt("BiomesCount",                   terrainBiomesData->GetWidth());
     m_terrainShader->SetInt("MaterialsPerBiome",             terrainBiomesData->GetHeight());
 
-    m_terrainShader->SetTexture("BiomeMaterialsTexture",     terrainBiomesData, 1);
+    m_terrainShader->SetTexture("BiomeMaterialsTexture",     terrainBiomesData, 2);
 
     m_terrainShader->SetMaterials("TerrainTextures", 
                                   "TerrainNormalTextures", 
-                                  "TerrainSpecularTextures", terrainMaterials, 2);
+                                  "TerrainSpecularTextures", terrainMaterials,  3);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -218,7 +243,7 @@ void Chunk::DrawFolliage(Light* light)
     m_folliageShader->SetFloat("GridHeight",       CHUNK_GRID_HEIGHT);
     m_folliageShader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
 
-    m_folliageShader->SetTexture("NoiseTexture",   m_noiseTexture, 0);
+    m_folliageShader->SetTexture("NoiseTexture",   m_heightTexture, 0);
 
     m_folliageShader->SetVec4("AmbientColor",      light->GetAmbientColor());
     m_folliageShader->SetVec4("DiffuseColor",      light->GetDiffuseColor());

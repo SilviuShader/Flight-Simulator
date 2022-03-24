@@ -136,6 +136,10 @@ int Texture::GetGLFormat(Format format)
         return GL_RGBA;
     case Format::RED:
         return GL_RED;
+    case Format::R8:
+        return GL_R8;
+    case Format::R32F:
+        return GL_R32F;
     }
 
     cout << "ERROR::TEXTURE::INVALID::FORMAT" << endl;

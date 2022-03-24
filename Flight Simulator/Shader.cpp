@@ -209,9 +209,9 @@ void Shader::SetCubemap(const string& name, Cubemap* cubemap, int textureNumber)
     SetInt(name, textureNumber);
 }
 
-void Shader::SetImage2D(const string& name, Texture* texture, int textureNumber)
+void Shader::SetImage2D(const string& name, Texture* texture, int textureNumber, Texture::Format format)
 {
-    glBindImageTexture(textureNumber, texture->GetTextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindImageTexture(textureNumber, texture->GetTextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, Texture::GetGLFormat(format));
     SetInt(name, textureNumber);
 }
 

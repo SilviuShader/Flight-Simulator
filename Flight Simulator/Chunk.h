@@ -110,7 +110,8 @@ private:
                                                        
     Shader*                                            m_terrainShader;
     PerlinNoise*                                       m_perlinNoise;
-    Texture*                                           m_noiseTexture;
+    Texture*                                           m_heightTexture;
+    Texture*                                           m_biomesTexture;
     glm::vec4*                                         m_drawZonesRanges; 
 
     std::unordered_map<Model*, std::vector<glm::mat4>> m_folliageModelsInstances;

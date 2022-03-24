@@ -3,11 +3,13 @@
 #define MAX_ITERATIONS 4
 
 layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
-layout (rgba32f, binding = 0) uniform image2D ImgInput;
-layout (rgba32f, binding = 1) uniform image2D ImgOutput;
+layout (r32f, binding = 0) uniform image2D ImageInput1;
+layout (r32f, binding = 1) uniform image2D ImageInput2;
+
+layout (r32f, binding = 2) uniform image2D ImageOutput1;
+layout (r32f, binding = 3) uniform image2D ImageOutput2;
 
 uniform int Iterations;
-uniform int InitialPhase;
 
 shared float s_minValues[BLOCKS_COUNT * BLOCKS_COUNT];
 shared float s_maxValues[BLOCKS_COUNT * BLOCKS_COUNT];
@@ -34,31 +36,29 @@ float loadMax(uint index)
 
 void main()
 {
-	ivec2 imgSize = imageSize(ImgInput);
+	ivec2 imgSize = imageSize(ImageInput1);
 	ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
-	
+
 	if (pixelCoords.x >= imgSize.x / 2 || 
 	    pixelCoords.y >= imgSize.y / 2)
 		return;
 
-	vec4 pixel1 = imageLoad(ImgInput, pixelCoords * 2);
-	vec4 pixel2 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(1, 0));
-	vec4 pixel3 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(0, 1));
-	vec4 pixel4 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(1, 1));
+	float min1 = imageLoad(ImageInput1, pixelCoords * 2).x;
+	float min2 = imageLoad(ImageInput1, pixelCoords * 2 + ivec2(1, 0)).x;
+	float min3 = imageLoad(ImageInput1, pixelCoords * 2 + ivec2(0, 1)).x;
+	float min4 = imageLoad(ImageInput1, pixelCoords * 2 + ivec2(1, 1)).x;
 
-	float mn1 = min(pixel1.x, pixel2.x);
-	float mn2 = min(pixel3.x, pixel4.x);
+	float max1 = imageLoad(ImageInput2, pixelCoords * 2).x;
+	float max2 = imageLoad(ImageInput2, pixelCoords * 2 + ivec2(1, 0)).x;
+	float max3 = imageLoad(ImageInput2, pixelCoords * 2 + ivec2(0, 1)).x;
+	float max4 = imageLoad(ImageInput2, pixelCoords * 2 + ivec2(1, 1)).x;
+
+	float mn1 = min(min1, min2);
+	float mn2 = min(min3, min4);
 	float mnm = min(mn1, mn2);
 
-	float mx1 = max(pixel1.x, pixel2.x);
-	float mx2 = max(pixel3.x, pixel4.x);
-
-	if (InitialPhase == 0)
-	{
-		mx1 = max(pixel1.y, pixel2.y);
-	    mx2 = max(pixel3.y, pixel4.y);
-	}
-
+	float mx1 = max(max1, max2);
+	float mx2 = max(max3, max4);
 	float mxm = max(mx1, mx2);
 
 	storeMin(gl_LocalInvocationIndex, mnm);
@@ -66,7 +66,9 @@ void main()
 
 	if (Iterations == 1)
 	{
-		imageStore(ImgOutput, pixelCoords, vec4(mnm, mxm, 0.0, 1.0));
+		imageStore(ImageOutput1, pixelCoords, vec4(mnm, 0.0, 0.0, 1.0));
+		imageStore(ImageOutput2, pixelCoords, vec4(mxm, 0.0, 0.0, 1.0));
+
 		return;
 	}
 
@@ -75,15 +77,15 @@ void main()
 
 	if ((gl_LocalInvocationIndex & 0x9) == 0)
 	{
-		float min1 = mnm;
-		float min2 = loadMin(gl_LocalInvocationIndex + 0x01);
-		float min3 = loadMin(gl_LocalInvocationIndex + 0x08);
-		float min4 = loadMin(gl_LocalInvocationIndex + 0x09);
+		min1 = mnm;
+		min2 = loadMin(gl_LocalInvocationIndex + 0x01);
+		min3 = loadMin(gl_LocalInvocationIndex + 0x08);
+		min4 = loadMin(gl_LocalInvocationIndex + 0x09);
 
-		float max1 = mxm;
-		float max2 = loadMax(gl_LocalInvocationIndex + 0x01);
-		float max3 = loadMax(gl_LocalInvocationIndex + 0x08);
-		float max4 = loadMax(gl_LocalInvocationIndex + 0x09);
+		max1 = mxm;
+		max2 = loadMax(gl_LocalInvocationIndex + 0x01);
+		max3 = loadMax(gl_LocalInvocationIndex + 0x08);
+		max4 = loadMax(gl_LocalInvocationIndex + 0x09);
 
 		mnm = min(min(min1, min2), min(min3, min4));
 		mxm = max(max(max1, max2), max(max3, max4));
@@ -93,7 +95,9 @@ void main()
 
 		if (Iterations == 2)
 		{
-			imageStore(ImgOutput, pixelCoords / 2, vec4(mnm, mxm, 0.0, 1.0));
+			imageStore(ImageOutput1, pixelCoords / 2, vec4(mnm, 0.0, 0.0, 1.0));
+			imageStore(ImageOutput2, pixelCoords / 2, vec4(mxm, 0.0, 0.0, 1.0));
+			
 			return;
 		}
 	}
@@ -106,15 +110,15 @@ void main()
 
 	if ((gl_LocalInvocationIndex & 0x1B) == 0)
 	{
-		float min1 = mnm;
-		float min2 = loadMin(gl_LocalInvocationIndex + 0x02);
-		float min3 = loadMin(gl_LocalInvocationIndex + 0x10);
-		float min4 = loadMin(gl_LocalInvocationIndex + 0x12);
+		min1 = mnm;
+		min2 = loadMin(gl_LocalInvocationIndex + 0x02);
+		min3 = loadMin(gl_LocalInvocationIndex + 0x10);
+		min4 = loadMin(gl_LocalInvocationIndex + 0x12);
 
-		float max1 = mxm;
-		float max2 = loadMax(gl_LocalInvocationIndex + 0x02);
-		float max3 = loadMax(gl_LocalInvocationIndex + 0x10);
-		float max4 = loadMax(gl_LocalInvocationIndex + 0x12);
+		max1 = mxm;
+		max2 = loadMax(gl_LocalInvocationIndex + 0x02);
+		max3 = loadMax(gl_LocalInvocationIndex + 0x10);
+		max4 = loadMax(gl_LocalInvocationIndex + 0x12);
 
 		mnm = min(min(min1, min2), min(min3, min4));
 		mxm = max(max(max1, max2), max(max3, max4));
@@ -124,7 +128,9 @@ void main()
 
 		if (Iterations == 3)
 		{
-			imageStore(ImgOutput, pixelCoords / 4, vec4(mnm, mxm, 0.0, 1.0));
+			imageStore(ImageOutput1, pixelCoords / 4, vec4(mnm, 0.0, 0.0, 1.0));
+			imageStore(ImageOutput2, pixelCoords / 4, vec4(mxm, 0.0, 0.0, 1.0));
+			
 			return;
 		}
 	}
@@ -137,22 +143,23 @@ void main()
 
 	if (gl_LocalInvocationIndex == 0)
 	{
-		float min1 = mnm;
-		float min2 = loadMin(gl_LocalInvocationIndex + 0x04);
-		float min3 = loadMin(gl_LocalInvocationIndex + 0x20);
-		float min4 = loadMin(gl_LocalInvocationIndex + 0x24);
+		min1 = mnm;
+		min2 = loadMin(gl_LocalInvocationIndex + 0x04);
+		min3 = loadMin(gl_LocalInvocationIndex + 0x20);
+		min4 = loadMin(gl_LocalInvocationIndex + 0x24);
 
-		float max1 = mxm;
-		float max2 = loadMax(gl_LocalInvocationIndex + 0x04);
-		float max3 = loadMax(gl_LocalInvocationIndex + 0x20);
-		float max4 = loadMax(gl_LocalInvocationIndex + 0x24);
+		max1 = mxm;
+		max2 = loadMax(gl_LocalInvocationIndex + 0x04);
+		max3 = loadMax(gl_LocalInvocationIndex + 0x20);
+		max4 = loadMax(gl_LocalInvocationIndex + 0x24);
 
 		mnm = min(min(min1, min2), min(min3, min4));
 		mxm = max(max(max1, max2), max(max3, max4));
 
 		if (Iterations == 4)
 		{
-			imageStore(ImgOutput, pixelCoords / 8, vec4(mnm, mxm, 0.0, 1.0));
+			imageStore(ImageOutput1, pixelCoords / 8, vec4(mnm, 0.0, 0.0, 1.0));
+			imageStore(ImageOutput2, pixelCoords / 8, vec4(mxm, 0.0, 0.0, 1.0));
 			return;
 		}
 	}

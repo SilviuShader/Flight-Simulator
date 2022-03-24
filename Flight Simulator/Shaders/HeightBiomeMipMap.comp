@@ -3,11 +3,13 @@
 #define MAX_ITERATIONS 4
 
 layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
-layout (rgba32f, binding = 0) uniform image2D ImgInput;
-layout (rgba32f, binding = 1) uniform image2D ImgOutput;
+layout (r32f, binding = 0) uniform image2D ImageInput1;
+layout (r32f, binding = 1) uniform image2D ImageInput2;
+
+layout (r32f, binding = 2) uniform image2D ImageOutput1;
+layout (r32f, binding = 3) uniform image2D ImageOutput2;
 
 uniform int Iterations;
-uniform int InitialPhase;
 
 shared float s_heightValues[BLOCKS_COUNT * BLOCKS_COUNT];
 shared float s_biomeValues[BLOCKS_COUNT  * BLOCKS_COUNT];
@@ -34,32 +36,41 @@ float loadBiome(uint index)
 
 void main()
 {
-	ivec2 imgSize     = imageSize(ImgInput);
+	ivec2 imgSize     = imageSize(ImageInput1);
 	ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 	
 	if (pixelCoords.x >= imgSize.x / 2 || 
 	    pixelCoords.y >= imgSize.y / 2)
 		return;
 
-	vec4 pixel1 = imageLoad(ImgInput, pixelCoords * 2);
-	vec4 pixel2 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(1, 0));
-	vec4 pixel3 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(0, 1));
-	vec4 pixel4 = imageLoad(ImgInput, pixelCoords * 2 + ivec2(1, 1));
+	float height1 = imageLoad(ImageInput1, pixelCoords * 2).x;
+	float height2 = imageLoad(ImageInput1, pixelCoords * 2 + ivec2(1, 0)).x;
+	float height3 = imageLoad(ImageInput1, pixelCoords * 2 + ivec2(0, 1)).x;
+	float height4 = imageLoad(ImageInput1, pixelCoords * 2 + ivec2(1, 1)).x;
 
-	float height = 0.25 * (pixel1.x + pixel2.x + pixel3.x + pixel4.x);
-	float biome  = 0.25 * (pixel1.y + pixel2.y + pixel3.y + pixel4.y);
+	float biome1  = imageLoad(ImageInput2, pixelCoords * 2).x;
+	float biome2  = imageLoad(ImageInput2, pixelCoords * 2 + ivec2(1, 0)).x;
+	float biome3  = imageLoad(ImageInput2, pixelCoords * 2 + ivec2(0, 1)).x;
+	float biome4  = imageLoad(ImageInput2, pixelCoords * 2 + ivec2(1, 1)).x;
 
-	// this if statement is redundand, but if we didn't add it
-	// then the variable would've been optimized-away.
-	if (InitialPhase == 0)
-		biome  = 0.25 * (pixel1.y + pixel2.y + pixel3.y + pixel4.y);
+
+	float height = 0.25 * (height1 + height2 + height3 + height4);
+	float biome  = 0.25 * (biome1  + biome2  + biome3  + biome4 );
 
 	storeHeight(gl_LocalInvocationIndex, height);
 	storeBiome(gl_LocalInvocationIndex,  biome);
 
+	if (Iterations != 0)
+	{
+		imageStore(ImageOutput1, pixelCoords, vec4(height));
+		imageStore(ImageOutput2, pixelCoords, vec4(biome ));
+		return;
+	}
+
 	if (Iterations == 1)
 	{
-		imageStore(ImgOutput, pixelCoords, vec4(height, biome, 0.0, 1.0));
+		imageStore(ImageOutput1, pixelCoords, vec4(height));
+		imageStore(ImageOutput2, pixelCoords, vec4(biome ));
 		return;
 	}
 
@@ -68,25 +79,26 @@ void main()
 
 	if ((gl_LocalInvocationIndex & 0x9) == 0)
 	{
-		float height1 = height;
-		float height2 = loadHeight(gl_LocalInvocationIndex + 0x01);
-		float height3 = loadHeight(gl_LocalInvocationIndex + 0x08);
-		float height4 = loadHeight(gl_LocalInvocationIndex + 0x09);
+		height1 = height;
+		height2 = loadHeight(gl_LocalInvocationIndex + 0x01);
+		height3 = loadHeight(gl_LocalInvocationIndex + 0x08);
+		height4 = loadHeight(gl_LocalInvocationIndex + 0x09);
 
-		float biome1 = biome;
-		float biome2 = loadBiome(gl_LocalInvocationIndex + 0x01);
-		float biome3 = loadBiome(gl_LocalInvocationIndex + 0x08);
-		float biome4 = loadBiome(gl_LocalInvocationIndex + 0x09);
+		biome1 = biome;
+		biome2 = loadBiome(gl_LocalInvocationIndex + 0x01);
+		biome3 = loadBiome(gl_LocalInvocationIndex + 0x08);
+		biome4 = loadBiome(gl_LocalInvocationIndex + 0x09);
 
 		height = 0.25 * (height1 + height2 + height3 + height4);
-		biome  = 0.25 * (biome1  + biome2  + biome3  + biome4);
+		biome  = 0.25 * (biome1  + biome2  + biome3  + biome4 );
 
 		storeHeight(gl_LocalInvocationIndex, height);
 		storeBiome(gl_LocalInvocationIndex,  biome);
 
 		if (Iterations == 2)
 		{
-			imageStore(ImgOutput, pixelCoords / 2, vec4(height, biome, 0.0, 1.0));
+			imageStore(ImageOutput1, pixelCoords / 2, vec4(height));
+			imageStore(ImageOutput2, pixelCoords / 2, vec4(biome ));
 			return;
 		}
 	}
@@ -99,25 +111,26 @@ void main()
 
 	if ((gl_LocalInvocationIndex & 0x1B) == 0)
 	{
-		float height1 = height;
-		float height2 = loadHeight(gl_LocalInvocationIndex + 0x02);
-		float height3 = loadHeight(gl_LocalInvocationIndex + 0x10);
-		float height4 = loadHeight(gl_LocalInvocationIndex + 0x12);
+		height1 = height;
+		height2 = loadHeight(gl_LocalInvocationIndex + 0x02);
+		height3 = loadHeight(gl_LocalInvocationIndex + 0x10);
+		height4 = loadHeight(gl_LocalInvocationIndex + 0x12);
 
-		float biome1 = biome;
-		float biome2 = loadBiome(gl_LocalInvocationIndex + 0x02);
-		float biome3 = loadBiome(gl_LocalInvocationIndex + 0x10);
-		float biome4 = loadBiome(gl_LocalInvocationIndex + 0x12);
+		biome1 = biome;
+		biome2 = loadBiome(gl_LocalInvocationIndex + 0x02);
+		biome3 = loadBiome(gl_LocalInvocationIndex + 0x10);
+		biome4 = loadBiome(gl_LocalInvocationIndex + 0x12);
 
 		height = 0.25 * (height1 + height2 + height3 + height4);
-		biome  = 0.25 * (biome1  + biome2  + biome3  + biome4);
+		biome  = 0.25 * (biome1  + biome2  + biome3  + biome4 );
 
 		storeHeight(gl_LocalInvocationIndex, height);
 		storeBiome(gl_LocalInvocationIndex,  biome);
 
 		if (Iterations == 3)
 		{
-			imageStore(ImgOutput, pixelCoords / 4, vec4(height, biome, 0.0, 1.0));
+			imageStore(ImageOutput1, pixelCoords / 4, vec4(height));
+			imageStore(ImageOutput2, pixelCoords / 4, vec4(biome ));
 			return;
 		}
 	}
@@ -130,22 +143,23 @@ void main()
 
 	if (gl_LocalInvocationIndex == 0)
 	{
-		float height1 = height;
-		float height2 = loadHeight(gl_LocalInvocationIndex + 0x04);
-		float height3 = loadHeight(gl_LocalInvocationIndex + 0x20);
-		float height4 = loadHeight(gl_LocalInvocationIndex + 0x24);
+		height1 = height;
+		height2 = loadHeight(gl_LocalInvocationIndex + 0x04);
+		height3 = loadHeight(gl_LocalInvocationIndex + 0x20);
+		height4 = loadHeight(gl_LocalInvocationIndex + 0x24);
 
-		float biome1 = biome;
-		float biome2 = loadBiome(gl_LocalInvocationIndex + 0x04);
-		float biome3 = loadBiome(gl_LocalInvocationIndex + 0x20);
-		float biome4 = loadBiome(gl_LocalInvocationIndex + 0x24);
+		biome1 = biome;
+		biome2 = loadBiome(gl_LocalInvocationIndex + 0x04);
+		biome3 = loadBiome(gl_LocalInvocationIndex + 0x20);
+		biome4 = loadBiome(gl_LocalInvocationIndex + 0x24);
 
 		height = 0.25 * (height1 + height2 + height3 + height4);
-		biome  = 0.25 * (biome1  + biome2  + biome3  + biome4);
+		biome  = 0.25 * (biome1  + biome2  + biome3  + biome4 );
 
 		if (Iterations == 4)
 		{
-			imageStore(ImgOutput, pixelCoords / 8, vec4(height, biome, 0.0, 1.0));
+			imageStore(ImageOutput1, pixelCoords / 8, vec4(height));
+			imageStore(ImageOutput2, pixelCoords / 8, vec4(biome ));
 			return;
 		}
 	}

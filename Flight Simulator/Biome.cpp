@@ -107,9 +107,8 @@ vector<Biome::FolliageModelsVector> Biome::GetBiomeFolliageModels(float height, 
 
 	int currentAltitude         = heightData.first;
 	int nextAltitude            = min(currentAltitude, (int)g_biomeInstances[currentBiome]->m_terrainLevels.size() - 1);
-	int nextAltitudeInNextBiome = min(currentAltitude, (int)g_biomeInstances[nextBiome]->m_terrainLevels.size()    - 1);
+	int nextAltitudeInNextBiome = min(currentAltitude, (int)g_biomeInstances[nextBiome   ]->m_terrainLevels.size() - 1);
 
-	// TODO: Code all the interpolations here.
 	auto currentModels           = g_biomeInstances[currentBiome]->m_terrainLevels[currentAltitude        ].FolliageModels;
 	auto nextBiomeModels         = g_biomeInstances[nextBiome   ]->m_terrainLevels[currentAltitude        ].FolliageModels;
 	auto nextAltitudeModels      = g_biomeInstances[currentBiome]->m_terrainLevels[nextAltitude           ].FolliageModels;
@@ -130,55 +129,6 @@ vector<Biome::FolliageModelsVector> Biome::GetBiomeFolliageModels(float height, 
 	FolliageModelsVector nextBiomeAltitudeVector;
 	nextBiomeAltitudeVector.Models = nextBiomeAltitudeModels;
 	nextBiomeAltitudeVector.Chance = biomeData.second * heightData.second;
-
-	/*
-	vector<Biome::FolliageModel> bottomIntnerpolated;
-	
-	for (auto& model : currentModels)
-	{
-		FolliageModel newModel = model;
-		newModel.Chance *= (1.0f - biomeData.second);
-		bottomIntnerpolated.push_back(newModel);
-	}
-	for (auto model : nextBiomeModels)
-	{
-		FolliageModel newModel = model;
-		newModel.Chance *= biomeData.second;
-		bottomIntnerpolated.push_back(newModel);
-	}
-
-	vector<Biome::FolliageModel> topInterpolated;
-
-	for (auto& model : nextAltitudeModels)
-	{
-		FolliageModel newModel = model;
-		newModel.Chance *= (1.0f - biomeData.second);
-		topInterpolated.push_back(newModel);
-	}
-	for (auto model : nextBiomeAltitudeModels)
-	{
-		FolliageModel newModel = model;
-		newModel.Chance *= biomeData.second;
-		topInterpolated.push_back(newModel);
-	}
-
-	vector<Biome::FolliageModel> result;
-
-	for (auto& model : bottomIntnerpolated)
-	{
-		FolliageModel newModel = model;
-		newModel.Chance *= (1.0f - heightData.second);
-		result.push_back(newModel);
-	}
-	for (auto& model : topInterpolated)
-	{
-		FolliageModel newModel = model;
-		newModel.Chance *= heightData.second;
-		result.push_back(newModel);
-	}
-	*/
-
-	//return result;
 
 	return { currentVector, nextBiomeVector, nextAltitudeVector, nextBiomeAltitudeVector };
 }

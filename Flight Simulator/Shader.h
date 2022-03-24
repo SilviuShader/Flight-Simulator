@@ -31,7 +31,7 @@ public:
     void SetBlockBinding(const std::string&, int);
     void SetTexture(const std::string&, Texture*, int);
     void SetCubemap(const std::string&, Cubemap*, int);
-    void SetImage2D(const std::string&, Texture*, int);
+    void SetImage2D(const std::string&, Texture*, int, Texture::Format);
     int  SetMaterials(const std::string&, const std::string&, const std::string&, const std::vector<Material*>&, int);
 
 private:

@@ -12,7 +12,8 @@ uniform float GridWidth;
 uniform float GridHeight;
 uniform float TerrainAmplitude;
 
-uniform sampler2D NoiseTexture;
+uniform sampler2D HeightTexture;
+uniform sampler2D BiomeTexture;
 
 in vec3 TESInputWorldPosition[];
 in vec3 TESInputPosition[];
@@ -50,7 +51,7 @@ vec3 get3Dcoord(vec2 pos)
 {
     vec2 uv = getUv(pos);
 
-    float h = texture(NoiseTexture, uv).x;
+    float h = texture(HeightTexture, uv).x;
     return vec3(pos.x, h * TerrainAmplitude, pos.y);
 }
 
@@ -78,7 +79,7 @@ vec2 calculateBiome(vec2 pos, float height)
 {
     vec2 uv = getUv(pos);
 
-    float texColor = texture(NoiseTexture, uv).y;
+    float texColor = texture(BiomeTexture, uv).x;
 
     return vec2(texColor, (height / TerrainAmplitude) * 2.0);
 }
