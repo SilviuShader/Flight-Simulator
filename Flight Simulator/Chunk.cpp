@@ -6,6 +6,7 @@
 #include "Shapes.h"
 #include "VertexTypes.h"
 #include "Biome.h"
+#include "Terrain.h"
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
@@ -59,20 +60,19 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     vec2 startPosition = vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f);
     vec2 endPosition   = vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f);
 
-    // TODO: Replace these hard-coded values.
     PerlinNoise::NoiseParameters heightParameters;
-    heightParameters.Frequency    = 0.025f;
-    heightParameters.FudgeFactor  = 1.2f;
-    heightParameters.Exponent     = 4.0f;
-    heightParameters.OctavesCount = 20;
+    heightParameters.Frequency    = Terrain::HEIGHT_FREQUENCY;
+    heightParameters.FudgeFactor  = Terrain::HEIGHT_FUDGE_FACTOR;
+    heightParameters.Exponent     = Terrain::HEIGHT_EXPONENT;
+    heightParameters.OctavesCount = Terrain::HEIGHT_OCTAVES_COUNT;
 
     m_heightTexture = m_perlinNoise->RenderNoise(startPosition, endPosition, heightParameters);
 
     PerlinNoise::NoiseParameters biomeParameters;
-    biomeParameters.Frequency    = 0.01f;
-    biomeParameters.FudgeFactor  = 1.0f;
-    biomeParameters.Exponent     = 1.0f;
-    biomeParameters.OctavesCount = 10;
+    biomeParameters.Frequency    = Terrain::BIOME_FREQUENCY;
+    biomeParameters.FudgeFactor  = Terrain::BIOME_FUDGE_FACTOR;
+    biomeParameters.Exponent     = Terrain::BIOME_EXPONENT;
+    biomeParameters.OctavesCount = Terrain::BIOME_OCTAVES_COUNT;
 
     m_biomesTexture      = m_perlinNoise->RenderNoise(startPosition, endPosition, biomeParameters);
 

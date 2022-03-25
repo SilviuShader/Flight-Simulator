@@ -5,6 +5,18 @@
 
 class Terrain
 {
+public:
+
+	static const float HEIGHT_FREQUENCY;
+	static const float HEIGHT_FUDGE_FACTOR;
+	static const float HEIGHT_EXPONENT;
+	static const int   HEIGHT_OCTAVES_COUNT;
+
+	static const float BIOME_FREQUENCY;
+	static const float BIOME_FUDGE_FACTOR;
+	static const float BIOME_EXPONENT;
+	static const int   BIOME_OCTAVES_COUNT;
+
 private:
 
 	const int   MAX_CHUNKS                    = 54;

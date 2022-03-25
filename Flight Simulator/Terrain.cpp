@@ -5,6 +5,16 @@
 using namespace std;
 using namespace glm;
 
+const float Terrain::HEIGHT_FREQUENCY     = 0.025f;
+const float Terrain::HEIGHT_FUDGE_FACTOR  = 1.2f;
+const float Terrain::HEIGHT_EXPONENT      = 4.0f;
+const int   Terrain::HEIGHT_OCTAVES_COUNT = 20;
+
+const float Terrain::BIOME_FREQUENCY      = 0.01f;
+const float Terrain::BIOME_FUDGE_FACTOR   = 1.0f;
+const float Terrain::BIOME_EXPONENT       = 1.0f;
+const int   Terrain::BIOME_OCTAVES_COUNT  = 10;
+
 Terrain::Terrain() : 
 	m_accumulatedCurrentChunksTime(0.0f),
 	m_firstFrame(true)
