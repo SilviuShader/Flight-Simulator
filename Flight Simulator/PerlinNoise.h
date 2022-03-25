@@ -14,22 +14,6 @@ private:
 
            const glm::vec2 OCTAVE_OFFSET                 = glm::vec2(1.0f, 1.0f);
                                                        
-           //const float     DEFAULT_FREQUENCY             = 0.025f;
-                                                         
-           //const float     BIOMES_DEFAULT_FREQUENCY      = 0.01f;
-                                                         
-           //const float     FUDGE_FACTOR                  = 1.2f;
-           //const float     EXPONENT                      = 4.0f;
-                                                         
-           //const float     BIOMES_FUDGE_FACTOR           = 1.0f;
-           //const float     BIOMES_EXPONENT               = 1.0f;
-                                                         
-           const int       TEXTURE_WIDTH                 = 1024;
-           const int       TEXTURE_HEIGHT                = TEXTURE_WIDTH;
-                                                         
-           //const int       OCTAVES_COUNT                 = 20;
-           //const int       BIOMES_OCTAVES_COUNT          = 10;
-                                                         
            const int       COMPUTE_SHADER_BLOCKS_COUNT   = 8;
 
            const int       MAX_MIN_MAX_SHADER_STEPS      = 4;
@@ -41,10 +25,13 @@ public:
 
     struct NoiseParameters
     {
-        float Frequency;
-        float FudgeFactor;
-        float Exponent;
-        int   OctavesCount;
+        glm::vec2 StartPosition;
+        glm::vec2 EndPosition;
+        float     Frequency;
+        float     FudgeFactor;
+        float     Exponent;
+        int       OctavesCount;
+        int       TextureSize;
     };
 
 public:
@@ -52,7 +39,7 @@ public:
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
-    Texture*      RenderNoise(glm::vec2, glm::vec2, NoiseParameters);
+    Texture*      RenderNoise(NoiseParameters);
 
 private:
 

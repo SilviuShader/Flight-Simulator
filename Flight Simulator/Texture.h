@@ -59,7 +59,9 @@ public:
            int          GetWidth()     const;
            int          GetHeight()    const;
 
+           // These two methods only work for grayscale images.
            float**      GetDownscaleValues(DownscaleShaderProperties, int);
+    static float**      GetPixelsInfo(Texture*);
 
     static int          GetGLFormat(Format);
     static uint32_t     GetComputeShaderGroupsCount(const uint32_t, const uint32_t);

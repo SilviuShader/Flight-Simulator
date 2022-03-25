@@ -23,7 +23,7 @@ Chunk::Node::Node()
     ZoneRange        = vec4(0.0f, 0.0f, 0.0f, 0.0f);
     PositionId       = make_pair(0, 0);
     BoundingBox      = MathHelper::AABB();
-    DesiredInstances = unordered_map<Biome::FolliageModel, vector<vec3>, Biome::HashFolliageModel>();
+    DesiredInstances = unordered_map<Biome::FolliageModel, vector<FolliageProperties>, Biome::HashFolliageModel>();
 }
 
 Chunk::Node::~Node()
@@ -61,31 +61,75 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     vec2 endPosition   = vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f);
 
     PerlinNoise::NoiseParameters heightParameters;
-    heightParameters.Frequency    = Terrain::HEIGHT_FREQUENCY;
-    heightParameters.FudgeFactor  = Terrain::HEIGHT_FUDGE_FACTOR;
-    heightParameters.Exponent     = Terrain::HEIGHT_EXPONENT;
-    heightParameters.OctavesCount = Terrain::HEIGHT_OCTAVES_COUNT;
 
-    m_heightTexture = m_perlinNoise->RenderNoise(startPosition, endPosition, heightParameters);
+    heightParameters.StartPosition = startPosition;
+    heightParameters.EndPosition   = endPosition;
+    heightParameters.Frequency     = Terrain::HEIGHT_FREQUENCY;
+    heightParameters.FudgeFactor   = Terrain::HEIGHT_FUDGE_FACTOR;
+    heightParameters.Exponent      = Terrain::HEIGHT_EXPONENT;
+    heightParameters.OctavesCount  = Terrain::HEIGHT_OCTAVES_COUNT;
+    heightParameters.TextureSize   = NOISE_TEXTURE_SIZE;
+                                   
+    m_heightTexture                = m_perlinNoise->RenderNoise(heightParameters);
 
     PerlinNoise::NoiseParameters biomeParameters;
-    biomeParameters.Frequency    = Terrain::BIOME_FREQUENCY;
-    biomeParameters.FudgeFactor  = Terrain::BIOME_FUDGE_FACTOR;
-    biomeParameters.Exponent     = Terrain::BIOME_EXPONENT;
-    biomeParameters.OctavesCount = Terrain::BIOME_OCTAVES_COUNT;
 
-    m_biomesTexture      = m_perlinNoise->RenderNoise(startPosition, endPosition, biomeParameters);
+            biomeParameters.StartPosition = startPosition;
+            biomeParameters.EndPosition   = endPosition;
+            biomeParameters.Frequency     = Terrain::BIOME_FREQUENCY;
+            biomeParameters.FudgeFactor   = Terrain::BIOME_FUDGE_FACTOR;
+            biomeParameters.Exponent      = Terrain::BIOME_EXPONENT;
+            biomeParameters.OctavesCount  = Terrain::BIOME_OCTAVES_COUNT;
+            biomeParameters.TextureSize   = NOISE_TEXTURE_SIZE;
+            
+            m_biomesTexture               = m_perlinNoise->RenderNoise(biomeParameters);
+                                          
+    float** minValues                     = m_heightTexture->GetDownscaleValues({ minShader,     4, 8 }, QUAD_TREE_DEPTH);
+    float** maxValues                     = m_heightTexture->GetDownscaleValues({ maxShader,     4, 8 }, QUAD_TREE_DEPTH);
+                                          
+    float** heightValues                  = m_heightTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
+    float** biomeValues                   = m_biomesTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
+                                          
+    int     quadTreesDivisionsCount       = 1 << (QUAD_TREE_DEPTH - 1);
+    int     heightBiomeDivisionsCount     = 1 << (HEIGHT_BIOME_DEPTH - 1);
 
-    float** minValues    = m_heightTexture->GetDownscaleValues({ minShader, 4, 8 }, QUAD_TREE_DEPTH);
-    float** maxValues    = m_heightTexture->GetDownscaleValues({ maxShader, 4, 8 }, QUAD_TREE_DEPTH);
+    PerlinNoise::NoiseParameters folliageRandomnessParameters;
 
-    float** heightValues = m_heightTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
-    float** biomeValues  = m_biomesTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
+             folliageRandomnessParameters.StartPosition = startPosition;
+             folliageRandomnessParameters.EndPosition   = endPosition;
+             folliageRandomnessParameters.Frequency     = Terrain::FOLLIAGE_RANDOMNESS_FREQUENCY;
+             folliageRandomnessParameters.FudgeFactor   = Terrain::FOLLIAGE_RANDOMNESS_FUDGE_FACTOR;
+             folliageRandomnessParameters.Exponent      = Terrain::FOLLIAGE_RANDOMNESS_EXPONENT;
+             folliageRandomnessParameters.OctavesCount  = Terrain::FOLLIAGE_RANDOMNESS_OCTAVES_COUNT;
+             folliageRandomnessParameters.TextureSize   = heightBiomeDivisionsCount;
 
-    BuildQuadTree(make_pair(minValues, maxValues), make_pair(heightValues, biomeValues));
+    Texture* folliageRandomnessMap                      = m_perlinNoise->RenderNoise(folliageRandomnessParameters);
+    float**  folliageRandomnessValues                   = Texture::GetPixelsInfo(folliageRandomnessMap);
 
-    int quadTreesDivisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
+    BuildQuadTree(make_pair(minValues, maxValues), make_pair(heightValues, biomeValues), folliageRandomnessValues);
+
     m_drawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
+
+    for (int i = 0; i < heightBiomeDivisionsCount; i++)
+    {
+        if (folliageRandomnessValues[i])
+        {
+            delete[] folliageRandomnessValues[i];
+            folliageRandomnessValues[i] = nullptr;
+        }
+    }
+
+    if (folliageRandomnessValues)
+    {
+        delete[] folliageRandomnessValues;
+        folliageRandomnessValues = nullptr;
+    }
+
+    if (folliageRandomnessMap)
+    {
+        delete folliageRandomnessMap;
+        folliageRandomnessMap = nullptr;
+    }
 
     for (int i = 0; i < quadTreesDivisionsCount; i++)
     {
@@ -113,8 +157,6 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
         delete[] minValues;
         minValues = nullptr;
     }
-
-    int heightBiomeDivisionsCount = 1 << (HEIGHT_BIOME_DEPTH - 1);
 
     for (int i = 0; i < heightBiomeDivisionsCount; i++)
     {
@@ -400,17 +442,18 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> heightBiome)
+void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> heightBiome, float** folliageRandomnessValues)
 {
     m_quadTree = CreateNode(0, 
                             vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
                             vec2(CHUNK_WIDTH / 2.0f, CHUNK_WIDTH / 2.0f), 
                             make_pair(0, 0),
                             minMax,
-                            heightBiome);
+                            heightBiome,
+                            folliageRandomnessValues);
 }
 
-Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, pair<float**, float**> minMax, pair<float**, float**> heightBiome)
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, pair<float**, float**> minMax, pair<float**, float**> heightBiome, float** folliageRandomnessValues)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;
@@ -450,28 +493,32 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                                          (topRight + bottomLeft) * 0.5f,
                                          make_pair(positionId.first * 2, positionId.second * 2),
                                          minMax,
-                                         heightBiome);
+                                         heightBiome, 
+                                         folliageRandomnessValues);
 
         result->Children[1] = CreateNode(depth + 1,
                                          vec2((bottomLeft.x + topRight.x) * 0.5f, bottomLeft.y),
                                          vec2(topRight.x, (bottomLeft.y + topRight.y) * 0.5f),
                                          make_pair(1 + positionId.first * 2, positionId.second * 2),
                                          minMax,
-                                         heightBiome);
+                                         heightBiome, 
+                                         folliageRandomnessValues);
 
         result->Children[2] = CreateNode(depth + 1,
                                          vec2(bottomLeft.x, (bottomLeft.y + topRight.y) * 0.5f),
                                          vec2((bottomLeft.x + topRight.x) * 0.5f, topRight.y),
                                          make_pair(positionId.first * 2, positionId.second * 2 + 1),
                                          minMax,
-                                         heightBiome);
+                                         heightBiome,
+                                         folliageRandomnessValues);
 
         result->Children[3] = CreateNode(depth + 1,
                                          (topRight + bottomLeft) * 0.5f,
                                          topRight,
                                          make_pair(positionId.first * 2 + 1, positionId.second * 2 + 1),
                                          minMax,
-                                         heightBiome);
+                                         heightBiome,
+                                         folliageRandomnessValues);
 
         float maxAmplitude  = -TERRAIN_AMPLITUDE;
         float minAmplitude  = TERRAIN_AMPLITUDE;
@@ -506,12 +553,14 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
         {
             for (int y = 0; y < pixelsPerQuad; y++)
             {
-                // TODO: properly do this (multiple noise maps, use one for this random)
-                if (rand() % 40 != 0)
+                int xIndex = positionId.first  * pixelsPerQuad + x;
+                int yIndex = positionId.second * pixelsPerQuad + y;
+
+                if (folliageRandomnessValues[xIndex][yIndex] < Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD)
                     continue;
 
-                float height = heightBiome.first[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];
-                float biome  = heightBiome.second[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];
+                float height = heightBiome.first [xIndex][yIndex];
+                float biome  = heightBiome.second[xIndex][yIndex];
                 
                 // TODO:
                 // note that we can now calculate the height right here.
@@ -536,9 +585,9 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                 auto biomeModel = RouletteWheelSelection(biomeModels.Models);
 
                 if (result->DesiredInstances.find(biomeModel) == result->DesiredInstances.end())
-                    result->DesiredInstances[biomeModel] = vector<vec3>();
+                    result->DesiredInstances[biomeModel] = vector<FolliageProperties>();
 
-                result->DesiredInstances[biomeModel].push_back(translation);
+                result->DesiredInstances[biomeModel].push_back( {translation, biomeModels.Chance });
             }
         }
     }
@@ -595,10 +644,13 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
             // TODO: Optimize this. (A LOT)
             vec3 camPos = m_camera->GetPosition();
             camPos = vec3(camPos.x, 0.0f, camPos.z);
-           for (auto& trans : biomeModel.second)
+           for (auto& folliageProperties : biomeModel.second)
            {
                Model* modelPtr = nullptr;
                mat4   modelMatrix = identity<mat4>();
+
+               vec3 trans = folliageProperties.Translation;
+               float scl = folliageProperties.Scale;
 
                float dist = distance(vec3(trans.x, 0.0f, trans.z), camPos);
                // TODO: replace this hard-coded number.
@@ -615,7 +667,7 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
                        float angle = lod.Bilboarded ? atan2(diff.x, diff.z) : 0.0f;
                        mat4 rotation = rotate(mat4(1.0f), angle, vec3(0.0f, 1.0f, 0.0f));
 
-                       modelMatrix = translate(mat4(1.0f), trans) * scale(mat4(1.0f), vec3(lod.Scale, lod.Scale, lod.Scale)) * rotation;
+                       modelMatrix = translate(mat4(1.0f), trans) * scale(mat4(1.0f), vec3(lod.Scale * scl, lod.Scale * scl, lod.Scale * scl)) * rotation;
                        break;
                    }
                }

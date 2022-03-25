@@ -5,15 +5,22 @@
 using namespace std;
 using namespace glm;
 
-const float Terrain::HEIGHT_FREQUENCY     = 0.025f;
-const float Terrain::HEIGHT_FUDGE_FACTOR  = 1.2f;
-const float Terrain::HEIGHT_EXPONENT      = 4.0f;
-const int   Terrain::HEIGHT_OCTAVES_COUNT = 20;
+const float Terrain::HEIGHT_FREQUENCY                  = 0.025f;
+const float Terrain::HEIGHT_FUDGE_FACTOR               = 1.2f;
+const float Terrain::HEIGHT_EXPONENT                   = 4.0f;
+const int   Terrain::HEIGHT_OCTAVES_COUNT              = 20;
+										               
+const float Terrain::BIOME_FREQUENCY                   = 0.01f;
+const float Terrain::BIOME_FUDGE_FACTOR                = 1.0f;
+const float Terrain::BIOME_EXPONENT                    = 1.0f;
+const int   Terrain::BIOME_OCTAVES_COUNT               = 10;
 
-const float Terrain::BIOME_FREQUENCY      = 0.01f;
-const float Terrain::BIOME_FUDGE_FACTOR   = 1.0f;
-const float Terrain::BIOME_EXPONENT       = 1.0f;
-const int   Terrain::BIOME_OCTAVES_COUNT  = 10;
+const float Terrain::FOLLIAGE_RANDOMNESS_FREQUENCY     = 1.0f;
+const float Terrain::FOLLIAGE_RANDOMNESS_FUDGE_FACTOR  = 1.0f;
+const float Terrain::FOLLIAGE_RANDOMNESS_EXPONENT      = 1.0f;
+const int   Terrain::FOLLIAGE_RANDOMNESS_OCTAVES_COUNT = 20;
+
+const float Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD     = 0.6f;
 
 Terrain::Terrain() : 
 	m_accumulatedCurrentChunksTime(0.0f),
@@ -112,8 +119,8 @@ void Terrain::CreateTerrainObjects()
 
 	Biome::FolliageModel grassModel = Biome::FolliageModel(
 		{
-			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), 0.05f, 0.2f),
-			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), 4.0f,  1.0f)
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), 0.05f, 0.05f),
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), 4.0f,   1.0f, true) // TODO: SIMPLE UNLIT SHADER FOR THESE
 		}, 1.0f);
 
 	forestBiome->AddTerrainLevel(forestLeaves, { grassModel });

@@ -180,18 +180,30 @@ float** Texture::GetDownscaleValues(DownscaleShaderProperties shaderProps, int l
         newTexture = nullptr;
     } while (iter < itersCount);
 
-    int     textureWidth  = currentTexture->GetWidth();
-    int     textureHeight = currentTexture->GetHeight();
+    float** result = GetPixelsInfo(currentTexture);
 
-    float*  pixels        = new float[textureWidth * textureHeight];
+    if (currentTexture && currentTexture != this)
+    {
+        delete currentTexture;
+        currentTexture = nullptr;
+    }
 
-    float** result        = new float*[textureWidth];
+    return result;
+}
+
+float** Texture::GetPixelsInfo(Texture* texture)
+{
+    int    textureWidth  = texture->GetWidth();
+    int    textureHeight = texture->GetHeight();
+    float* pixels        = new float[textureWidth * textureHeight];
+
+    float** result       = new float*[textureWidth];
 
     for (int i = 0; i < textureWidth; i++)
         result[i] = new float[textureHeight];
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, currentTexture->GetTextureID());
+    glBindTexture(GL_TEXTURE_2D, texture->GetTextureID());
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, pixels);
 
     for (int width = 0; width < textureWidth; width++)
@@ -202,12 +214,6 @@ float** Texture::GetDownscaleValues(DownscaleShaderProperties shaderProps, int l
     {
         delete[] pixels;
         pixels = nullptr;
-    }
-
-    if (currentTexture && currentTexture != this)
-    {
-        delete currentTexture;
-        currentTexture = nullptr;
     }
 
     return result;

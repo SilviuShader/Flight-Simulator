@@ -60,13 +60,10 @@ void PerlinNoise::GenerateNoiseValues(int seed)
     }
 }
 
-Texture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition, NoiseParameters noiseParameters)
+Texture* PerlinNoise::RenderNoise(NoiseParameters noiseParameters)
 {
-    assert(TEXTURE_WIDTH == TEXTURE_HEIGHT &&
-           "The noise texture must have the width equal to the height.");
-
-    Texture* noiseTexture = new Texture(TEXTURE_WIDTH,
-                                        TEXTURE_HEIGHT,
+    Texture* noiseTexture = new Texture(noiseParameters.TextureSize,
+                                        noiseParameters.TextureSize,
                                         Texture::Format::R32F,
                                         Texture::Format::RED,
                                         Texture::Filter::Linear);
@@ -86,11 +83,11 @@ Texture* PerlinNoise::RenderNoise(vec2 startPosition, vec2 finalPosition, NoiseP
                                                   
     m_noiseShader->SetVec2("OctaveOffset",        OCTAVE_OFFSET);
                                                   
-    m_noiseShader->SetVec2("StartPosition",       startPosition);
-    m_noiseShader->SetVec2("FinalPosition",       finalPosition);
+    m_noiseShader->SetVec2("StartPosition",       noiseParameters.StartPosition);
+    m_noiseShader->SetVec2("FinalPosition",       noiseParameters.EndPosition);
 
-    glDispatchCompute(Texture::GetComputeShaderGroupsCount(TEXTURE_WIDTH, COMPUTE_SHADER_BLOCKS_COUNT),
-                      Texture::GetComputeShaderGroupsCount(TEXTURE_HEIGHT, COMPUTE_SHADER_BLOCKS_COUNT), 1);
+    glDispatchCompute(Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
+                      Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT), 1);
 
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 

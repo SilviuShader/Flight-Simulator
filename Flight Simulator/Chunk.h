@@ -18,6 +18,12 @@ class Chunk
 {
 private:
 
+    struct FolliageProperties
+    {
+        glm::vec3 Translation;
+        float     Scale;
+    };
+
     struct Node
     {
     public:
@@ -31,15 +37,15 @@ private:
 
     public:
 
-        Node*                                                                                      Children[CHILDREN_COUNT];
-        bool                                                                                       IsLeaf;
-        glm::vec4                                                                                  ZoneRange;
-                                                                                                   
-        Vec2Int                                                                                    PositionId;
-                                                                                                   
-        MathHelper::AABB                                                                           BoundingBox;
+        Node*                                                                                               Children[CHILDREN_COUNT];
+        bool                                                                                                IsLeaf;
+        glm::vec4                                                                                           ZoneRange;
+                                                                                                            
+        Vec2Int                                                                                             PositionId;
+                                                                                                            
+        MathHelper::AABB                                                                                    BoundingBox;
 
-        std::unordered_map<Biome::FolliageModel, std::vector<glm::vec3>, Biome::HashFolliageModel> DesiredInstances;
+        std::unordered_map<Biome::FolliageModel, std::vector<FolliageProperties>, Biome::HashFolliageModel> DesiredInstances;
     };
 
 public:
@@ -56,6 +62,8 @@ private:
            const float TEX_COORDS_MULTIPLIER = 0.2f;
 
            const float GAMMA                 = 1.2f;
+
+           const int   NOISE_TEXTURE_SIZE    = 1024;
 
     static const int   COLORS_COUNT          = 5;
 
@@ -86,8 +94,8 @@ private:
           void                         CreateTerrainBuffers();
           void                         FreeTerrainBuffers();
                                        
-          void                         BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>);
-          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>);
+          void                         BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, float**);
+          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, float**);
                                        
           void                         FillZoneRanges(const MathHelper::Frustum&, Node*);
           void                         UpdateZoneRangesBuffer();

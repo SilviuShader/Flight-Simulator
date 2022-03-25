@@ -17,6 +17,13 @@ public:
 	static const float BIOME_EXPONENT;
 	static const int   BIOME_OCTAVES_COUNT;
 
+	static const float FOLLIAGE_RANDOMNESS_FREQUENCY;
+	static const float FOLLIAGE_RANDOMNESS_FUDGE_FACTOR;
+	static const float FOLLIAGE_RANDOMNESS_EXPONENT;
+	static const int   FOLLIAGE_RANDOMNESS_OCTAVES_COUNT;
+
+	static const float FOLLIAGE_RANDOMNESS_THRESHOLD;
+
 private:
 
 	const int   MAX_CHUNKS                    = 54;
