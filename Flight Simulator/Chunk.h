@@ -69,7 +69,7 @@ private:
 
 public:
 
-    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Shader*);
+    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Shader*, Shader*, Shader*, Shader*);
     ~Chunk();
 
            void      Update(Camera*, float, bool);
@@ -86,8 +86,8 @@ private:
           void                         CreateTerrainBuffers();
           void                         FreeTerrainBuffers();
                                        
-          void                         BuildQuadTree(PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
-          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, PerlinNoise::MinMax**, PerlinNoise::HeightBiome**);
+          void                         BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>);
+          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>);
                                        
           void                         FillZoneRanges(const MathHelper::Frustum&, Node*);
           void                         UpdateZoneRangesBuffer();

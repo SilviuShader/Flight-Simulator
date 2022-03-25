@@ -40,7 +40,7 @@ Chunk::Node::~Node()
     }
 }
 
-Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Shader* folliageShader) :
+Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Shader* folliageShader, Shader* minShader, Shader* maxShader, Shader* averageShader) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
@@ -74,46 +74,73 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     biomeParameters.Exponent     = 1.0f;
     biomeParameters.OctavesCount = 10;
 
-    m_biomesTexture = m_perlinNoise->RenderNoise(startPosition, endPosition, biomeParameters);
+    m_biomesTexture      = m_perlinNoise->RenderNoise(startPosition, endPosition, biomeParameters);
 
-    PerlinNoise::MinMax**      minMax      = m_perlinNoise->GetMinMax(m_heightTexture,                       QUAD_TREE_DEPTH   );
-    PerlinNoise::HeightBiome** heightBiome = m_perlinNoise->GetHeightBiome(m_heightTexture, m_biomesTexture, HEIGHT_BIOME_DEPTH);
+    float** minValues    = m_heightTexture->GetDownscaleValues({ minShader, 4, 8 }, QUAD_TREE_DEPTH);
+    float** maxValues    = m_heightTexture->GetDownscaleValues({ maxShader, 4, 8 }, QUAD_TREE_DEPTH);
 
-    BuildQuadTree(minMax, heightBiome);
+    float** heightValues = m_heightTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
+    float** biomeValues  = m_biomesTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
+
+    BuildQuadTree(make_pair(minValues, maxValues), make_pair(heightValues, biomeValues));
 
     int quadTreesDivisionsCount = 1 << (QUAD_TREE_DEPTH - 1);
     m_drawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
 
     for (int i = 0; i < quadTreesDivisionsCount; i++)
     {
-        if (minMax[i])
+        if (maxValues[i])
         {
-            delete[] minMax[i];
-            minMax[i] = nullptr;
+            delete[] maxValues[i];
+            maxValues[i] = nullptr;
+        }
+
+        if (minValues[i])
+        {
+            delete[] minValues[i];
+            minValues[i] = nullptr;
         }
     }
 
-    if (minMax)
+    if (maxValues)
     {
-        delete[] minMax;
-        minMax = nullptr;
+        delete[] maxValues;
+        maxValues = nullptr;
+    }
+
+    if (minValues)
+    {
+        delete[] minValues;
+        minValues = nullptr;
     }
 
     int heightBiomeDivisionsCount = 1 << (HEIGHT_BIOME_DEPTH - 1);
 
     for (int i = 0; i < heightBiomeDivisionsCount; i++)
     {
-        if (heightBiome[i])
+        if (biomeValues[i])
         {
-            delete[] heightBiome[i];
-            heightBiome[i] = nullptr;
+            delete[] biomeValues[i];
+            biomeValues[i] = nullptr;
+        }
+
+        if (heightValues[i])
+        {
+            delete[] heightValues[i];
+            heightValues[i] = nullptr;
         }
     }
 
-    if (heightBiome)
+    if (biomeValues)
     {
-        delete[] heightBiome;
-        heightBiome = nullptr;
+        delete[] biomeValues;
+        biomeValues = nullptr;
+    }
+
+    if (heightValues)
+    {
+        delete[] heightValues;
+        heightValues = nullptr;
     }
 }
 
@@ -373,7 +400,7 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-void Chunk::BuildQuadTree(PerlinNoise::MinMax** minMax, PerlinNoise::HeightBiome** heightBiome)
+void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> heightBiome)
 {
     m_quadTree = CreateNode(0, 
                             vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
@@ -383,7 +410,7 @@ void Chunk::BuildQuadTree(PerlinNoise::MinMax** minMax, PerlinNoise::HeightBiome
                             heightBiome);
 }
 
-Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, PerlinNoise::MinMax** minMax, PerlinNoise::HeightBiome** heightBiome)
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, pair<float**, float**> minMax, pair<float**, float**> heightBiome)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;
@@ -403,8 +430,8 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
     {
         result->IsLeaf = true;
 
-        float minAmplitude = minMax[positionId.first][positionId.second].first  * TERRAIN_AMPLITUDE;
-        float maxAmplitude = minMax[positionId.first][positionId.second].second * TERRAIN_AMPLITUDE;
+        float minAmplitude = minMax.first [positionId.first][positionId.second] * TERRAIN_AMPLITUDE;
+        float maxAmplitude = minMax.second[positionId.first][positionId.second] * TERRAIN_AMPLITUDE;
 
         float center       = (maxAmplitude + minAmplitude) / 2.0f;
         float extents      = (maxAmplitude - minAmplitude) / 2.0f;
@@ -483,8 +510,9 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                 if (rand() % 40 != 0)
                     continue;
 
-                PerlinNoise::HeightBiome crtHeightBiome = heightBiome[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];
-
+                float height = heightBiome.first[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];
+                float biome  = heightBiome.second[positionId.first * pixelsPerQuad + x][positionId.second * pixelsPerQuad + y];
+                
                 // TODO:
                 // note that we can now calculate the height right here.
                 // This change may help improve instancing performance (one call per world instead of chunk).
@@ -495,7 +523,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
                 translation = vec3(translation.x, 0.0f, translation.z);
 
-                auto biomeModelsVectors = Biome::GetBiomeFolliageModels(crtHeightBiome.first, crtHeightBiome.second);
+                auto biomeModelsVectors = Biome::GetBiomeFolliageModels(height, biome);
 
                 if (!biomeModelsVectors.size())
                     continue;

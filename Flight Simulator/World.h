@@ -56,6 +56,10 @@ private:
 
 	Shader*                                       m_folliageShader;
 
+	Shader*                                       m_minShader;
+	Shader*                                       m_maxShader;
+	Shader*                                       m_averageShader;
+
 	float                                         m_accumulatedCurrentChunksTime;
 
 	bool                                          m_firstFrame;

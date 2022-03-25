@@ -265,7 +265,7 @@
     <CopyFileToFolders Include="Assets\Skybox\top.jpg">
       <Filter>Resource Files\Assets\Skybox</Filter>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="Shaders\MinMax.comp">
+    <CopyFileToFolders Include="Shaders\MinMipMap.comp">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Color.vert">
@@ -328,11 +328,14 @@
     <CopyFileToFolders Include="Shaders\Folliage.frag">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="Shaders\HeightBiomeMipMap.comp">
+    <CopyFileToFolders Include="Shaders\AverageMipMap.comp">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Assets\Models\GrassBilboard.png">
       <Filter>Resource Files\Assets\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\MaxMipMap.comp">
+      <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

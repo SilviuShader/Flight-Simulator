@@ -27,10 +27,32 @@ World::World(int windowWidth, int windowHeight) :
 	CreateTerrainObjects();
 
 	m_folliageShader = new Shader("Shaders/Folliage.vert", "Shaders/Folliage.frag");
+
+	m_minShader      = new Shader("Shaders/MinMipMap.comp");
+	m_maxShader      = new Shader("Shaders/MaxMipMap.comp");
+	m_averageShader  = new Shader("Shaders/AverageMipMap.comp");
 }
 
 World::~World()
 {
+	if (m_averageShader)
+	{
+		delete m_averageShader;
+		m_averageShader = nullptr;
+	}
+
+	if (m_maxShader)
+	{
+		delete m_maxShader;
+		m_maxShader = nullptr;
+	}
+
+	if (m_minShader)
+	{
+		delete m_minShader;
+		m_minShader = nullptr;
+	}
+
 	if (m_folliageShader)
 	{
 		delete m_folliageShader;
@@ -253,7 +275,7 @@ void World::UpdateChunksVisibility(float deltaTime, int diffSize)
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_folliageShader);
+				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_folliageShader, m_minShader, m_maxShader, m_averageShader);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

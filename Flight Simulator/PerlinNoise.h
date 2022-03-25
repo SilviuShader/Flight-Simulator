@@ -47,17 +47,12 @@ public:
         int   OctavesCount;
     };
 
-    typedef std::pair<float, float> MinMax;
-    typedef std::pair<float, float> HeightBiome;
-
 public:
 
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
     Texture*      RenderNoise(glm::vec2, glm::vec2, NoiseParameters);
-    MinMax**      GetMinMax(Texture*, int);
-    HeightBiome** GetHeightBiome(Texture*, Texture*, int);
 
 private:
 
@@ -65,10 +60,6 @@ private:
                                   
     void                          CreateValuesBuffer();
     void                          FreeValuesBuffer();
-
-    std::pair<Texture*, Texture*> ComputeDownscale(Shader*, Texture*, Texture*, int, int);
-
-    uint32_t                      GetComputeShaderGroupsCount(const uint32_t, const uint32_t);
     
 private:
 
@@ -76,8 +67,6 @@ private:
                                                  // (z, w) are for the permutations map.
 
     Shader*        m_noiseShader;
-    Shader*        m_minMaxShader;
-    Shader*        m_heightBiomeMipMapShader;
-
+    
     unsigned int   m_noiseValuesBuffer;
 };

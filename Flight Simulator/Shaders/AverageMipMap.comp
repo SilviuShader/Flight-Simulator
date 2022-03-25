@@ -1,0 +1,113 @@
+#version 430 core
+#define BLOCKS_COUNT 8
+#define MAX_ITERATIONS 4
+
+layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
+layout (r32f, binding = 0) uniform image2D ImageInput;
+layout (r32f, binding = 1) uniform image2D ImageOutput;
+
+uniform int Iterations;
+
+shared float s_averageValues[BLOCKS_COUNT * BLOCKS_COUNT];
+
+void storeAverage(uint index, float value)
+{
+	s_averageValues[index] = value;
+}
+
+float loadAverage(uint index)
+{
+	return s_averageValues[index];
+}
+
+void main()
+{
+	ivec2 imgSize     = imageSize(ImageInput);
+	ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+	
+	if (pixelCoords.x >= imgSize.x / 2 || 
+	    pixelCoords.y >= imgSize.y / 2)
+		return;
+
+	float average1 = imageLoad(ImageInput, pixelCoords * 2).x;
+	float average2 = imageLoad(ImageInput, pixelCoords * 2 + ivec2(1, 0)).x;
+	float average3 = imageLoad(ImageInput, pixelCoords * 2 + ivec2(0, 1)).x;
+	float average4 = imageLoad(ImageInput, pixelCoords * 2 + ivec2(1, 1)).x;
+
+	float average = 0.25 * (average1 + average2 + average3 + average4);
+	
+	storeAverage(gl_LocalInvocationIndex, average);
+
+	if (Iterations == 1)
+	{
+		imageStore(ImageOutput, pixelCoords, vec4(average));
+		return;
+	}
+
+	groupMemoryBarrier();
+	barrier();
+
+	if ((gl_LocalInvocationIndex & 0x9) == 0)
+	{
+		average1 = average;
+		average2 = loadAverage(gl_LocalInvocationIndex + 0x01);
+		average3 = loadAverage(gl_LocalInvocationIndex + 0x08);
+		average4 = loadAverage(gl_LocalInvocationIndex + 0x09);
+
+		average = 0.25 * (average1 + average2 + average3 + average4);
+		
+		storeAverage(gl_LocalInvocationIndex, average);
+
+		if (Iterations == 2)
+		{
+			imageStore(ImageOutput, pixelCoords / 2, vec4(average));
+			return;
+		}
+	}
+
+	if (Iterations == 2)
+		return;
+
+	groupMemoryBarrier();
+	barrier();
+
+	if ((gl_LocalInvocationIndex & 0x1B) == 0)
+	{
+		average1 = average;
+		average2 = loadAverage(gl_LocalInvocationIndex + 0x02);
+		average3 = loadAverage(gl_LocalInvocationIndex + 0x10);
+		average4 = loadAverage(gl_LocalInvocationIndex + 0x12);
+
+		average = 0.25 * (average1 + average2 + average3 + average4);
+		
+		storeAverage(gl_LocalInvocationIndex, average);
+		
+		if (Iterations == 3)
+		{
+			imageStore(ImageOutput, pixelCoords / 4, vec4(average));
+			return;
+		}
+	}
+
+	if (Iterations == 3)
+		return;
+
+	groupMemoryBarrier();
+	barrier();
+
+	if (gl_LocalInvocationIndex == 0)
+	{
+		average1 = average;
+		average2 = loadAverage(gl_LocalInvocationIndex + 0x04);
+		average3 = loadAverage(gl_LocalInvocationIndex + 0x20);
+		average4 = loadAverage(gl_LocalInvocationIndex + 0x24);
+
+		average = 0.25 * (average1 + average2 + average3 + average4);
+		
+		if (Iterations == 4)
+		{
+			imageStore(ImageOutput, pixelCoords / 8, vec4(average));
+			return;
+		}
+	}
+}

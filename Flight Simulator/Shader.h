@@ -8,6 +8,8 @@
 #include "Material.h"
 #include <unordered_map>
 
+#include <glm/glm.hpp>
+
 class Shader
 {
 private:

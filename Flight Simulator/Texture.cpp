@@ -1,9 +1,11 @@
 #include <iostream>
 
+#include "Shader.h"
 #include "glad/glad.h"
 #include "Texture.h"
 
 #include "TextureLoadHelper.h"
+#include <cassert>
 
 using namespace std;
 
@@ -126,6 +128,91 @@ int Texture::GetHeight() const
     return GetCurrentTextureInfo().Height;
 }
 
+float** Texture::GetDownscaleValues(DownscaleShaderProperties shaderProps, int levels)
+{
+    int divisionsCount  = 1 << (levels - 1);
+    int div2            = GetWidth() / divisionsCount;
+
+    assert(GetWidth() == GetHeight() &&
+           "The texture must have the width equal to the height.");
+
+    assert(GetWidth() > divisionsCount && divisionsCount > 0 &&
+        "The width of the noise texture must be greater than the width of the texture containing the downscaled image.");
+
+    assert(GetWidth() % levels == 0 && ((div2 & (div2 - 1)) == 0) &&
+        "Texture width has to be equal to levels * pow(2, k), where k > 1.");
+
+    Texture* currentTexture = this;
+    Texture* newTexture     = nullptr;
+    
+    int      itersCount     = log2(GetWidth() / divisionsCount);
+
+    int      add            = 0;
+    int      iter           = add;
+    do
+    {
+        add = (iter + shaderProps.ShaderSteps > itersCount) ? itersCount - iter : shaderProps.ShaderSteps;
+        iter += add;
+
+        if (!newTexture)
+            newTexture = new Texture(GetWidth()  >> iter,
+                                     GetHeight() >> iter,
+                                     Texture::Format::R32F,
+                                     Texture::Format::RED,
+                                     Texture::Filter::Linear);
+
+        shaderProps.Shader->Use();
+        shaderProps.Shader->SetImage2D("ImageInput",  currentTexture, 0, Texture::Format::R32F);
+        shaderProps.Shader->SetImage2D("ImageOutput", newTexture,     1, Texture::Format::R32F);
+        shaderProps.Shader->SetInt("Iterations",      add);
+
+        glDispatchCompute(GetComputeShaderGroupsCount(currentTexture->GetWidth()  >> 1, shaderProps.BlocksCount),
+                          GetComputeShaderGroupsCount(currentTexture->GetHeight() >> 1, shaderProps.BlocksCount), 1);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+        if (currentTexture && currentTexture != this)
+        {
+            delete currentTexture;
+            currentTexture = nullptr;
+        }
+
+        currentTexture = newTexture;
+        newTexture = nullptr;
+    } while (iter < itersCount);
+
+    int     textureWidth  = currentTexture->GetWidth();
+    int     textureHeight = currentTexture->GetHeight();
+
+    float*  pixels        = new float[textureWidth * textureHeight];
+
+    float** result        = new float*[textureWidth];
+
+    for (int i = 0; i < textureWidth; i++)
+        result[i] = new float[textureHeight];
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, currentTexture->GetTextureID());
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, pixels);
+
+    for (int width = 0; width < textureWidth; width++)
+        for (int height = 0; height < textureHeight; height++)
+            result[width][height] = pixels[height * textureWidth + width];
+
+    if (pixels)
+    {
+        delete[] pixels;
+        pixels = nullptr;
+    }
+
+    if (currentTexture && currentTexture != this)
+    {
+        delete currentTexture;
+        currentTexture = nullptr;
+    }
+
+    return result;
+}
+
 int Texture::GetGLFormat(Format format)
 {
     switch (format)
@@ -145,6 +232,11 @@ int Texture::GetGLFormat(Format format)
     cout << "ERROR::TEXTURE::INVALID::FORMAT" << endl;
 
     return -1;
+}
+
+uint32_t Texture::GetComputeShaderGroupsCount(const uint32_t size, const uint32_t numBlocks)
+{
+    return (size + numBlocks - 1) / numBlocks;
 }
 
 int Texture::GetGLParam(Filter filter)
