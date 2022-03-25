@@ -161,6 +161,7 @@
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureLoadHelper.cpp" />
     <ClCompile Include="VertexTypes.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Shapes.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Chunk.h" />
+    <ClInclude Include="Terrain.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLoadHelper.h" />
     <ClInclude Include="Utils.h" />
