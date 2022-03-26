@@ -169,16 +169,16 @@ void Terrain::FreeTerrainObjects()
 
 void Terrain::UpdateChunksVisibility(Camera* camera, float deltaTime, int diffSize)
 {
-	vec3                             cameraPos         = camera->GetPosition();
-	vec3                             cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f,
-                                                                          0.0f,
-                                                                          (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
-
-	Vec2Int                          currentID         = make_pair(int(cameraChunkOrigin.x / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)),
-		                                                           int(cameraChunkOrigin.z / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
-
-	queue<Vec2Int>                   exploreChunksQueue;
-	unordered_set<Vec2Int, HashPair> targetChunksSet;
+	vec3                                         cameraPos         = camera->GetPosition();
+	vec3                                         cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f,
+                                                                                      0.0f,
+                                                                                      (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
+									             
+	Vec2Int                                      currentID         = make_pair(int(cameraChunkOrigin.x / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)),
+		                                                                       int(cameraChunkOrigin.z / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
+									             
+	queue<Vec2Int>                               exploreChunksQueue;
+	unordered_set<Vec2Int, HashHelper::HashPair> targetChunksSet;
 
 	exploreChunksQueue.push(currentID);
 	targetChunksSet.insert(currentID);

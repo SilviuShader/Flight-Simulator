@@ -149,6 +149,12 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
         folliageRandomnessValues = nullptr;
     }
 
+    if (folliageSelectionRandomnessMap)
+    {
+        delete folliageSelectionRandomnessMap;
+        folliageSelectionRandomnessMap = nullptr;
+    }
+
     if (folliageRandomnessMap)
     {
         delete folliageRandomnessMap;

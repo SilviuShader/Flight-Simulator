@@ -4,6 +4,7 @@
 
 #include "Material.h"
 #include "Model.h"
+#include "Utils.h"
 
 class Biome
 {
@@ -93,15 +94,14 @@ public:
 			size_t res = 17;
 			for (auto& lod : model.ModelLODs)
 			{
-				// TODO: create a hash-combine function.
-				res = res * 31 + std::hash<int>()((int)lod.Model);
-				res = res * 32 + std::hash<int>()((int)lod.Shader);
-				res = res * 31 + std::hash<float>()(lod.Scale);
-				res = res * 31 + std::hash<float>()(lod.MaxDistance);
-				res = res * 31 + std::hash<bool>()(lod.Bilboarded);
+				res = HashHelper::HashCombine<int>  (res, (int)lod.Model);
+				res = HashHelper::HashCombine<int>  (res, (int)lod.Shader);
+				res = HashHelper::HashCombine<float>(res, lod.Scale);
+				res = HashHelper::HashCombine<float>(res, lod.MaxDistance);
+				res = HashHelper::HashCombine<bool> (res, lod.Bilboarded);
 			}
-			res = res * 31 + std::hash<float>()(model.Chance);
-
+			res = HashHelper::HashCombine<float>(res, model.Chance);
+			
 			return res;
 		}
 	};

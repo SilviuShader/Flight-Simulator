@@ -53,23 +53,23 @@ private:
 private:
 
 
-	std::unordered_map<Vec2Int, Chunk*, HashPair> m_chunks;
-	std::vector<Chunk*>                           m_chunksList;
-
-	PerlinNoise*                                  m_noise;
-	Shader*                                       m_terrainShader;
-
-	Shader*                                       m_folliageShader;
-	Shader*                                       m_folliageBilboardedShader;
-
-	std::vector<Material*>                        m_terrainMaterials;
-	Texture*                                      m_terrainBiomesData;
-
-	Shader*                                       m_minShader;
-	Shader*                                       m_maxShader;
-	Shader*                                       m_averageShader;
-
-	float                                         m_accumulatedCurrentChunksTime;
-
-	bool                                          m_firstFrame;
+	std::unordered_map<Vec2Int, Chunk*, HashHelper::HashPair> m_chunks;
+	std::vector<Chunk*>                                       m_chunksList;
+												              
+	PerlinNoise*                                              m_noise;
+	Shader*                                                   m_terrainShader;
+												              
+	Shader*                                                   m_folliageShader;
+	Shader*                                                   m_folliageBilboardedShader;
+												              
+	std::vector<Material*>                                    m_terrainMaterials;
+	Texture*                                                  m_terrainBiomesData;
+												              
+	Shader*                                                   m_minShader;
+	Shader*                                                   m_maxShader;
+	Shader*                                                   m_averageShader;
+												              
+	float                                                     m_accumulatedCurrentChunksTime;
+												              
+	bool                                                      m_firstFrame;
 };
