@@ -94,8 +94,8 @@ private:
           void                         CreateTerrainBuffers();
           void                         FreeTerrainBuffers();
                                        
-          void                         BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, float**);
-          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, float**);
+          void                         BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
+          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
                                        
           void                         FillZoneRanges(const MathHelper::Frustum&, Node*);
           void                         UpdateZoneRangesBuffer();
@@ -103,9 +103,9 @@ private:
           void                         FillFolliageInstances(const MathHelper::Frustum&, Node*);
 
           // TODO: use templates here
-    const Biome::FolliageModel&        RouletteWheelSelection(const std::vector<Biome::FolliageModel>&);
+    const Biome::FolliageModel&        RouletteWheelSelection(const std::vector<Biome::FolliageModel>&, float);
 
-    const Biome::FolliageModelsVector& RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>&);
+    const Biome::FolliageModelsVector& RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>&, float);
 
 private:
 

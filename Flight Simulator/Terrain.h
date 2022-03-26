@@ -24,6 +24,11 @@ public:
 
 	static const float FOLLIAGE_RANDOMNESS_THRESHOLD;
 
+	static const float FOLLIAGE_SELECTION_RANDOMNESS_FREQUENCY;
+	static const float FOLLIAGE_SELECTION_RANDOMNESS_FUDGE_FACTOR;
+	static const float FOLLIAGE_SELECTION_RANDOMNESS_EXPONENT;
+	static const int   FOLLIAGE_SELECTION_RANDOMNESS_OCTAVES_COUNT;
+
 private:
 
 	const int   MAX_CHUNKS                    = 54;

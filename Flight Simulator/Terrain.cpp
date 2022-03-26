@@ -5,22 +5,27 @@
 using namespace std;
 using namespace glm;
 
-const float Terrain::HEIGHT_FREQUENCY                  = 0.025f;
-const float Terrain::HEIGHT_FUDGE_FACTOR               = 1.2f;
-const float Terrain::HEIGHT_EXPONENT                   = 4.0f;
-const int   Terrain::HEIGHT_OCTAVES_COUNT              = 20;
-										               
-const float Terrain::BIOME_FREQUENCY                   = 0.01f;
-const float Terrain::BIOME_FUDGE_FACTOR                = 1.0f;
-const float Terrain::BIOME_EXPONENT                    = 1.0f;
-const int   Terrain::BIOME_OCTAVES_COUNT               = 10;
+const float Terrain::HEIGHT_FREQUENCY                            = 0.025f;
+const float Terrain::HEIGHT_FUDGE_FACTOR                         = 1.2f;
+const float Terrain::HEIGHT_EXPONENT                             = 4.0f;
+const int   Terrain::HEIGHT_OCTAVES_COUNT                        = 20;
+										                         
+const float Terrain::BIOME_FREQUENCY                             = 0.01f;
+const float Terrain::BIOME_FUDGE_FACTOR                          = 1.0f;
+const float Terrain::BIOME_EXPONENT                              = 1.0f;
+const int   Terrain::BIOME_OCTAVES_COUNT                         = 10;
+													             
+const float Terrain::FOLLIAGE_RANDOMNESS_FREQUENCY               = 1.0f;
+const float Terrain::FOLLIAGE_RANDOMNESS_FUDGE_FACTOR            = 1.0f;
+const float Terrain::FOLLIAGE_RANDOMNESS_EXPONENT                = 1.0f;
+const int   Terrain::FOLLIAGE_RANDOMNESS_OCTAVES_COUNT           = 20;
+													             
+const float Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD               = 0.6f;
 
-const float Terrain::FOLLIAGE_RANDOMNESS_FREQUENCY     = 1.0f;
-const float Terrain::FOLLIAGE_RANDOMNESS_FUDGE_FACTOR  = 1.0f;
-const float Terrain::FOLLIAGE_RANDOMNESS_EXPONENT      = 1.0f;
-const int   Terrain::FOLLIAGE_RANDOMNESS_OCTAVES_COUNT = 20;
-
-const float Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD     = 0.6f;
+const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FREQUENCY     = 0.9f;
+const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FUDGE_FACTOR  = 1.2f;
+const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_EXPONENT      = 3.0f;
+const int   Terrain::FOLLIAGE_SELECTION_RANDOMNESS_OCTAVES_COUNT = 20;
 
 Terrain::Terrain() : 
 	m_accumulatedCurrentChunksTime(0.0f),
@@ -130,7 +135,7 @@ void Terrain::CreateTerrainObjects()
 	forestBiome->AddTerrainLevel(snow3);
 
 	m_terrainBiomesData = Biome::CreateBiomesTexture();
-	m_terrainMaterials = Biome::GetBiomesMaterials();
+	m_terrainMaterials  = Biome::GetBiomesMaterials();
 }
 
 void Terrain::FreeTerrainObjects()

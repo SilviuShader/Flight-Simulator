@@ -105,17 +105,42 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
     Texture* folliageRandomnessMap                      = m_perlinNoise->RenderNoise(folliageRandomnessParameters);
     float**  folliageRandomnessValues                   = Texture::GetPixelsInfo(folliageRandomnessMap);
 
-    BuildQuadTree(make_pair(minValues, maxValues), make_pair(heightValues, biomeValues), folliageRandomnessValues);
+    PerlinNoise::NoiseParameters folliageSelectionRandomnessParameters;
+
+             folliageSelectionRandomnessParameters.StartPosition = startPosition;
+             folliageSelectionRandomnessParameters.EndPosition   = endPosition;
+             folliageSelectionRandomnessParameters.Frequency     = Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FREQUENCY;
+             folliageSelectionRandomnessParameters.FudgeFactor   = Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FUDGE_FACTOR;
+             folliageSelectionRandomnessParameters.Exponent      = Terrain::FOLLIAGE_SELECTION_RANDOMNESS_EXPONENT;
+             folliageSelectionRandomnessParameters.OctavesCount  = Terrain::FOLLIAGE_SELECTION_RANDOMNESS_OCTAVES_COUNT;
+             folliageSelectionRandomnessParameters.TextureSize   = heightBiomeDivisionsCount;
+
+    Texture* folliageSelectionRandomnessMap                      = m_perlinNoise->RenderNoise(folliageSelectionRandomnessParameters);
+    float**  folliageSelectionRandomnessValues                   = Texture::GetPixelsInfo(folliageSelectionRandomnessMap);
+
+    BuildQuadTree(make_pair(minValues, maxValues), make_pair(heightValues, biomeValues), make_pair(folliageRandomnessValues, folliageSelectionRandomnessValues));
 
     m_drawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
 
     for (int i = 0; i < heightBiomeDivisionsCount; i++)
     {
+        if (folliageSelectionRandomnessValues[i])
+        {
+            delete[] folliageSelectionRandomnessValues[i];
+            folliageSelectionRandomnessValues[i] = nullptr;
+        }
+
         if (folliageRandomnessValues[i])
         {
             delete[] folliageRandomnessValues[i];
             folliageRandomnessValues[i] = nullptr;
         }
+    }
+
+    if (folliageSelectionRandomnessValues)
+    {
+        delete[] folliageSelectionRandomnessValues;
+        folliageSelectionRandomnessValues = nullptr;
     }
 
     if (folliageRandomnessValues)
@@ -302,17 +327,17 @@ void Chunk::DrawFolliage(Light* light)
 
         shader->Use();
 
-        shader->SetMatrix4("View", view);
-        shader->SetMatrix4("Projection", projection);
+        shader->SetMatrix4("View",           view);
+        shader->SetMatrix4("Projection",     projection);
 
-        shader->SetVec3("ChunkCenter", GetTranslation());
+        shader->SetVec3("ChunkCenter",       GetTranslation());
 
-        shader->SetFloat("TerrainWidth", CHUNK_WIDTH);
-        shader->SetFloat("GridWidth", CHUNK_GRID_WIDTH);
-        shader->SetFloat("GridHeight", CHUNK_GRID_HEIGHT);
+        shader->SetFloat("TerrainWidth",     CHUNK_WIDTH);
+        shader->SetFloat("GridWidth",        CHUNK_GRID_WIDTH);
+        shader->SetFloat("GridHeight",       CHUNK_GRID_HEIGHT);
         shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
 
-        shader->SetTexture("NoiseTexture", m_heightTexture, 0);
+        shader->SetTexture("NoiseTexture",   m_heightTexture, 0);
 
         if (shader->HasLightUniforms())
             shader->SetLight(m_camera, light);
@@ -437,7 +462,7 @@ void Chunk::FreeTerrainBuffers()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> heightBiome, float** folliageRandomnessValues)
+void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> heightBiome, pair<float**, float**> folliageRandomnessValues)
 {
     m_quadTree = CreateNode(0, 
                             vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
@@ -448,7 +473,7 @@ void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> 
                             folliageRandomnessValues);
 }
 
-Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, pair<float**, float**> minMax, pair<float**, float**> heightBiome, float** folliageRandomnessValues)
+Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& topRight, pair<int, int> positionId, pair<float**, float**> minMax, pair<float**, float**> heightBiome, pair<float**, float**> folliageRandomnessValues)
 {
     if (depth >= QUAD_TREE_DEPTH)
         return nullptr;
@@ -551,7 +576,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                 int xIndex = positionId.first  * pixelsPerQuad + x;
                 int yIndex = positionId.second * pixelsPerQuad + y;
 
-                if (folliageRandomnessValues[xIndex][yIndex] < Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD)
+                if (folliageRandomnessValues.first[xIndex][yIndex] < Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD)
                     continue;
 
                 float height = heightBiome.first [xIndex][yIndex];
@@ -569,12 +594,12 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                 if (!biomeModelsVectors.size())
                     continue;
 
-                auto biomeModels = RouletteWheelSelection(biomeModelsVectors);
+                auto biomeModels = RouletteWheelSelection(biomeModelsVectors, folliageRandomnessValues.second[xIndex][yIndex]);
 
                 if (!biomeModels.Models.size())
                     continue;
 
-                auto biomeModel = RouletteWheelSelection(biomeModels.Models);
+                auto biomeModel = RouletteWheelSelection(biomeModels.Models, folliageRandomnessValues.second[yIndex][xIndex]);
 
                 if (result->DesiredInstances.find(biomeModel) == result->DesiredInstances.end())
                     result->DesiredInstances[biomeModel] = vector<FolliageProperties>();
@@ -687,7 +712,7 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
     }
 }
 
-const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModel>& models)
+const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModel>& models, float r)
 {
     int resultIndex = 0;
     float totalSum = 0.0f;
@@ -695,8 +720,6 @@ const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biom
     for (auto& model : models)
         totalSum += model.Chance;
 
-    // TODO: replace this (multiple noise maps)
-    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     float slice = r * totalSum;
 
     float accumulatedSum = 0.0f;
@@ -717,7 +740,7 @@ const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biom
     return models[resultIndex];
 }
 
-const Biome::FolliageModelsVector& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>& models)
+const Biome::FolliageModelsVector& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>& models, float r)
 {
     int resultIndex = 0;
     float totalSum = 0.0f;
@@ -725,8 +748,6 @@ const Biome::FolliageModelsVector& Chunk::RouletteWheelSelection(const std::vect
     for (auto& model : models)
         totalSum += model.Chance;
 
-    // TODO: replace this (multiple noise maps)
-    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     float slice = r * totalSum;
 
     float accumulatedSum = 0.0f;
