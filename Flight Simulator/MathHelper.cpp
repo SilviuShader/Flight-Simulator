@@ -84,3 +84,17 @@ MathHelper::Frustum MathHelper::GetCameraFrustum(Camera* camera)
 
 	return result;
 }
+
+unsigned MathHelper::PowerCeil(unsigned x)
+{
+	if (x <= 1) 
+		return 1;
+	
+	int power = 2;
+	x--;
+
+	while (x >>= 1) 
+		power <<= 1;
+
+	return power;
+}

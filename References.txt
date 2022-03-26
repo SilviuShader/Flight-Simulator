@@ -32,3 +32,5 @@ https://stackoverflow.com/questions/51949/how-to-get-file-extension-from-string-
 https://stackoverflow.com/questions/313970/how-to-convert-an-instance-of-stdstring-to-lower-case
 
 https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
+
+https://stackoverflow.com/questions/466204/rounding-up-to-next-power-of-2

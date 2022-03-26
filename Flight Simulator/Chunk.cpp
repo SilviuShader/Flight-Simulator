@@ -316,11 +316,6 @@ void Chunk::DrawFolliage(Light* light)
 
         if (shader->HasLightUniforms())
             shader->SetLight(m_camera, light);
-        else
-        {
-            int a;
-            a = 0;
-        }
 
         model->SetInstances(keyValue.second);
         model->Draw(shader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
@@ -562,9 +557,6 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                 float height = heightBiome.first [xIndex][yIndex];
                 float biome  = heightBiome.second[xIndex][yIndex];
                 
-                // TODO:
-                // note that we can now calculate the height right here.
-                // This change may help improve instancing performance (one call per world instead of chunk).
                 auto translation = vec3(bottomLeft.x + (topRight.x - bottomLeft.x) * ((float)x / (float)(pixelsPerQuad - 1)), 
                                         0.0f, 
                                         bottomLeft.y + (topRight.y - bottomLeft.y) * ((float)y / (float)(pixelsPerQuad - 1))) +
@@ -621,6 +613,7 @@ void Chunk::UpdateZoneRangesBuffer()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+
 void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node)
 {
     if (!node->BoundingBox.IsOnFrustum(frustum))
@@ -630,63 +623,61 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
     {
         for (auto& biomeModel : node->DesiredInstances)
         {
+            vec3 cameraPosition = m_camera->GetPosition();
 
-            
-            // TODO: Optimize this.
+            for (auto& folliageProperties : biomeModel.second)
+            {
+                vec3    translation    = folliageProperties.Translation;
+                mat4    modelMatrix    = identity<mat4>();
 
-            //float dist = distance(camPos, biomeModel.second);
+                float   scaleMultip    = folliageProperties.Scale;
+                                       
+                float   dist           = distance(vec2(translation.x,    translation.z), 
+                                                  vec2(cameraPosition.x, cameraPosition.z));
 
-            //for (auto& lod : biomeModel.first.ModelLODs)
-            //{
-            //    if (lod.MaxDistance < )
-            //}
+                float   distPercentage = dist / m_camera->GetFar();
 
-            // TODO: Optimize this. (A LOT)
-            vec3 camPos = m_camera->GetPosition();
-            camPos = vec3(camPos.x, 0.0f, camPos.z);
-           for (auto& folliageProperties : biomeModel.second)
-           {
-               Model* modelPtr = nullptr;
-               Shader* shaderPtr = nullptr;
-               mat4   modelMatrix = identity<mat4>();
+                auto&   modelLODs      = biomeModel.first.ModelLODs;
+                int     lodsCount      = modelLODs.size();
 
-               vec3 trans = folliageProperties.Translation;
-               float scl = folliageProperties.Scale;
+                int     power          = MathHelper::PowerCeil(lodsCount);
+                int     lodIndex       = power;
+                bool    foundLOD       = false;
 
-               float dist = distance(vec3(trans.x, 0.0f, trans.z), camPos);
-               // TODO: replace this hard-coded number.
-               float distPercentage = dist / 1000.0f;
+                for (int indexSubstract = power; indexSubstract > 0; indexSubstract >>= 1)
+                {
+                    int newIndex = lodIndex - indexSubstract;
+                    if (newIndex >= 0 && newIndex < lodsCount)
+                    {
+                        if (modelLODs[newIndex].MaxDistance >= distPercentage)
+                        {
+                            lodIndex = newIndex;
+                            foundLOD = true;
+                        }
+                    }
+                }
 
-               for (auto& lod : biomeModel.first.ModelLODs)
-               {
-                   if (distPercentage < lod.MaxDistance)
-                   {
-                       modelPtr = lod.Model;
-                       shaderPtr = lod.Shader;
+                if (!foundLOD)
+                    continue;
 
-                       vec3 diff = camPos - trans;
+                auto& lod          = modelLODs[lodIndex];
+                vec3  toCamera     = cameraPosition - translation;
+                                   
+                float angle        = lod.Bilboarded ? atan2(toCamera.x, toCamera.z) : 0.0f;
+                mat4  rotation     = rotate(mat4(1.0f), angle, vec3(0.0f, 1.0f, 0.0f));
 
-                       float angle = lod.Bilboarded ? atan2(diff.x, diff.z) : 0.0f;
-                       mat4 rotation = rotate(mat4(1.0f), angle, vec3(0.0f, 1.0f, 0.0f));
+                float scaleFactor = lod.Scale * scaleMultip;
 
-                       modelMatrix = translate(mat4(1.0f), trans) * scale(mat4(1.0f), vec3(lod.Scale * scl, lod.Scale * scl, lod.Scale * scl)) * rotation;
-                       break;
-                   }
-               }
+                      modelMatrix = translate(mat4(1.0f), translation) * 
+                                    scale(mat4(1.0f), vec3(scaleFactor, scaleFactor, scaleFactor)) * rotation;
 
-               if (!modelPtr)
-                   continue;
+                auto  mapKey      = make_pair(lod.Model, lod.Shader);
 
-               if (!shaderPtr)
-                   continue;
+                if (m_folliageModelsInstances.find(mapKey) == m_folliageModelsInstances.end())
+                    m_folliageModelsInstances[mapKey] = vector<mat4>();
 
-               auto mapKey = make_pair(modelPtr, shaderPtr);
-
-               if (m_folliageModelsInstances.find(mapKey) == m_folliageModelsInstances.end())
-                   m_folliageModelsInstances[mapKey] = vector<mat4>();
-
-               m_folliageModelsInstances[mapKey].push_back(modelMatrix);
-           }
+                m_folliageModelsInstances[mapKey].push_back(modelMatrix);
+            }
         }
     }
     else

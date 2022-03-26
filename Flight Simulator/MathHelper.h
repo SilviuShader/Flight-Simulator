@@ -62,5 +62,6 @@ public:
 
 public:
 
-	static Frustum GetCameraFrustum(Camera*);
+	static Frustum  GetCameraFrustum(Camera*);
+	static unsigned PowerCeil(unsigned);
 };
