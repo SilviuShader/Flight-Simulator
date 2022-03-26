@@ -599,7 +599,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                 if (!biomeModels.Models.size())
                     continue;
 
-                auto biomeModel = RouletteWheelSelection(biomeModels.Models, folliageRandomnessValues.second[yIndex][xIndex]);
+                auto biomeModel = RouletteWheelSelection(biomeModels.Models, folliageRandomnessValues.second[yIndex][xIndex]); // little "hack" so we don't need two separate maps
 
                 if (result->DesiredInstances.find(biomeModel) == result->DesiredInstances.end())
                     result->DesiredInstances[biomeModel] = vector<FolliageProperties>();
@@ -710,59 +710,4 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
             FillFolliageInstances(frustum, node->Children[i]);
     }
-}
-
-const Biome::FolliageModel& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModel>& models, float r)
-{
-    int resultIndex = 0;
-    float totalSum = 0.0f;
-
-    for (auto& model : models)
-        totalSum += model.Chance;
-
-    float slice = r * totalSum;
-
-    float accumulatedSum = 0.0f;
-
-    int index = 0;
-    for (auto& model : models)
-    {
-        accumulatedSum += model.Chance;
-        if (accumulatedSum >= slice)
-        {
-            resultIndex = index;
-            break;
-        }
-
-        index++;
-    }
-
-    return models[resultIndex];
-}
-
-const Biome::FolliageModelsVector& Chunk::RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>& models, float r)
-{
-    int resultIndex = 0;
-    float totalSum = 0.0f;
-
-    for (auto& model : models)
-        totalSum += model.Chance;
-
-    float slice = r * totalSum;
-
-    float accumulatedSum = 0.0f;
-
-    int index = 0;
-    for (auto& model : models)
-    {
-        accumulatedSum += model.Chance;
-        if (accumulatedSum >= slice)
-        {
-            resultIndex = index;
-            break;
-        }
-        index++;
-    }
-
-    return models[resultIndex];
 }

@@ -91,21 +91,45 @@ public:
 
 private:
 
-          void                         CreateTerrainBuffers();
-          void                         FreeTerrainBuffers();
-                                       
-          void                         BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
-          Node*                        CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
-                                       
-          void                         FillZoneRanges(const MathHelper::Frustum&, Node*);
-          void                         UpdateZoneRangesBuffer();
-                                       
-          void                         FillFolliageInstances(const MathHelper::Frustum&, Node*);
+                void  CreateTerrainBuffers();
+                void  FreeTerrainBuffers();
+                      
+                void  BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
+                Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
+                      
+                void  FillZoneRanges(const MathHelper::Frustum&, Node*);
+                void  UpdateZoneRangesBuffer();
+                      
+                void  FillFolliageInstances(const MathHelper::Frustum&, Node*);
 
-          // TODO: use templates here
-    const Biome::FolliageModel&        RouletteWheelSelection(const std::vector<Biome::FolliageModel>&, float);
+          template<typename T>
+          const T&    RouletteWheelSelection(const std::vector<T>& models, float r)
+          {
+              int resultIndex = 0;
+              float totalSum = 0.0f;
 
-    const Biome::FolliageModelsVector& RouletteWheelSelection(const std::vector<Biome::FolliageModelsVector>&, float);
+              for (auto& model : models)
+                  totalSum += model.Chance;
+
+              float slice = r * totalSum;
+
+              float accumulatedSum = 0.0f;
+
+              int index = 0;
+              for (auto& model : models)
+              {
+                  accumulatedSum += model.Chance;
+                  if (accumulatedSum >= slice)
+                  {
+                      resultIndex = index;
+                      break;
+                  }
+
+                  index++;
+              }
+
+              return models[resultIndex];
+          }
 
 private:
 
