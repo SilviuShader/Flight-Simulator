@@ -59,7 +59,19 @@ void Mesh::SetInstances(const vector<mat4>& instances)
 
 int Mesh::Draw(Shader* shader, const string& texturesName, const string& normalTexturesName, const string& specularTexturesName, int startingTextureNumber)
 {
-    int resultTextureNumber = shader->SetMaterials(texturesName, normalTexturesName, specularTexturesName, m_materials, startingTextureNumber);
+    int resultTextureNumber = startingTextureNumber;
+    if (shader->HasUniform(texturesName) && shader->HasUniform(normalTexturesName) && shader->HasUniform(specularTexturesName))
+    {
+        resultTextureNumber = shader->SetMaterials(texturesName, normalTexturesName, specularTexturesName, m_materials, startingTextureNumber);
+    }
+    else
+    {
+        if (shader->HasUniform("DiffuseTexture") && m_materials.size() > 0)
+        {
+            shader->SetTexture("DiffuseTexture", m_materials[0]->GetTexture(), startingTextureNumber);
+            resultTextureNumber++;
+        }
+    }
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);

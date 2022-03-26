@@ -53,7 +53,9 @@ private:
 
 	PerlinNoise*                                  m_noise;
 	Shader*                                       m_terrainShader;
+
 	Shader*                                       m_folliageShader;
+	Shader*                                       m_folliageBilboardedShader;
 
 	std::vector<Material*>                        m_terrainMaterials;
 	Texture*                                      m_terrainBiomesData;

@@ -41,14 +41,13 @@ Chunk::Node::~Node()
     }
 }
 
-Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Shader* folliageShader, Shader* minShader, Shader* maxShader, Shader* averageShader) :
+Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Shader* minShader, Shader* maxShader, Shader* averageShader) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
     m_terrainShader(terrainShader),
     m_perlinNoise(perlinNoise),
     m_chunkID(chunkID),
-    m_folliageShader(folliageShader),
     m_quadTree(nullptr),
     m_camera(nullptr),
     m_renderDebug(false)
@@ -273,12 +272,7 @@ void Chunk::DrawTerrain(Light* light, const vector<Material*>& terrainMaterials,
 
     m_terrainShader->SetFloat("Gamma",                       GAMMA);
 
-    m_terrainShader->SetVec4("AmbientColor",                 light->GetAmbientColor());
-    m_terrainShader->SetVec4("DiffuseColor",                 light->GetDiffuseColor());
-    m_terrainShader->SetVec3("LightDirection",               light->GetLightDirection());
-    m_terrainShader->SetFloat("SpecularPower",               light->GetSpecularPower());
-
-    m_terrainShader->SetVec3("CameraPosition",               m_camera->GetPosition());
+    m_terrainShader->SetLight(m_camera, light);
 
     m_terrainShader->SetInt("BiomesCount",                   terrainBiomesData->GetWidth());
     m_terrainShader->SetInt("MaterialsPerBiome",             terrainBiomesData->GetHeight());
@@ -300,30 +294,36 @@ void Chunk::DrawFolliage(Light* light)
     mat4 view       = m_camera->GetViewMatrix();
     mat4 projection = m_camera->GetProjectionMatrix();
 
-    m_folliageShader->Use();
-
-    m_folliageShader->SetMatrix4("View",           view);
-    m_folliageShader->SetMatrix4("Projection",     projection);
-
-    m_folliageShader->SetVec3("ChunkCenter",       GetTranslation());
-
-    m_folliageShader->SetFloat("TerrainWidth",     CHUNK_WIDTH);
-    m_folliageShader->SetFloat("GridWidth",        CHUNK_GRID_WIDTH);
-    m_folliageShader->SetFloat("GridHeight",       CHUNK_GRID_HEIGHT);
-    m_folliageShader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
-
-    m_folliageShader->SetTexture("NoiseTexture",   m_heightTexture, 0);
-
-    m_folliageShader->SetVec4("AmbientColor",      light->GetAmbientColor());
-    m_folliageShader->SetVec4("DiffuseColor",      light->GetDiffuseColor());
-    m_folliageShader->SetVec3("LightDirection",    light->GetLightDirection());
-    m_folliageShader->SetFloat("SpecularPower",    light->GetSpecularPower());
-    m_folliageShader->SetVec3("CameraPosition",    m_camera->GetPosition());
-
-    for (auto& model : m_folliageModelsInstances)
+    for (auto& keyValue : m_folliageModelsInstances)
     {
-        model.first->SetInstances(model.second);
-        model.first->Draw(m_folliageShader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
+        auto modelShader = keyValue.first;
+        auto model = modelShader.first;
+        auto shader = modelShader.second;
+
+        shader->Use();
+
+        shader->SetMatrix4("View", view);
+        shader->SetMatrix4("Projection", projection);
+
+        shader->SetVec3("ChunkCenter", GetTranslation());
+
+        shader->SetFloat("TerrainWidth", CHUNK_WIDTH);
+        shader->SetFloat("GridWidth", CHUNK_GRID_WIDTH);
+        shader->SetFloat("GridHeight", CHUNK_GRID_HEIGHT);
+        shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
+
+        shader->SetTexture("NoiseTexture", m_heightTexture, 0);
+
+        if (shader->HasLightUniforms())
+            shader->SetLight(m_camera, light);
+        else
+        {
+            int a;
+            a = 0;
+        }
+
+        model->SetInstances(keyValue.second);
+        model->Draw(shader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
     }
 }
 
@@ -647,6 +647,7 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
            for (auto& folliageProperties : biomeModel.second)
            {
                Model* modelPtr = nullptr;
+               Shader* shaderPtr = nullptr;
                mat4   modelMatrix = identity<mat4>();
 
                vec3 trans = folliageProperties.Translation;
@@ -661,6 +662,7 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
                    if (distPercentage < lod.MaxDistance)
                    {
                        modelPtr = lod.Model;
+                       shaderPtr = lod.Shader;
 
                        vec3 diff = camPos - trans;
 
@@ -675,11 +677,15 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
                if (!modelPtr)
                    continue;
 
+               if (!shaderPtr)
+                   continue;
 
-               if (m_folliageModelsInstances.find(modelPtr) == m_folliageModelsInstances.end())
-                   m_folliageModelsInstances[modelPtr] = vector<mat4>();
+               auto mapKey = make_pair(modelPtr, shaderPtr);
 
-               m_folliageModelsInstances[modelPtr].push_back(modelMatrix);
+               if (m_folliageModelsInstances.find(mapKey) == m_folliageModelsInstances.end())
+                   m_folliageModelsInstances[mapKey] = vector<mat4>();
+
+               m_folliageModelsInstances[mapKey].push_back(modelMatrix);
            }
         }
     }

@@ -28,8 +28,6 @@ Terrain::Terrain() :
 {
 	CreateTerrainObjects();
 
-	m_folliageShader = new Shader("Shaders/Folliage.vert", "Shaders/Folliage.frag");
-
 	m_minShader      = new Shader("Shaders/MinMipMap.comp");
 	m_maxShader      = new Shader("Shaders/MaxMipMap.comp");
 	m_averageShader  = new Shader("Shaders/AverageMipMap.comp");
@@ -96,16 +94,19 @@ void Terrain::Draw(Light* light)
 
 void Terrain::CreateTerrainObjects()
 {
-	          m_noise         = new PerlinNoise();
-	          m_terrainShader = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag",
-	          	                           "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
+	          m_noise                    = new PerlinNoise();
+	          m_terrainShader            = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag",
+	          	                                      "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
 
-	Material* snow2           = new Material("Assets/snow_02_diff_1k.png",             "Assets/snow_02_nor_gl_1k.png",             "Assets/snow_02_spec_1k.png");
-	Material* medievalBlocks  = new Material("Assets/medieval_blocks_02_diff_1k.png",  "Assets/medieval_blocks_02_nor_gl_1k.png",  "Assets/medieval_blocks_02_spec_1k.png");
-	Material* brownMudLeaves  = new Material("Assets/brown_mud_leaves_01_diff_1k.png", "Assets/brown_mud_leaves_01_nor_gl_1k.png", "Assets/brown_mud_leaves_01_spec_1k.png");
-	Material* forestLeaves    = new Material("Assets/forest_leaves_03_diff_1k.png",    "Assets/forest_leaves_03_nor_gl_1k.png");
-	Material* snowFieldAerial = new Material("Assets/snow_field_aerial_col_1k.png",    "Assets/snow_field_aerial_nor_gl_1k.png");
-	Material* snow3           = new Material("Assets/snow_03_diff_1k.png",             "Assets/snow_03_nor_gl_1k.png",             "Assets/snow_03_spec_1k.png");
+			  m_folliageShader           = new Shader("Shaders/Folliage.vert",         "Shaders/Folliage.frag");
+			  m_folliageBilboardedShader = new Shader("Shaders/FolliageBilboard.vert", "Shaders/FolliageBilboard.frag");
+
+	Material* snow2                      = new Material("Assets/snow_02_diff_1k.png",             "Assets/snow_02_nor_gl_1k.png",             "Assets/snow_02_spec_1k.png");
+	Material* medievalBlocks             = new Material("Assets/medieval_blocks_02_diff_1k.png",  "Assets/medieval_blocks_02_nor_gl_1k.png",  "Assets/medieval_blocks_02_spec_1k.png");
+	Material* brownMudLeaves             = new Material("Assets/brown_mud_leaves_01_diff_1k.png", "Assets/brown_mud_leaves_01_nor_gl_1k.png", "Assets/brown_mud_leaves_01_spec_1k.png");
+	Material* forestLeaves               = new Material("Assets/forest_leaves_03_diff_1k.png",    "Assets/forest_leaves_03_nor_gl_1k.png");
+	Material* snowFieldAerial            = new Material("Assets/snow_field_aerial_col_1k.png",    "Assets/snow_field_aerial_nor_gl_1k.png");
+	Material* snow3                      = new Material("Assets/snow_03_diff_1k.png",             "Assets/snow_03_nor_gl_1k.png",             "Assets/snow_03_spec_1k.png");
 
 
 	Biome* iceBiome = Biome::CreateBiome();
@@ -119,8 +120,8 @@ void Terrain::CreateTerrainObjects()
 
 	Biome::FolliageModel grassModel = Biome::FolliageModel(
 		{
-			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), 0.05f, 0.05f),
-			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), 4.0f,   1.0f, true) // TODO: SIMPLE UNLIT SHADER FOR THESE
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), m_folliageShader,           0.05f, 0.05f),
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), m_folliageBilboardedShader, 5.0f,   1.0f, true)
 		}, 1.0f);
 
 	forestBiome->AddTerrainLevel(forestLeaves, { grassModel });
@@ -135,6 +136,18 @@ void Terrain::CreateTerrainObjects()
 void Terrain::FreeTerrainObjects()
 {
 	Biome::Free();
+
+	if (m_folliageBilboardedShader)
+	{
+		delete m_folliageBilboardedShader;
+		m_folliageBilboardedShader = nullptr;
+	}
+
+	if (m_folliageShader)
+	{
+		delete m_folliageShader;
+		m_folliageShader = nullptr;
+	}
 
 	if (m_terrainShader)
 	{
@@ -236,7 +249,7 @@ void Terrain::UpdateChunksVisibility(Camera* camera, float deltaTime, int diffSi
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_folliageShader, m_minShader, m_maxShader, m_averageShader);
+				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_minShader, m_maxShader, m_averageShader);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

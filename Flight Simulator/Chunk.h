@@ -77,7 +77,7 @@ private:
 
 public:
 
-    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Shader*, Shader*, Shader*, Shader*);
+    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Shader*, Shader*, Shader*);
     ~Chunk();
 
            void      Update(Camera*, float, bool);
@@ -109,26 +109,25 @@ private:
 
 private:
 
-    Vec2Int                                            m_chunkID;
-                                                       
-    unsigned int                                       m_vbo;
-    unsigned int                                       m_instanceVbo;
-    unsigned int                                       m_ebo;
-    unsigned int                                       m_vao;
-                                                       
-    Shader*                                            m_terrainShader;
-    PerlinNoise*                                       m_perlinNoise;
-    Texture*                                           m_heightTexture;
-    Texture*                                           m_biomesTexture;
-    glm::vec4*                                         m_drawZonesRanges; 
+    Vec2Int                                                                          m_chunkID;
+                                                                                     
+    unsigned int                                                                     m_vbo;
+    unsigned int                                                                     m_instanceVbo;
+    unsigned int                                                                     m_ebo;
+    unsigned int                                                                     m_vao;
+                                                                                     
+    Shader*                                                                          m_terrainShader;
+    PerlinNoise*                                                                     m_perlinNoise;
+    Texture*                                                                         m_heightTexture;
+    Texture*                                                                         m_biomesTexture;
+    glm::vec4*                                                                       m_drawZonesRanges; 
 
-    std::unordered_map<Model*, std::vector<glm::mat4>> m_folliageModelsInstances;
-    Shader*                                            m_folliageShader;
+    std::unordered_map<std::pair<Model*, Shader*>, std::vector<glm::mat4>, HashPair> m_folliageModelsInstances;
                                                        
-    int                                                m_zoneRangesIndex;
-                                                       
-    Node*                                              m_quadTree;
-                                                       
-    Camera*                                            m_camera;
-    bool                                               m_renderDebug;
+    int                                                                              m_zoneRangesIndex;
+                                                                                     
+    Node*                                                                            m_quadTree;
+                                                                                     
+    Camera*                                                                          m_camera;
+    bool                                                                             m_renderDebug;
 };

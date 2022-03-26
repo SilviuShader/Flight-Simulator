@@ -8,7 +8,8 @@
 #include "Material.h"
 #include <unordered_map>
 
-#include <glm/glm.hpp>
+#include "Light.h"
+#include "Camera.h"
 
 class Shader
 {
@@ -20,8 +21,12 @@ public:
 
     Shader(const std::string, const std::string, const std::string = "", const std::string = "");
     Shader(const std::string);
+    ~Shader();
 
     void Use();
+
+    bool HasUniform(const std::string&);
+    bool HasLightUniforms();
 
     void SetBool(const std::string&, bool);
     void SetInt(const std::string&, int);
@@ -34,6 +39,7 @@ public:
     void SetTexture(const std::string&, Texture*, int);
     void SetCubemap(const std::string&, Cubemap*, int);
     void SetImage2D(const std::string&, Texture*, int, Texture::Format);
+    void SetLight(Camera*, Light*);
     int  SetMaterials(const std::string&, const std::string&, const std::string&, const std::vector<Material*>&, int);
 
 private:
@@ -44,7 +50,8 @@ private:
 
 private:
 
-    int                                  m_programId;
-    std::unordered_map<std::string, int> m_uniformLocations;
-    std::unordered_map<std::string, int> m_uniformBlocksIndices;
+    int                                   m_programId;
+    std::unordered_map<std::string, int>  m_uniformLocations;
+    std::unordered_map<std::string, int>  m_uniformBlocksIndices;
+    std::unordered_map<std::string, bool> m_hasUniform;
 };

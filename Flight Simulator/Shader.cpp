@@ -149,9 +149,38 @@ Shader::Shader(const string computePath)
     glDeleteShader(compute);
 }
 
+Shader::~Shader()
+{
+    m_hasUniform.clear();
+    m_uniformBlocksIndices.clear();
+    m_uniformLocations.clear();
+
+    glDeleteProgram(m_programId);
+}
+
 void Shader::Use()
 {
     glUseProgram(m_programId);
+}
+
+bool Shader::HasUniform(const string& name)
+{
+    if (m_hasUniform.find(name) == m_hasUniform.end())
+    {
+        int location           = glGetUniformLocation(m_programId, name.c_str());
+            m_hasUniform[name] = location != -1;
+    }
+
+    return m_hasUniform[name];
+}
+
+bool Shader::HasLightUniforms()
+{
+    return HasUniform("AmbientColor")   && 
+           HasUniform("DiffuseColor")   && 
+           HasUniform("LightDirection") && 
+           HasUniform("SpecularPower")  && 
+           HasUniform("CameraPosition");
 }
 
 void Shader::SetBool(const string& name, bool value)
@@ -213,6 +242,15 @@ void Shader::SetImage2D(const string& name, Texture* texture, int textureNumber,
 {
     glBindImageTexture(textureNumber, texture->GetTextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, Texture::GetGLFormat(format));
     SetInt(name, textureNumber);
+}
+
+void Shader::SetLight(Camera* camera, Light* light)
+{
+    SetVec4("AmbientColor",   light->GetAmbientColor());
+    SetVec4("DiffuseColor",   light->GetDiffuseColor());
+    SetVec3("LightDirection", light->GetLightDirection());
+    SetFloat("SpecularPower", light->GetSpecularPower());
+    SetVec3("CameraPosition", camera->GetPosition());
 }
 
 int Shader::SetMaterials(const string& texturesName, const string& normalTexturesName, const string& specularTexturesName, const vector<Material*>& materials, int startingTextureNumber)

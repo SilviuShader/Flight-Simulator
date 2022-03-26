@@ -13,8 +13,9 @@ public:
 	{
 	public:
 
-		ModelLevelOfDetail(Model* model, float scale = 1.0f, float maxDistance = 1.0f, bool bilboarded = false) :
+		ModelLevelOfDetail(Model* model, Shader* shader, float scale = 1.0f, float maxDistance = 1.0f, bool bilboarded = false) :
 			Model(model),
+			Shader(shader),
 			Scale(scale),
 			MaxDistance(maxDistance),
 			Bilboarded(bilboarded)
@@ -24,6 +25,7 @@ public:
 		bool operator==(const ModelLevelOfDetail& other) const
 		{
 			return Model       == other.Model       &&
+				   Shader      == other.Shader      &&
 				   Scale       == other.Scale       &&
 			       MaxDistance == other.MaxDistance &&
 				   Bilboarded  == other.Bilboarded;
@@ -31,10 +33,11 @@ public:
 
 	public:
 
-		Model* Model;
-		float  Scale;
-		float  MaxDistance;
-		bool   Bilboarded;
+		Model*  Model;
+		Shader* Shader;
+		float   Scale;
+		float   MaxDistance;
+		bool    Bilboarded;
 	};
 
 	struct FolliageModel
@@ -92,6 +95,7 @@ public:
 			{
 				// TODO: create a hash-combine function.
 				res = res * 31 + std::hash<int>()((int)lod.Model);
+				res = res * 32 + std::hash<int>()((int)lod.Shader);
 				res = res * 31 + std::hash<float>()(lod.Scale);
 				res = res * 31 + std::hash<float>()(lod.MaxDistance);
 				res = res * 31 + std::hash<bool>()(lod.Bilboarded);
