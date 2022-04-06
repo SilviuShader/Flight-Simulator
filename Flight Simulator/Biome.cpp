@@ -1,13 +1,14 @@
 #include "Biome.h"
+#include "MathHelper.h"
 
 using namespace std;
 
-unordered_map<Material*, int> Biome::g_materials              = unordered_map<Material*, int>();
-unordered_set<Model*>         Biome::g_folliageModels         = unordered_set<Model*>();
-vector<Texture*>              Biome::g_createdTextures        = vector<Texture*>();
-vector<Biome*>                Biome::g_biomeInstances         = vector<Biome*>();
+unordered_map<Material*, int> Biome::g_materials       = unordered_map<Material*, int>();
+unordered_set<Model*>         Biome::g_folliageModels  = unordered_set<Model*>();
+vector<Texture*>              Biome::g_createdTextures = vector<Texture*>();
+vector<Biome*>                Biome::g_biomeInstances  = vector<Biome*>();
 
-int                           Biome::g_levelsPerBiomeCount = 0;
+int                           Biome::g_levelsPerBiome  = 1;
 
 Biome::~Biome()
 {
@@ -32,8 +33,6 @@ void Biome::AddTerrainLevel(Material* material, const std::vector<FolliageModel>
 	}
 
 	m_terrainLevels.push_back(TerrainLevel{ material, models });
-
-	g_levelsPerBiomeCount = max(g_levelsPerBiomeCount, (int)m_terrainLevels.size());
 }
 
 vector<Biome::TerrainLevel>& Biome::GetTerrainLevels()
@@ -50,12 +49,17 @@ Biome* Biome::CreateBiome()
 
 Texture* Biome::CreateBiomesTexture()
 {
-	int biomesCount       = g_biomeInstances.size();
+	int biomesCount         = g_biomeInstances.size();
+	    g_levelsPerBiome    = 1;
 
-	int    biomesDataSize = biomesCount * g_levelsPerBiomeCount;
+	for (auto& biomeInstance : g_biomeInstances)
+		g_levelsPerBiome = MathHelper::LCM(g_levelsPerBiome,
+			                               biomeInstance->m_terrainLevels.size());
+
+	int    biomesDataSize = biomesCount * g_levelsPerBiome;
 	float* biomesData     = new float[biomesDataSize];
-
-	int maxMaterialId     = g_materials.size() - 1;
+						  
+	int    maxMaterialId  = g_materials.size() - 1;
 
 	for (int biomeIndex = 0; biomeIndex < g_biomeInstances.size(); biomeIndex++)
 	{
@@ -63,14 +67,19 @@ Texture* Biome::CreateBiomesTexture()
 
 		for (int levelIndex = 0; levelIndex < biome->m_terrainLevels.size(); levelIndex++)
 		{
-			int textureIndex = levelIndex * g_biomeInstances.size() + biomeIndex;
-			Material* material = biome->m_terrainLevels[levelIndex].Material;
-			biomesData[textureIndex] = (float)g_materials[material] / (float)maxMaterialId;
+			int copiesCount = g_levelsPerBiome / biome->m_terrainLevels.size();
+
+			for (int copy = 0; copy < copiesCount; copy++)
+			{
+				int textureIndex = (levelIndex * copiesCount + copy) * g_biomeInstances.size() + biomeIndex;
+				Material* material = biome->m_terrainLevels[levelIndex].Material;
+				biomesData[textureIndex] = (float)g_materials[material] / (float)maxMaterialId;
+			}
 		}
 	}
 
 	Texture* resultTexture = new Texture(biomesCount,
-		                                 g_levelsPerBiomeCount,
+		                                 g_levelsPerBiome,
 		                                 Texture::Format::RED,
 		                                 Texture::Format::RED,
 		                                 Texture::Filter::Point,
@@ -99,20 +108,23 @@ vector<Material*> Biome::GetBiomesMaterials()
 
 vector<Biome::FolliageModelsVector> Biome::GetBiomeFolliageModels(float height, float biome)
 {
-	auto biomeData              = StepGradient(g_biomeInstances.size(), biome);
-	auto heightData             = StepGradient(g_levelsPerBiomeCount,   height);
+	auto biomeData                   = StepGradient(g_biomeInstances.size(), biome);
+	auto heightData                  = StepGradient(g_levelsPerBiome,        height);
+								    
+	int  currentBiome                = biomeData.first;
+	int  nextBiome                   = min(biomeData.first + 1, (int)g_biomeInstances.size() - 1);
+		 						    
+	int  currentAltitude             = heightData.first;
+	int  nextAltitude                = min(currentAltitude + 1, g_levelsPerBiome - 1);
+	int  nextAltitudeInNextBiome     = min(currentAltitude + 1, g_levelsPerBiome - 1);
+		 
+	int  divCurrentAltitude          = (g_levelsPerBiome / g_biomeInstances[currentBiome]->m_terrainLevels.size());
+	int  divCurrentAltitudeNextBiome = (g_levelsPerBiome / g_biomeInstances[nextBiome   ]->m_terrainLevels.size());
 
-	int currentBiome            = biomeData.first;
-	int nextBiome               = min(biomeData.first + 1, (int)g_biomeInstances.size() - 1);
-
-	int currentAltitude         = heightData.first;
-	int nextAltitude            = min(currentAltitude, (int)g_biomeInstances[currentBiome]->m_terrainLevels.size() - 1);
-	int nextAltitudeInNextBiome = min(currentAltitude, (int)g_biomeInstances[nextBiome   ]->m_terrainLevels.size() - 1);
-
-	auto currentModels           = g_biomeInstances[currentBiome]->m_terrainLevels[currentAltitude        ].FolliageModels;
-	auto nextBiomeModels         = g_biomeInstances[nextBiome   ]->m_terrainLevels[currentAltitude        ].FolliageModels;
-	auto nextAltitudeModels      = g_biomeInstances[currentBiome]->m_terrainLevels[nextAltitude           ].FolliageModels;
-	auto nextBiomeAltitudeModels = g_biomeInstances[nextBiome   ]->m_terrainLevels[nextAltitudeInNextBiome].FolliageModels;
+	auto currentModels               = g_biomeInstances[currentBiome]->m_terrainLevels[currentAltitude         / divCurrentAltitude         ].FolliageModels;
+	auto nextBiomeModels             = g_biomeInstances[nextBiome   ]->m_terrainLevels[currentAltitude         / divCurrentAltitudeNextBiome].FolliageModels;
+	auto nextAltitudeModels          = g_biomeInstances[currentBiome]->m_terrainLevels[nextAltitude            / divCurrentAltitude         ].FolliageModels;
+	auto nextBiomeAltitudeModels     = g_biomeInstances[nextBiome   ]->m_terrainLevels[nextAltitudeInNextBiome / divCurrentAltitudeNextBiome].FolliageModels;
 
 	FolliageModelsVector currentVector;
 	currentVector.Models = currentModels;
@@ -168,8 +180,6 @@ void Biome::Free()
 			delete model;
 
 	g_folliageModels.clear();	
-
-	g_levelsPerBiomeCount = 0;
 }
 
 pair<int, float> Biome::StepGradient(int totalValues, float t)

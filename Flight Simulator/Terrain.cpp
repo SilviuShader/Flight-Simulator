@@ -136,6 +136,9 @@ void Terrain::CreateTerrainObjects()
 
 	m_terrainBiomesData = Biome::CreateBiomesTexture();
 	m_terrainMaterials  = Biome::GetBiomesMaterials();
+
+	int a;
+	a = 0;
 }
 
 void Terrain::FreeTerrainObjects()

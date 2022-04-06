@@ -1,6 +1,6 @@
 #version 430 core
 
-#define TERRAIN_COLORS_COUNT 5
+#define TERRAIN_COLORS_COUNT 6
 
 layout (triangles, fractional_odd_spacing, ccw) in;
 
@@ -81,7 +81,7 @@ vec2 calculateBiome(vec2 pos, float height)
 
     float texColor = texture(BiomeTexture, uv).x;
 
-    return vec2(texColor, (height / TerrainAmplitude) * 2.0);
+    return vec2(texColor, (height / TerrainAmplitude));
 }
 
 void main()

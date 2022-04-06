@@ -158,5 +158,5 @@ private:
 	static std::vector<Texture*>              g_createdTextures;
 	static std::vector<Biome*>                g_biomeInstances;
 
-	static int                                g_levelsPerBiomeCount;
+	static int                                g_levelsPerBiome;
 };

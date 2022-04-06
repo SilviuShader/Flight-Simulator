@@ -64,4 +64,6 @@ public:
 
 	static Frustum  GetCameraFrustum(Camera*);
 	static unsigned PowerCeil(unsigned);
+	static int      GCD(int, int);
+	static int      LCM(int, int);
 };

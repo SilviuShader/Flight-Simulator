@@ -9,7 +9,6 @@
 
 #include "Mesh.h"
 
-// TODO: ADD TANGENT AND BINORMAL INFO
 class Model
 {
 public:

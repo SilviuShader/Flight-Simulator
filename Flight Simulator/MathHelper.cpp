@@ -98,3 +98,16 @@ unsigned MathHelper::PowerCeil(unsigned x)
 
 	return power;
 }
+
+int MathHelper::GCD(int a, int b)
+{
+	if (b != 0)
+		return GCD(b, a % b);
+	else
+		return a;
+}
+
+int MathHelper::LCM(int a, int b)
+{
+	return (a * b) / GCD(a, b);
+}
