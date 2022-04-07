@@ -8,11 +8,11 @@
 #include "Biome.h"
 #include "Terrain.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "ShaderManager.h"
 
 using namespace std;
 using namespace glm;
 
-const float Chunk::CHUNK_WIDTH      = 64.0f;
 const float Chunk::CHUNK_CLOSE_BIAS = 1.0f;
 
 Chunk::Node::Node()
@@ -41,23 +41,22 @@ Chunk::Node::~Node()
     }
 }
 
-Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chunkID, Shader* minShader, Shader* maxShader, Shader* averageShader) :
+Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
     m_vbo(0),
     m_ebo(0),
     m_vao(0),
-    m_terrainShader(terrainShader),
     m_perlinNoise(perlinNoise),
     m_chunkID(chunkID),
     m_quadTree(nullptr),
-    m_camera(nullptr),
     m_renderDebug(false)
 {
+    ShaderManager* shaderManager = ShaderManager::GetInstance();
     CreateTerrainBuffers();
 
     vec3 translation = GetTranslation();
 
-    vec2 startPosition = vec2(translation.x - CHUNK_WIDTH / 2.0f, translation.z - CHUNK_WIDTH / 2.0f);
-    vec2 endPosition   = vec2(translation.x + CHUNK_WIDTH / 2.0f, translation.z + CHUNK_WIDTH / 2.0f);
+    vec2 startPosition = vec2(translation.x - Terrain::CHUNK_WIDTH / 2.0f, translation.z - Terrain::CHUNK_WIDTH / 2.0f);
+    vec2 endPosition   = vec2(translation.x + Terrain::CHUNK_WIDTH / 2.0f, translation.z + Terrain::CHUNK_WIDTH / 2.0f);
 
     PerlinNoise::NoiseParameters heightParameters;
 
@@ -83,11 +82,11 @@ Chunk::Chunk(PerlinNoise* perlinNoise, Shader* terrainShader, pair<int, int> chu
             
             m_biomesTexture               = m_perlinNoise->RenderNoise(biomeParameters);
                                           
-    float** minValues                     = m_heightTexture->GetDownscaleValues({ minShader,     4, 8 }, QUAD_TREE_DEPTH);
-    float** maxValues                     = m_heightTexture->GetDownscaleValues({ maxShader,     4, 8 }, QUAD_TREE_DEPTH);
+    float** minValues                     = m_heightTexture->GetDownscaleValues({ shaderManager->GetMinShader(),     4, 8}, QUAD_TREE_DEPTH);
+    float** maxValues                     = m_heightTexture->GetDownscaleValues({ shaderManager->GetMaxShader(),     4, 8}, QUAD_TREE_DEPTH);
                                           
-    float** heightValues                  = m_heightTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
-    float** biomeValues                   = m_biomesTexture->GetDownscaleValues({ averageShader, 4, 8 }, HEIGHT_BIOME_DEPTH);
+    float** heightValues                  = m_heightTexture->GetDownscaleValues({ shaderManager->GetAverageShader(), 4, 8}, HEIGHT_BIOME_DEPTH);
+    float** biomeValues                   = m_biomesTexture->GetDownscaleValues({ shaderManager->GetAverageShader(), 4, 8 }, HEIGHT_BIOME_DEPTH);
                                           
     int     quadTreesDivisionsCount       = 1 << (QUAD_TREE_DEPTH - 1);
     int     heightBiomeDivisionsCount     = 1 << (HEIGHT_BIOME_DEPTH - 1);
@@ -247,7 +246,6 @@ Chunk::~Chunk()
 
 void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
 {
-    m_camera      = camera;
     m_renderDebug = renderDebug;
 
     m_zoneRangesIndex = 0;
@@ -260,7 +258,7 @@ void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
     for (auto& folliageModel : m_folliageModelsInstances)
         m_folliageModelsInstances[folliageModel.first].clear();
     
-    FillFolliageInstances(cameraFrustum, m_quadTree);
+    FillFolliageInstances(camera, cameraFrustum, m_quadTree);
     
     for (auto& model : m_folliageModelsInstances)
     {
@@ -274,56 +272,59 @@ void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
     }
 }
 
-void Chunk::DrawTerrain(Light* light, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
+void Chunk::DrawTerrain(Camera* camera, Light* light, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
 {
-    vec3 cameraPosition = m_camera->GetPosition();
+    vec3           cameraPosition = camera->GetPosition();
+                   
+    mat4           model          = translate(mat4(1.0f), GetTranslation());
+    mat4           view           = camera->GetViewMatrix();
+    mat4           projection     = camera->GetProjectionMatrix();
 
-    mat4 model          = translate(mat4(1.0f), GetTranslation());
-    mat4 view           = m_camera->GetViewMatrix();
-    mat4 projection     = m_camera->GetProjectionMatrix();
+    ShaderManager* shaderManager  = ShaderManager::GetInstance();
+    Shader*        terrainShader  = shaderManager->GetTerrainShader();
 
-    m_terrainShader->Use();
+    terrainShader->Use();
 
-    m_terrainShader->SetMatrix4("Model",                     model);
+    terrainShader->SetMatrix4("Model",                     model);
 
-    m_terrainShader->SetVec3("CameraPosition",               cameraPosition);
-    m_terrainShader->SetFloat("DistanceForDetails",          DISTANCE_FOR_DETAILS);
-    m_terrainShader->SetFloat("TessellationLevel",           MAX_TESSELATION);
+    terrainShader->SetVec3("CameraPosition",               cameraPosition);
+    terrainShader->SetFloat("DistanceForDetails",          Terrain::DISTANCE_FOR_DETAILS);
+    terrainShader->SetFloat("TessellationLevel",           Terrain::MAX_TESSELATION);
 
-    m_terrainShader->SetTexture("HeightTexture",             m_heightTexture, 0);
-    m_terrainShader->SetTexture("BiomeTexture",              m_biomesTexture, 1);
+    terrainShader->SetTexture("HeightTexture",             m_heightTexture, 0);
+    terrainShader->SetTexture("BiomeTexture",              m_biomesTexture, 1);
 
-    m_terrainShader->SetMatrix4("View",                      view);
-    m_terrainShader->SetMatrix4("Projection",                projection);
+    terrainShader->SetMatrix4("View",                      view);
+    terrainShader->SetMatrix4("Projection",                projection);
 
-    m_terrainShader->SetFloat("TerrainWidth",                CHUNK_WIDTH);
-    m_terrainShader->SetFloat("GridWidth",                   CHUNK_GRID_WIDTH);
-    m_terrainShader->SetFloat("GridHeight",                  CHUNK_GRID_HEIGHT);
-    m_terrainShader->SetFloat("TerrainAmplitude",            TERRAIN_AMPLITUDE);
+    terrainShader->SetFloat("TerrainWidth",                Terrain::CHUNK_WIDTH);
+    terrainShader->SetFloat("GridWidth",                   CHUNK_GRID_WIDTH);
+    terrainShader->SetFloat("GridHeight",                  CHUNK_GRID_HEIGHT);
+    terrainShader->SetFloat("TerrainAmplitude",            Terrain::TERRAIN_AMPLITUDE);
 
-    m_terrainShader->SetFloat("Gamma",                       GAMMA);
+    terrainShader->SetFloat("Gamma",                       Terrain::GAMMA);
 
-    m_terrainShader->SetLight(m_camera, light);
+    terrainShader->SetLight(camera, light);
 
-    m_terrainShader->SetInt("BiomesCount",                   terrainBiomesData->GetWidth());
-    m_terrainShader->SetInt("MaterialsPerBiome",             terrainBiomesData->GetHeight());
+    terrainShader->SetInt("BiomesCount",                   terrainBiomesData->GetWidth());
+    terrainShader->SetInt("MaterialsPerBiome",             terrainBiomesData->GetHeight());
 
-    m_terrainShader->SetTexture("BiomeMaterialsTexture",     terrainBiomesData, 2);
+    terrainShader->SetTexture("BiomeMaterialsTexture",     terrainBiomesData, 2);
 
-    m_terrainShader->SetMaterials("TerrainTextures", 
-                                  "TerrainNormalTextures", 
-                                  "TerrainSpecularTextures", terrainMaterials,  3);
+    terrainShader->SetMaterials("TerrainTextures",
+                                "TerrainNormalTextures", 
+                                "TerrainSpecularTextures", terrainMaterials,  3);
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_zoneRangesIndex);
 }
 
-void Chunk::DrawFolliage(Light* light)
+void Chunk::DrawFolliage(Camera* camera, Light* light)
 {
     mat4 model      = translate(mat4(1.0f), GetTranslation());
-    mat4 view       = m_camera->GetViewMatrix();
-    mat4 projection = m_camera->GetProjectionMatrix();
+    mat4 view       = camera->GetViewMatrix();
+    mat4 projection = camera->GetProjectionMatrix();
 
     for (auto& keyValue : m_folliageModelsInstances)
     {
@@ -338,15 +339,15 @@ void Chunk::DrawFolliage(Light* light)
 
         shader->SetVec3("ChunkCenter",       GetTranslation());
 
-        shader->SetFloat("TerrainWidth",     CHUNK_WIDTH);
+        shader->SetFloat("TerrainWidth",     Terrain::CHUNK_WIDTH);
         shader->SetFloat("GridWidth",        CHUNK_GRID_WIDTH);
         shader->SetFloat("GridHeight",       CHUNK_GRID_HEIGHT);
-        shader->SetFloat("TerrainAmplitude", TERRAIN_AMPLITUDE);
+        shader->SetFloat("TerrainAmplitude", Terrain::TERRAIN_AMPLITUDE);
 
         shader->SetTexture("NoiseTexture",   m_heightTexture, 0);
 
         if (shader->HasLightUniforms())
-            shader->SetLight(m_camera, light);
+            shader->SetLight(camera, light);
 
         model->SetInstances(keyValue.second);
         model->Draw(shader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
@@ -360,9 +361,9 @@ vec3 Chunk::GetTranslation() const
 
 vec3 Chunk::GetPositionForChunkId(Vec2Int chunkId)
 {
-    return vec3(chunkId.first * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS),
+    return vec3(chunkId.first  * (Terrain::CHUNK_WIDTH - CHUNK_CLOSE_BIAS),
                 0.0f,
-                chunkId.second * (CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
+                chunkId.second * (Terrain::CHUNK_WIDTH - CHUNK_CLOSE_BIAS));
 }
 
 void Chunk::CreateTerrainBuffers()
@@ -471,8 +472,8 @@ void Chunk::FreeTerrainBuffers()
 void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> heightBiome, pair<float**, float**> folliageRandomnessValues)
 {
     m_quadTree = CreateNode(0, 
-                            vec2(-CHUNK_WIDTH / 2.0f, -CHUNK_WIDTH / 2.0f), 
-                            vec2(CHUNK_WIDTH / 2.0f, CHUNK_WIDTH / 2.0f), 
+                            vec2(-Terrain::CHUNK_WIDTH / 2.0f, -Terrain::CHUNK_WIDTH / 2.0f),
+                            vec2( Terrain::CHUNK_WIDTH / 2.0f,  Terrain::CHUNK_WIDTH / 2.0f),
                             make_pair(0, 0),
                             minMax,
                             heightBiome,
@@ -492,15 +493,15 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
     vec3 boundingBoxCenter  = vec3((bottomLeft.x + topRight.x) * 0.5f, 0.0f,
                                    (bottomLeft.y + topRight.y) * 0.5f) + GetTranslation();
 
-    vec3 boundingBoxExtents = vec3((topRight.x - bottomLeft.x) * 0.5f, TERRAIN_AMPLITUDE, 
+    vec3 boundingBoxExtents = vec3((topRight.x - bottomLeft.x) * 0.5f, Terrain::TERRAIN_AMPLITUDE, 
                                    (topRight.y - bottomLeft.y) * 0.5f);
 
     if (depth == QUAD_TREE_DEPTH - 1)
     {
         result->IsLeaf = true;
 
-        float minAmplitude = minMax.first [positionId.first][positionId.second] * TERRAIN_AMPLITUDE;
-        float maxAmplitude = minMax.second[positionId.first][positionId.second] * TERRAIN_AMPLITUDE;
+        float minAmplitude = minMax.first [positionId.first][positionId.second] * Terrain::TERRAIN_AMPLITUDE;
+        float maxAmplitude = minMax.second[positionId.first][positionId.second] * Terrain::TERRAIN_AMPLITUDE;
 
         float center       = (maxAmplitude + minAmplitude) / 2.0f;
         float extents      = (maxAmplitude - minAmplitude) / 2.0f;
@@ -546,8 +547,8 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
                                          heightBiome,
                                          folliageRandomnessValues);
 
-        float maxAmplitude  = -TERRAIN_AMPLITUDE;
-        float minAmplitude  = TERRAIN_AMPLITUDE;
+        float maxAmplitude  = -Terrain::TERRAIN_AMPLITUDE;
+        float minAmplitude  =  Terrain::TERRAIN_AMPLITUDE;
 
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
         {
@@ -645,7 +646,7 @@ void Chunk::UpdateZoneRangesBuffer()
 }
 
 
-void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node)
+void Chunk::FillFolliageInstances(Camera* camera, const MathHelper::Frustum& frustum, Node* node)
 {
     if (!node->BoundingBox.IsOnFrustum(frustum))
         return;
@@ -654,7 +655,7 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
     {
         for (auto& biomeModel : node->DesiredInstances)
         {
-            vec3 cameraPosition = m_camera->GetPosition();
+            vec3 cameraPosition = camera->GetPosition();
 
             for (auto& folliageProperties : biomeModel.second)
             {
@@ -666,7 +667,7 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
                 float   dist           = distance(vec2(translation.x,    translation.z), 
                                                   vec2(cameraPosition.x, cameraPosition.z));
 
-                float   distPercentage = dist / m_camera->GetFar();
+                float   distPercentage = dist / camera->GetFar();
 
                 auto&   modelLODs      = biomeModel.first.ModelLODs;
                 int     lodsCount      = modelLODs.size();
@@ -714,6 +715,6 @@ void Chunk::FillFolliageInstances(const MathHelper::Frustum& frustum, Node* node
     else
     {
         for (int i = 0; i < Node::CHILDREN_COUNT; i++)
-            FillFolliageInstances(frustum, node->Children[i]);
+            FillFolliageInstances(camera, frustum, node->Children[i]);
     }
 }

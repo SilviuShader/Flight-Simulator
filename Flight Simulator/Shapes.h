@@ -34,8 +34,6 @@ private:
 		   unsigned int           m_instanceVbo;
 	       unsigned int           m_ebo;
 	       unsigned int           m_vao;
-	
-	       Shader*                m_colorShader;
 		   
 		   std::vector<glm::mat4> m_instances;
 

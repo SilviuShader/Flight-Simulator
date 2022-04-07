@@ -7,6 +7,12 @@ class Terrain
 {
 public:
 
+	static const float CHUNK_WIDTH;
+	static const float TERRAIN_AMPLITUDE;
+	static const float DISTANCE_FOR_DETAILS;
+	static const float MAX_TESSELATION;
+	static const float GAMMA;
+
 	static const float HEIGHT_FREQUENCY;
 	static const float HEIGHT_FUDGE_FACTOR;
 	static const float HEIGHT_EXPONENT;
@@ -40,7 +46,7 @@ public:
 	~Terrain();
 
 	void Udpate(Camera*, float, bool);
-	void Draw(Light*);
+	void Draw(Camera*, Light*);
 
 private:
 
@@ -57,17 +63,9 @@ private:
 	std::vector<Chunk*>                                       m_chunksList;
 												              
 	PerlinNoise*                                              m_noise;
-	Shader*                                                   m_terrainShader;
-												              
-	Shader*                                                   m_folliageShader;
-	Shader*                                                   m_folliageBilboardedShader;
 												              
 	std::vector<Material*>                                    m_terrainMaterials;
 	Texture*                                                  m_terrainBiomesData;
-												              
-	Shader*                                                   m_minShader;
-	Shader*                                                   m_maxShader;
-	Shader*                                                   m_averageShader;
 												              
 	float                                                     m_accumulatedCurrentChunksTime;
 												              

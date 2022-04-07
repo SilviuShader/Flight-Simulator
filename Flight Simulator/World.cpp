@@ -73,7 +73,7 @@ void World::Draw()
 {
 	m_skybox->Draw(m_camera);
 
-	m_terrain->Draw(m_light);
+	m_terrain->Draw(m_camera, m_light);
 
 	if (m_renderDebug)
 		Shapes::GetInstance()->DrawRectangles(m_camera);

@@ -50,22 +50,14 @@ private:
 
 public:
 
-    static const float CHUNK_WIDTH;
     static const float CHUNK_CLOSE_BIAS;
 
 private:
-           const float TERRAIN_AMPLITUDE     = 75.0f;
            const float FOLLIAGE_HEIGHT_BIAS  = 2.5f;
 
-           const float DISTANCE_FOR_DETAILS  = 512.0f;
-           const float MAX_TESSELATION       = 16.0f;
            const float TEX_COORDS_MULTIPLIER = 0.2f;
 
-           const float GAMMA                 = 1.2f;
-
            const int   NOISE_TEXTURE_SIZE    = 1024;
-
-    static const int   COLORS_COUNT          = 5;
 
     static const int   CHUNK_GRID_WIDTH      = 8;
     static const int   CHUNK_GRID_HEIGHT     = 8;
@@ -77,12 +69,12 @@ private:
 
 public:
 
-    Chunk(PerlinNoise*, Shader*, std::pair<int, int>, Shader*, Shader*, Shader*);
+    Chunk(PerlinNoise*, std::pair<int, int>);
     ~Chunk();
 
            void      Update(Camera*, float, bool);
-           void      DrawTerrain(Light*, const std::vector<Material*>&, Texture*);
-           void      DrawFolliage(Light*);
+           void      DrawTerrain(Camera*, Light*, const std::vector<Material*>&, Texture*);
+           void      DrawFolliage(Camera*, Light*);
 
            glm::vec3 GetTranslation() const;
 
@@ -100,7 +92,7 @@ private:
                 void  FillZoneRanges(const MathHelper::Frustum&, Node*);
                 void  UpdateZoneRangesBuffer();
                       
-                void  FillFolliageInstances(const MathHelper::Frustum&, Node*);
+                void  FillFolliageInstances(Camera*, const MathHelper::Frustum&, Node*);
 
           template<typename T>
           const T&    RouletteWheelSelection(const std::vector<T>& models, float r)
@@ -140,7 +132,6 @@ private:
     unsigned int                                                                                 m_ebo;
     unsigned int                                                                                 m_vao;
                                                                                                  
-    Shader*                                                                                      m_terrainShader;
     PerlinNoise*                                                                                 m_perlinNoise;
     Texture*                                                                                     m_heightTexture;
     Texture*                                                                                     m_biomesTexture;
@@ -152,6 +143,5 @@ private:
                                                                                                  
     Node*                                                                                        m_quadTree;
                                                                                                  
-    Camera*                                                                                      m_camera;
     bool                                                                                         m_renderDebug;
 };

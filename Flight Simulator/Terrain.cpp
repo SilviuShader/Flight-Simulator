@@ -1,9 +1,16 @@
 #include "Terrain.h"
 
 #include <queue>
+#include "ShaderManager.h"
 
 using namespace std;
 using namespace glm;
+
+const float Terrain::CHUNK_WIDTH                                 = 64.0f;
+const float Terrain::TERRAIN_AMPLITUDE                           = 75.0f;
+const float Terrain::DISTANCE_FOR_DETAILS                        = 512.0f;
+const float Terrain::MAX_TESSELATION                             = 16.0f;
+const float Terrain::GAMMA                                       = 1.5f;
 
 const float Terrain::HEIGHT_FREQUENCY                            = 0.025f;
 const float Terrain::HEIGHT_FUDGE_FACTOR                         = 1.2f;
@@ -32,38 +39,10 @@ Terrain::Terrain() :
 	m_firstFrame(true)
 {
 	CreateTerrainObjects();
-
-	m_minShader      = new Shader("Shaders/MinMipMap.comp");
-	m_maxShader      = new Shader("Shaders/MaxMipMap.comp");
-	m_averageShader  = new Shader("Shaders/AverageMipMap.comp");
 }
 
 Terrain::~Terrain()
 {
-	if (m_averageShader)
-	{
-		delete m_averageShader;
-		m_averageShader = nullptr;
-	}
-
-	if (m_maxShader)
-	{
-		delete m_maxShader;
-		m_maxShader = nullptr;
-	}
-
-	if (m_minShader)
-	{
-		delete m_minShader;
-		m_minShader = nullptr;
-	}
-
-	if (m_folliageShader)
-	{
-		delete m_folliageShader;
-		m_folliageShader = nullptr;
-	}
-
 	for (auto& keyVal : m_chunks)
 	{
 		if (keyVal.second)
@@ -88,23 +67,18 @@ void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug)
 	m_firstFrame = false;
 }
 
-void Terrain::Draw(Light* light)
+void Terrain::Draw(Camera* camera, Light* light)
 {
 	for (auto& chunk : m_chunksList)
-		chunk->DrawTerrain(light, m_terrainMaterials, m_terrainBiomesData);
+		chunk->DrawTerrain(camera, light, m_terrainMaterials, m_terrainBiomesData);
 
 	for (auto& chunk : m_chunksList)
-		chunk->DrawFolliage(light);
+		chunk->DrawFolliage(camera, light);
 }
 
 void Terrain::CreateTerrainObjects()
 {
 	          m_noise                    = new PerlinNoise();
-	          m_terrainShader            = new Shader("Shaders/Terrain.vert", "Shaders/Terrain.frag",
-	          	                                      "Shaders/Terrain.tesc", "Shaders/Terrain.tese");
-
-			  m_folliageShader           = new Shader("Shaders/Folliage.vert",         "Shaders/Folliage.frag");
-			  m_folliageBilboardedShader = new Shader("Shaders/FolliageBilboard.vert", "Shaders/FolliageBilboard.frag");
 
 	Material* snow2                      = new Material("Assets/snow_02_diff_1k.png",             "Assets/snow_02_nor_gl_1k.png",             "Assets/snow_02_spec_1k.png");
 	Material* medievalBlocks             = new Material("Assets/medieval_blocks_02_diff_1k.png",  "Assets/medieval_blocks_02_nor_gl_1k.png",  "Assets/medieval_blocks_02_spec_1k.png");
@@ -112,7 +86,6 @@ void Terrain::CreateTerrainObjects()
 	Material* forestLeaves               = new Material("Assets/forest_leaves_03_diff_1k.png",    "Assets/forest_leaves_03_nor_gl_1k.png");
 	Material* snowFieldAerial            = new Material("Assets/snow_field_aerial_col_1k.png",    "Assets/snow_field_aerial_nor_gl_1k.png");
 	Material* snow3                      = new Material("Assets/snow_03_diff_1k.png",             "Assets/snow_03_nor_gl_1k.png",             "Assets/snow_03_spec_1k.png");
-
 
 	Biome* iceBiome = Biome::CreateBiome();
 
@@ -123,10 +96,12 @@ void Terrain::CreateTerrainObjects()
 
 	Biome* forestBiome = Biome::CreateBiome();
 
+	ShaderManager* shaderManager = ShaderManager::GetInstance();
+
 	Biome::FolliageModel grassModel = Biome::FolliageModel(
 		{
-			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), m_folliageShader,           0.05f, 0.05f),
-			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), m_folliageBilboardedShader, 5.0f,   1.0f, true)
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/grass.obj",         true), shaderManager->GetFolliageShader(),           0.05f, 0.05f),
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), shaderManager->GetFolliageBilboardedShader(), 5.0f,   1.0f, true)
 		}, 1.0f);
 
 	forestBiome->AddTerrainLevel(forestLeaves, { grassModel });
@@ -136,32 +111,11 @@ void Terrain::CreateTerrainObjects()
 
 	m_terrainBiomesData = Biome::CreateBiomesTexture();
 	m_terrainMaterials  = Biome::GetBiomesMaterials();
-
-	int a;
-	a = 0;
 }
 
 void Terrain::FreeTerrainObjects()
 {
 	Biome::Free();
-
-	if (m_folliageBilboardedShader)
-	{
-		delete m_folliageBilboardedShader;
-		m_folliageBilboardedShader = nullptr;
-	}
-
-	if (m_folliageShader)
-	{
-		delete m_folliageShader;
-		m_folliageShader = nullptr;
-	}
-
-	if (m_terrainShader)
-	{
-		delete m_terrainShader;
-		m_terrainShader = nullptr;
-	}
 
 	if (m_noise)
 	{
@@ -173,12 +127,12 @@ void Terrain::FreeTerrainObjects()
 void Terrain::UpdateChunksVisibility(Camera* camera, float deltaTime, int diffSize)
 {
 	vec3                                         cameraPos         = camera->GetPosition();
-	vec3                                         cameraChunkOrigin = cameraPos - vec3((Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f,
+	vec3                                         cameraChunkOrigin = cameraPos - vec3((CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f,
                                                                                       0.0f,
-                                                                                      (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
+                                                                                      (CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS) / 2.0f);
 									             
-	Vec2Int                                      currentID         = make_pair(int(cameraChunkOrigin.x / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)),
-		                                                                       int(cameraChunkOrigin.z / (Chunk::CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
+	Vec2Int                                      currentID         = make_pair(int(cameraChunkOrigin.x / (CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)),
+		                                                                       int(cameraChunkOrigin.z / (CHUNK_WIDTH - Chunk::CHUNK_CLOSE_BIAS)));
 									             
 	queue<Vec2Int>                               exploreChunksQueue;
 	unordered_set<Vec2Int, HashHelper::HashPair> targetChunksSet;
@@ -257,7 +211,7 @@ void Terrain::UpdateChunksVisibility(Camera* camera, float deltaTime, int diffSi
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, m_terrainShader, targetChunk, m_minShader, m_maxShader, m_averageShader);
+				Chunk* chunk = new Chunk(m_noise, targetChunk);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

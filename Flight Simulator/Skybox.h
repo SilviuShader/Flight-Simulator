@@ -24,6 +24,5 @@ private:
 	unsigned int m_ebo;
 	unsigned int m_vao;
 
-	Shader*      m_skyboxShader;
 	Cubemap*     m_cubemap;
 };

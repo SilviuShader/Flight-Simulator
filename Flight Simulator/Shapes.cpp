@@ -2,6 +2,7 @@
 #include "Shapes.h"
 #include <glm/ext/matrix_transform.hpp>
 #include "VertexTypes.h"
+#include "ShaderManager.h"
 
 using namespace glm;
 
@@ -9,12 +10,6 @@ Shapes* Shapes::g_instance = nullptr;
 
 Shapes::~Shapes()
 {
-	if (m_colorShader)
-	{
-		delete m_colorShader;
-		m_colorShader = nullptr;
-	}
-
 	FreeCubeBuffers();
 }
 
@@ -47,6 +42,9 @@ void Shapes::AddInstance(const vec3& center, const vec3& extents)
 
 void Shapes::DrawRectangles(Camera* camera)
 {
+	ShaderManager* shaderManager = ShaderManager::GetInstance();
+	Shader*        colorShader   = shaderManager->GetColorShader();
+
 	glBindBuffer(GL_ARRAY_BUFFER, m_instanceVbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(mat4) * m_instances.size(), ((m_instances.size()) ? &m_instances[0] : NULL), GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -54,10 +52,10 @@ void Shapes::DrawRectangles(Camera* camera)
 	mat4 view       = camera->GetViewMatrix();
 	mat4 projection = camera->GetProjectionMatrix();
 
-	m_colorShader->Use();
+	colorShader->Use();
 
-	m_colorShader->SetMatrix4("View",       view);
-	m_colorShader->SetMatrix4("Projection", projection);
+	colorShader->SetMatrix4("View",       view);
+	colorShader->SetMatrix4("Projection", projection);
 
 	glLineWidth(1.0);
 
@@ -69,8 +67,6 @@ void Shapes::DrawRectangles(Camera* camera)
 Shapes::Shapes()
 {
 	CreateCubeBuffers();
-
-	m_colorShader = new Shader("Shaders/Color.vert", "Shaders/Color.frag");
 }
 
 void Shapes::CreateCubeBuffers()

@@ -18,6 +18,7 @@
 #include "Shapes.h"
 #include "InputWrapper.h"
 #include "TextureLoadHelper.h"
+#include "ShaderManager.h"
 
 using namespace std;
 using namespace glm;
@@ -133,6 +134,7 @@ int main(int argc, char const* argv[])
     TextureLoadHelper::FreeInstance();
     InputWrapper::FreeInstance();
     Shapes::FreeInstance();
+    ShaderManager::FreeInstance();
 
     if (g_world)
     {
