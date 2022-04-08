@@ -158,15 +158,17 @@
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
-    <ClCompile Include="Shapes.cpp" />
+    <ClCompile Include="DebugHelper.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Texture3D.cpp" />
     <ClCompile Include="TextureLoadHelper.cpp" />
     <ClCompile Include="VertexTypes.cpp" />
     <ClCompile Include="World.cpp" />
+    <ClCompile Include="WorleyNoise.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Biome.h" />
@@ -184,15 +186,17 @@
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderManager.h" />
-    <ClInclude Include="Shapes.h" />
+    <ClInclude Include="DebugHelper.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Texture3D.h" />
     <ClInclude Include="TextureLoadHelper.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="VertexTypes.h" />
     <ClInclude Include="World.h" />
+    <ClInclude Include="WorleyNoise.h" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="shaders\Terrain.frag">
@@ -546,7 +550,7 @@
     </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="Shaders\Noise.comp">
+    <CopyFileToFolders Include="Shaders\PerlinNoise.comp">
       <FileType>Document</FileType>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Shaders</DestinationFolders>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Shaders</DestinationFolders>
@@ -712,6 +716,31 @@
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\Shaders</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\FolliageBilboard.vert">
+      <FileType>Document</FileType>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\Shaders</DestinationFolders>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="Shaders\WorleyNoise.comp">
+      <FileType>Document</FileType>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\Shaders</DestinationFolders>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="Shaders\Texture3DSlice.frag">
+      <FileType>Document</FileType>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\Shaders</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Texture3DSlice.vert">
       <FileType>Document</FileType>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Shaders</DestinationFolders>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Shaders</DestinationFolders>

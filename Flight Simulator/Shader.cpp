@@ -231,6 +231,13 @@ void Shader::SetTexture(const string& name, Texture* texture, int textureNumber)
     SetInt(name, textureNumber);
 }
 
+void Shader::SetTexture3D(const string& name, Texture3D* texture, int textureNumber)
+{
+    glActiveTexture(GL_TEXTURE0 + textureNumber);
+    glBindTexture(GL_TEXTURE_3D, texture->GetTextureID());
+    SetInt(name, textureNumber);
+}
+
 void Shader::SetCubemap(const string& name, Cubemap* cubemap, int textureNumber)
 {
     glActiveTexture(GL_TEXTURE0 + textureNumber);
@@ -241,6 +248,12 @@ void Shader::SetCubemap(const string& name, Cubemap* cubemap, int textureNumber)
 void Shader::SetImage2D(const string& name, Texture* texture, int textureNumber, Texture::Format format)
 {
     glBindImageTexture(textureNumber, texture->GetTextureID(), 0, GL_FALSE, 0, GL_READ_WRITE, Texture::GetGLFormat(format));
+    SetInt(name, textureNumber);
+}
+
+void Shader::SetImage3D(const string& name, Texture3D* texture3D, int textureNumber, Texture::Format format)
+{
+    glBindImageTexture(textureNumber, texture3D->GetTextureID(), 0, GL_TRUE, 0, GL_READ_WRITE, Texture::GetGLFormat(format));
     SetInt(name, textureNumber);
 }
 

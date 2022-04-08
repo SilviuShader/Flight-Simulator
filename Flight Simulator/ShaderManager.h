@@ -22,6 +22,10 @@ public:
 		   Shader*        GetSkyboxShader()             const;
 
 		   Shader*        GetColorShader()              const;
+		   Shader*        GetTexture3DSliceShader()     const;
+
+		   Shader*        GetPerlinNoiseShader()        const;
+		   Shader*        GetWorleyNoiseShader()        const;
 
 		   Shader*        GetMinShader()                const;
 		   Shader*        GetMaxShader()                const;
@@ -41,6 +45,10 @@ private:
 		   Shader*        m_skyboxShader;
 
 		   Shader*        m_colorShader;
+		   Shader*        m_texture3DSliceShader;
+
+		   Shader*        m_perlinNoiseShader;
+		   Shader*        m_worleyNoiseShader;
 	       		          
 	       Shader*        m_minShader;
 	       Shader*        m_maxShader;

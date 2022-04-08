@@ -3,7 +3,7 @@
 #include "glad/glad.h"
 
 #include "Chunk.h"
-#include "Shapes.h"
+#include "DebugHelper.h"
 #include "VertexTypes.h"
 #include "Biome.h"
 #include "Terrain.h"
@@ -629,7 +629,7 @@ void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node)
         m_drawZonesRanges[m_zoneRangesIndex++] = node->ZoneRange;
 
         if (m_renderDebug)
-            Shapes::GetInstance()->AddInstance(node->BoundingBox.Center, node->BoundingBox.Extents);
+            DebugHelper::GetInstance()->AddRectangleInstance(node->BoundingBox.Center, node->BoundingBox.Extents);
     }
     else
     {

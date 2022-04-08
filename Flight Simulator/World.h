@@ -12,6 +12,7 @@
 #include "Model.h"
 
 #include "Terrain.h"
+#include "WorleyNoise.h"
 
 class World
 {
@@ -29,10 +30,13 @@ public:
 
 private:
 
-	Light*                                        m_light;
-	Camera*                                       m_camera;
-	Terrain*                                      m_terrain;
-	Skybox*                                       m_skybox;
+	Light*       m_light;
+	Camera*      m_camera;
+	Terrain*     m_terrain;
+	Skybox*      m_skybox;
 
-	bool                                          m_renderDebug;
+	WorleyNoise* m_worleyNoise;
+	Texture3D*   m_worleyNoiseTexture;
+
+	bool         m_renderDebug;
 };

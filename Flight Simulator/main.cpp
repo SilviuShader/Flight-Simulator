@@ -15,7 +15,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Shapes.h"
+#include "DebugHelper.h"
 #include "InputWrapper.h"
 #include "TextureLoadHelper.h"
 #include "ShaderManager.h"
@@ -133,7 +133,7 @@ int main(int argc, char const* argv[])
 
     TextureLoadHelper::FreeInstance();
     InputWrapper::FreeInstance();
-    Shapes::FreeInstance();
+    DebugHelper::FreeInstance();
     ShaderManager::FreeInstance();
 
     if (g_world)

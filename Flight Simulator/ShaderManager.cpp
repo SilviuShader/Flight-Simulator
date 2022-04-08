@@ -22,6 +22,24 @@ ShaderManager::~ShaderManager()
 		m_minShader = nullptr;
 	}
 
+	if (m_worleyNoiseShader)
+	{
+		delete m_worleyNoiseShader;
+		m_worleyNoiseShader = nullptr;
+	}
+
+	if (m_perlinNoiseShader)
+	{
+		delete m_perlinNoiseShader;
+		m_perlinNoiseShader = nullptr;
+	}
+
+	if (m_texture3DSliceShader)
+	{
+		delete m_texture3DSliceShader;
+		m_texture3DSliceShader = nullptr;
+	}
+
 	if (m_colorShader)
 	{
 		delete m_colorShader;
@@ -95,6 +113,21 @@ Shader* ShaderManager::GetColorShader() const
 	return m_colorShader;
 }
 
+Shader* ShaderManager::GetTexture3DSliceShader() const
+{
+	return m_texture3DSliceShader;
+}
+
+Shader* ShaderManager::GetPerlinNoiseShader() const
+{
+	return m_perlinNoiseShader;
+}
+
+Shader* ShaderManager::GetWorleyNoiseShader() const
+{
+	return m_worleyNoiseShader;
+}
+
 Shader* ShaderManager::GetMinShader() const
 {
 	return m_minShader;
@@ -121,6 +154,10 @@ ShaderManager::ShaderManager()
 	m_skyboxShader             = new Shader("Shaders/Skybox.vert",           "Shaders/Skybox.frag");
 
 	m_colorShader              = new Shader("Shaders/Color.vert",            "Shaders/Color.frag");
+	m_texture3DSliceShader     = new Shader("Shaders/Texture3DSlice.vert",   "Shaders/Texture3DSlice.frag");
+
+	m_perlinNoiseShader        = new Shader("Shaders/PerlinNoise.comp");
+	m_worleyNoiseShader        = new Shader("Shaders/WorleyNoise.comp");
 
 	m_minShader                = new Shader("Shaders/MinMipMap.comp");
 	m_maxShader                = new Shader("Shaders/MaxMipMap.comp");

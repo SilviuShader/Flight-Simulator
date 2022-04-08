@@ -8,6 +8,7 @@
 #include "PerlinNoise.h"
 #include "glad/glad.h"
 #include "VertexTypes.h"
+#include "ShaderManager.h"
 
 using namespace std;
 using namespace glm;
@@ -16,18 +17,10 @@ PerlinNoise::PerlinNoise(int seed)
 {
     GenerateNoiseValues(seed);
     CreateValuesBuffer();
-
-    m_noiseShader             = new Shader("Shaders/Noise.comp");
 }
 
 PerlinNoise::~PerlinNoise()
-{    
-    if (m_noiseShader)
-    {
-        delete m_noiseShader;
-        m_noiseShader = nullptr;
-    }
-
+{
     FreeValuesBuffer();
 }
 
@@ -62,29 +55,31 @@ void PerlinNoise::GenerateNoiseValues(int seed)
 
 Texture* PerlinNoise::RenderNoise(NoiseParameters noiseParameters)
 {
-    Texture* noiseTexture = new Texture(noiseParameters.TextureSize,
-                                        noiseParameters.TextureSize,
-                                        Texture::Format::R32F,
-                                        Texture::Format::RED,
-                                        Texture::Filter::Linear);
+    ShaderManager* shaderManager = ShaderManager::GetInstance();
+    Shader*        noiseShader   = shaderManager->GetPerlinNoiseShader();
+    Texture*       noiseTexture  = new Texture(noiseParameters.TextureSize,
+                                               noiseParameters.TextureSize,
+                                               Texture::Format::R32F,
+                                               Texture::Format::RED,
+                                               Texture::Filter::Linear);
 
-    m_noiseShader->Use();
+    noiseShader->Use();
 
-    m_noiseShader->SetImage2D("ImgOutput",        noiseTexture, 0, Texture::Format::R32F);
+    noiseShader->SetImage2D("ImgOutput",        noiseTexture, 0, Texture::Format::R32F);
 
-    m_noiseShader->SetBlockBinding("NoiseValues", 1);
+    noiseShader->SetBlockBinding("NoiseValues", 1);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_noiseValuesBuffer);
 
-    m_noiseShader->SetFloat("NoiseFrequency",     noiseParameters.Frequency);
-    m_noiseShader->SetInt("OctavesAdd",           noiseParameters.OctavesCount);
+    noiseShader->SetFloat("NoiseFrequency",     noiseParameters.Frequency);
+    noiseShader->SetInt("OctavesAdd",           noiseParameters.OctavesCount);
                                                   
-    m_noiseShader->SetFloat("FudgeFactor",        noiseParameters.FudgeFactor);
-    m_noiseShader->SetFloat("Exponent",           noiseParameters.Exponent);
+    noiseShader->SetFloat("FudgeFactor",        noiseParameters.FudgeFactor);
+    noiseShader->SetFloat("Exponent",           noiseParameters.Exponent);
                                                   
-    m_noiseShader->SetVec2("OctaveOffset",        OCTAVE_OFFSET);
+    noiseShader->SetVec2("OctaveOffset",        OCTAVE_OFFSET);
                                                   
-    m_noiseShader->SetVec2("StartPosition",       noiseParameters.StartPosition);
-    m_noiseShader->SetVec2("FinalPosition",       noiseParameters.EndPosition);
+    noiseShader->SetVec2("StartPosition",       noiseParameters.StartPosition);
+    noiseShader->SetVec2("FinalPosition",       noiseParameters.EndPosition);
 
     glDispatchCompute(Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
                       Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT), 1);

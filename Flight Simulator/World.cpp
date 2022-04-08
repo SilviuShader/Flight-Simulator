@@ -4,7 +4,7 @@
 
 #include "World.h"
 #include "InputWrapper.h"
-#include "Shapes.h"
+#include "DebugHelper.h"
 #include <glm/ext/matrix_transform.hpp>
 #include "Biome.h"
 
@@ -22,10 +22,25 @@ World::World(int windowWidth, int windowHeight) :
 	m_camera  = new Camera(radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 1000.0f);
 	m_skybox  = new Skybox();
 	m_terrain = new Terrain();
+
+	m_worleyNoise = new WorleyNoise();
+	m_worleyNoiseTexture = m_worleyNoise->RenderNoise({ 128 });
 }
 
 World::~World()
 {
+	if (m_worleyNoiseTexture)
+	{
+		delete m_worleyNoiseTexture;
+		m_worleyNoiseTexture = nullptr;
+	}
+
+	if (m_worleyNoise)
+	{
+		delete m_worleyNoise;
+		m_worleyNoise = nullptr;
+	}
+
 	if (m_terrain)
 	{
 		delete m_terrain;
@@ -64,10 +79,12 @@ void World::Update(float deltaTime)
 		m_renderDebug = !m_renderDebug;
 
 	if (m_renderDebug)
-		Shapes::GetInstance()->ResetInstances();
+		DebugHelper::GetInstance()->ResetInstances();
 
 	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug);
 }
+
+float t = 0.0f;
 
 void World::Draw()
 {
@@ -76,7 +93,11 @@ void World::Draw()
 	m_terrain->Draw(m_camera, m_light);
 
 	if (m_renderDebug)
-		Shapes::GetInstance()->DrawRectangles(m_camera);
+		DebugHelper::GetInstance()->DrawRectangles(m_camera);
+
+	DebugHelper::GetInstance()->DrawTexture3DSlice(m_worleyNoiseTexture, sinf(t) * 0.5f + 0.5f, 0.25f);
+
+	t += 0.01f;
 }
 
 Camera* World::GetCamera() const

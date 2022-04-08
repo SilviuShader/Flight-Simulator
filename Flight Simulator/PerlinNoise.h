@@ -39,7 +39,7 @@ public:
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
-    Texture*      RenderNoise(NoiseParameters);
+    Texture* RenderNoise(NoiseParameters);
 
 private:
 
@@ -53,7 +53,5 @@ private:
     glm::vec4      m_noiseValues[SAMPLES_COUNT]; // (x, y) components are for the vectors
                                                  // (z, w) are for the permutations map.
 
-    Shader*        m_noiseShader;
-    
     unsigned int   m_noiseValuesBuffer;
 };

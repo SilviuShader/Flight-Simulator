@@ -75,7 +75,7 @@
     <ClCompile Include="MathHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shapes.cpp">
+    <ClCompile Include="DebugHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VertexTypes.cpp">
@@ -103,6 +103,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ShaderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WorleyNoise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -149,7 +155,7 @@
     <ClInclude Include="MathHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Shapes.h">
+    <ClInclude Include="DebugHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VertexTypes.h">
@@ -177,6 +183,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ShaderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WorleyNoise.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -286,7 +298,7 @@
     <CopyFileToFolders Include="Shaders\Color.frag">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="Shaders\Noise.comp">
+    <CopyFileToFolders Include="Shaders\PerlinNoise.comp">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Assets\Models\ao.jpg">
@@ -353,6 +365,15 @@
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\FolliageBilboard.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\WorleyNoise.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Texture3DSlice.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Texture3DSlice.vert">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
   </ItemGroup>

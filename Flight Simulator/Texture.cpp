@@ -240,11 +240,6 @@ int Texture::GetGLFormat(Format format)
     return -1;
 }
 
-uint32_t Texture::GetComputeShaderGroupsCount(const uint32_t size, const uint32_t numBlocks)
-{
-    return (size + numBlocks - 1) / numBlocks;
-}
-
 int Texture::GetGLParam(Filter filter)
 {
     switch (filter)
@@ -258,6 +253,11 @@ int Texture::GetGLParam(Filter filter)
     cout << "ERROR::TEXTURE::INVALID::FILTER" << endl;
 
     return -1;
+}
+
+uint32_t Texture::GetComputeShaderGroupsCount(const uint32_t size, const uint32_t numBlocks)
+{
+    return (size + numBlocks - 1) / numBlocks;
 }
 
 Texture::TextureInfo Texture::GetCurrentTextureInfo() const

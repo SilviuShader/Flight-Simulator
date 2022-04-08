@@ -64,11 +64,10 @@ public:
     static float**      GetPixelsInfo(Texture*);
 
     static int          GetGLFormat(Format);
+    static int          GetGLParam(Filter);
     static uint32_t     GetComputeShaderGroupsCount(const uint32_t, const uint32_t);
 
 private:
-
-    int         GetGLParam(Filter);
 
     TextureInfo GetCurrentTextureInfo() const;
 

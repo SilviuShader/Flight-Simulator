@@ -10,6 +10,7 @@
 
 #include "Light.h"
 #include "Camera.h"
+#include "Texture3D.h"
 
 class Shader
 {
@@ -37,8 +38,10 @@ public:
     void SetMatrix4(const std::string&, glm::mat4&);
     void SetBlockBinding(const std::string&, int);
     void SetTexture(const std::string&, Texture*, int);
+    void SetTexture3D(const std::string&, Texture3D*, int);
     void SetCubemap(const std::string&, Cubemap*, int);
     void SetImage2D(const std::string&, Texture*, int, Texture::Format);
+    void SetImage3D(const std::string&, Texture3D*, int, Texture::Format);
     void SetLight(Camera*, Light*);
     int  SetMaterials(const std::string&, const std::string&, const std::string&, const std::vector<Material*>&, int);
 
