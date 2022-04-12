@@ -66,4 +66,5 @@ public:
 	static unsigned PowerCeil(unsigned);
 	static int      GCD(int, int);
 	static int      LCM(int, int);
+	static float    RandomFloat(float, float);
 };

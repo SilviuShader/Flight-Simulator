@@ -36,7 +36,6 @@ public:
     void SetVec3(const std::string&, const glm::vec3&);
     void SetVec4(const std::string&, const glm::vec4&);
     void SetMatrix4(const std::string&, glm::mat4&);
-    void SetBlockBinding(const std::string&, int);
     void SetTexture(const std::string&, Texture*, int);
     void SetTexture3D(const std::string&, Texture3D*, int);
     void SetCubemap(const std::string&, Cubemap*, int);
@@ -45,16 +44,21 @@ public:
     void SetLight(Camera*, Light*);
     int  SetMaterials(const std::string&, const std::string&, const std::string&, const std::vector<Material*>&, int);
 
+    void SetUniformBlockBinding(const std::string&, int);
+    void SetShaderStorageBlockBinding(const std::string&, int);
+
 private:
 
     std::string ReadFile(const std::string);
     int         GetUniformLocation(const std::string&);
     int         GetUniformBlockIndex(const std::string&);
+    int         GetShaderStorageBlockIndex(const std::string&);
 
 private:
 
     int                                   m_programId;
     std::unordered_map<std::string, int>  m_uniformLocations;
     std::unordered_map<std::string, int>  m_uniformBlocksIndices;
+    std::unordered_map<std::string, int>  m_shaderStorageBlocksIndices;
     std::unordered_map<std::string, bool> m_hasUniform;
 };

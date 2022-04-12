@@ -67,7 +67,7 @@ Texture* PerlinNoise::RenderNoise(NoiseParameters noiseParameters)
 
     noiseShader->SetImage2D("ImgOutput",        noiseTexture, 0, Texture::Format::R32F);
 
-    noiseShader->SetBlockBinding("NoiseValues", 1);
+    noiseShader->SetUniformBlockBinding("NoiseValues", 1);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_noiseValuesBuffer);
 
     noiseShader->SetFloat("NoiseFrequency",     noiseParameters.Frequency);
@@ -99,6 +99,6 @@ void PerlinNoise::CreateValuesBuffer()
 
 void PerlinNoise::FreeValuesBuffer()
 {
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glDeleteBuffers(1, &m_noiseValuesBuffer);
 }

@@ -111,3 +111,9 @@ int MathHelper::LCM(int a, int b)
 {
 	return (a * b) / GCD(a, b);
 }
+
+//https://stackoverflow.com/questions/686353/random-float-number-generation
+float MathHelper::RandomFloat(float minValue, float maxValue)
+{
+	return minValue + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (maxValue - minValue)));;
+}

@@ -26,6 +26,7 @@ public:
 
 		   Shader*        GetPerlinNoiseShader()        const;
 		   Shader*        GetWorleyNoiseShader()        const;
+		   Shader*        GetTexture3DNormalizeShader() const;
 
 		   Shader*        GetMinShader()                const;
 		   Shader*        GetMaxShader()                const;
@@ -49,6 +50,7 @@ private:
 
 		   Shader*        m_perlinNoiseShader;
 		   Shader*        m_worleyNoiseShader;
+		   Shader*        m_texture3DNormalizeShader;
 	       		          
 	       Shader*        m_minShader;
 	       Shader*        m_maxShader;

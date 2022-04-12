@@ -22,6 +22,12 @@ ShaderManager::~ShaderManager()
 		m_minShader = nullptr;
 	}
 
+	if (m_texture3DNormalizeShader)
+	{
+		delete m_texture3DNormalizeShader;
+		m_texture3DNormalizeShader = nullptr;
+	}
+
 	if (m_worleyNoiseShader)
 	{
 		delete m_worleyNoiseShader;
@@ -88,12 +94,12 @@ void ShaderManager::FreeInstance()
 	}
 }
 
-Shader* ShaderManager::GetTerrainShader() const
-{
-	return m_terrainShader;
-}
-
-Shader* ShaderManager::GetFolliageShader() const
+Shader* ShaderManager::GetTerrainShader()            const
+{										             
+	return m_terrainShader;				             
+}										             
+										             
+Shader* ShaderManager::GetFolliageShader()           const
 {
 	return m_folliageShader;
 }
@@ -103,42 +109,47 @@ Shader* ShaderManager::GetFolliageBilboardedShader() const
 	return m_folliageBilboardedShader;
 }
 
-Shader* ShaderManager::GetSkyboxShader() const
-{
-	return m_skyboxShader;
-}
-
-Shader* ShaderManager::GetColorShader() const
+Shader* ShaderManager::GetSkyboxShader()             const
+{										             
+	return m_skyboxShader;				             
+}										             
+										             
+Shader* ShaderManager::GetColorShader()              const
 {
 	return m_colorShader;
 }
 
-Shader* ShaderManager::GetTexture3DSliceShader() const
+Shader* ShaderManager::GetTexture3DSliceShader()     const
 {
 	return m_texture3DSliceShader;
 }
 
-Shader* ShaderManager::GetPerlinNoiseShader() const
-{
-	return m_perlinNoiseShader;
-}
-
-Shader* ShaderManager::GetWorleyNoiseShader() const
+Shader* ShaderManager::GetPerlinNoiseShader()        const
+{											         
+	return m_perlinNoiseShader;				         
+}											         
+											         
+Shader* ShaderManager::GetWorleyNoiseShader()        const
 {
 	return m_worleyNoiseShader;
 }
 
-Shader* ShaderManager::GetMinShader() const
+Shader* ShaderManager::GetTexture3DNormalizeShader() const
+{
+	return m_texture3DNormalizeShader;
+}
+
+Shader* ShaderManager::GetMinShader()                const
 {
 	return m_minShader;
 }
 
-Shader* ShaderManager::GetMaxShader() const
+Shader* ShaderManager::GetMaxShader()                const
 {
 	return m_maxShader;
 }
 
-Shader* ShaderManager::GetAverageShader() const
+Shader* ShaderManager::GetAverageShader()            const
 {
 	return m_averageShader;
 }
@@ -158,6 +169,7 @@ ShaderManager::ShaderManager()
 
 	m_perlinNoiseShader        = new Shader("Shaders/PerlinNoise.comp");
 	m_worleyNoiseShader        = new Shader("Shaders/WorleyNoise.comp");
+	m_texture3DNormalizeShader = new Shader("Shaders/Texture3DNormalize.comp");
 
 	m_minShader                = new Shader("Shaders/MinMipMap.comp");
 	m_maxShader                = new Shader("Shaders/MaxMipMap.comp");

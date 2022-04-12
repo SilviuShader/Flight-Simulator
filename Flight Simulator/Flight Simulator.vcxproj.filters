@@ -376,5 +376,8 @@
     <CopyFileToFolders Include="Shaders\Texture3DSlice.vert">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Texture3DNormalize.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

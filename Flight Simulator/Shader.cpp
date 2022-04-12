@@ -219,11 +219,6 @@ void Shader::SetMatrix4(const string& name, mat4& value)
     glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, ptr);
 }
 
-void Shader::SetBlockBinding(const string& name, int binding)
-{
-    glUniformBlockBinding(m_programId, GetUniformBlockIndex(name), binding);
-}
-
 void Shader::SetTexture(const string& name, Texture* texture, int textureNumber)
 {
     glActiveTexture(GL_TEXTURE0 + textureNumber);
@@ -320,6 +315,16 @@ int Shader::SetMaterials(const string& texturesName, const string& normalTexture
     return startingTextureNumber;
 }
 
+void Shader::SetUniformBlockBinding(const string& name, int binding)
+{
+    glUniformBlockBinding(m_programId, GetUniformBlockIndex(name), binding);
+}
+
+void Shader::SetShaderStorageBlockBinding(const string& name, int binding)
+{
+    glShaderStorageBlockBinding(m_programId, GetShaderStorageBlockIndex(name), binding);
+}
+
 string Shader::ReadFile(const string filename)
 {
     try
@@ -369,5 +374,22 @@ int Shader::GetUniformBlockIndex(const string& name)
     }
 
     m_uniformBlocksIndices[name] = index;
+    return index;
+}
+
+int Shader::GetShaderStorageBlockIndex(const string& name)
+{
+    if (m_shaderStorageBlocksIndices.find(name) != m_shaderStorageBlocksIndices.end())
+        return m_shaderStorageBlocksIndices[name];
+
+    int index = glGetProgramResourceIndex(m_programId, GL_SHADER_STORAGE_BLOCK, name.c_str());
+
+    if (index == GL_INVALID_INDEX)
+    {
+        cout << "ERROR::SHADER::UNIFORM::BLOCK_INDEX::NOT_FOUND" << endl;
+        return index;
+    }
+
+    m_shaderStorageBlocksIndices[name] = index;
     return index;
 }
