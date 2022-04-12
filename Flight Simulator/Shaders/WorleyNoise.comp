@@ -24,6 +24,9 @@ layout(std140, binding = 2) buffer MinMaxValues
 	int Mx;
 };
 
+uniform int   Tiles;
+uniform float Persistance;
+
 ivec3 offsets[] = 
 {
 	// bottom cells
@@ -72,16 +75,26 @@ int maxValue(ivec3 vec)
 
 float worley(int startIndex, int numCells, vec3 referencePosition)
 {
-	ivec3 referenceCell = ivec3(floor(referencePosition * numCells));
-	float minSqrDist    = 10000.0;
+	      referencePosition = mod(referencePosition * Tiles, 1.0);
+	ivec3 referenceCell     = ivec3(floor(referencePosition * numCells));
+	float minSqrDist        = 1.0;
 
 	for (int offset = 0; offset < 27; offset++)
 	{
 		ivec3 currentCell = referenceCell + offsets[offset];
 		if (minValue(currentCell) == -1 || maxValue(currentCell) == numCells)
 		{
-			// TODO: implement this
-			//return 0.0f;
+			ivec3 wrappedCell   = (currentCell + numCells) % ivec3(numCells, numCells, numCells);
+			int   baseIndex     = (wrappedCell.z * numCells * numCells + wrappedCell.y * numCells + wrappedCell.x);
+			int   adjustedIndex = startIndex + baseIndex;
+
+			vec3  point         = Points[adjustedIndex].xyz;
+
+			for (int wrappedOffset = 0; wrappedOffset < 27; wrappedOffset++)
+			{
+				vec3 direction  = referencePosition - (point + offsets[wrappedOffset]);
+				     minSqrDist = min(minSqrDist, dot(direction, direction));
+			}
 		}
 		else
 		{
@@ -106,19 +119,18 @@ void main()
 		pixelCoords.z >= imageSize.z)
 		return;
 
-	vec3 normalizedCoords = vec3(pixelCoords.x / float(imageSize.x - 1), 
-	     
-		 pixelCoords.y / float(imageSize.y - 1),
-				                 pixelCoords.z / float(imageSize.z - 1));
+	vec3  normalizedCoords = vec3(pixelCoords.x / float(imageSize.x - 1), 
+	                              pixelCoords.y / float(imageSize.y - 1),
+   	                              pixelCoords.z / float(imageSize.z - 1));
 
-	float layerA = worley(0,                         CELLS_A_WIDTH, normalizedCoords);
-	float layerB = worley(NUM_CELLS_A,               CELLS_B_WIDTH, normalizedCoords);
-	float layerC = worley(NUM_CELLS_A + NUM_CELLS_B, CELLS_C_WIDTH, normalizedCoords);
+	float layerA      = worley(0,                         CELLS_A_WIDTH, normalizedCoords);
+	float layerB      = worley(NUM_CELLS_A,               CELLS_B_WIDTH, normalizedCoords);
+	float layerC      = worley(NUM_CELLS_A + NUM_CELLS_B, CELLS_C_WIDTH, normalizedCoords);
 
 	float persistance = 0.1;
 
-	float sum         = layerA + layerB * persistance + layerC * persistance * persistance;
-	      sum        /= 1 + persistance + persistance * persistance;
+	float sum         = layerA + layerB * Persistance + layerC * Persistance * Persistance;
+	      sum        /= 1 + Persistance + Persistance * Persistance;
 	      sum         = 1.0 - sum;
 
 	atomicMin(Mn, int(sum * MIN_MAX_FLOAT_MULTIPLIER));

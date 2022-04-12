@@ -23,7 +23,9 @@ public:
 
 	struct NoiseParameters
 	{
-		int TextureSize;
+		int   TextureSize;
+		int   Tiles;
+		float Persistance;
 	};
 
 private:

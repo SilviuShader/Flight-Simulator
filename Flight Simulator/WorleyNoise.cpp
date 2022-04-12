@@ -36,6 +36,9 @@ Texture3D* WorleyNoise::RenderNoise(NoiseParameters noiseParameters)
 	noiseShader->SetShaderStorageBlockBinding("MinMaxValues", 2);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_minMaxBuffer);
 
+	noiseShader->SetInt("Tiles",         noiseParameters.Tiles);
+	noiseShader->SetFloat("Persistance", noiseParameters.Persistance);
+
 	glDispatchCompute(Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
 		              Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
 		              Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT));

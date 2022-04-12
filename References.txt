@@ -34,3 +34,5 @@ https://stackoverflow.com/questions/313970/how-to-convert-an-instance-of-stdstri
 https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
 
 https://stackoverflow.com/questions/466204/rounding-up-to-next-power-of-2
+
+https://github.com/SebLague/Clouds/blob/master/Assets/Scripts/Clouds/Noise/Compute/NoiseGenCompute.compute
