@@ -11,6 +11,8 @@ layout(std140, binding = 1) buffer MinMaxValues
 	int Mx;
 };
 
+uniform vec4 ChannelsMask;
+
 void main()
 {
 	ivec3 pixelCoords = ivec3(gl_GlobalInvocationID);
@@ -21,11 +23,11 @@ void main()
 		pixelCoords.z >= imageSize.z)
 		return;
 
-	float color = imageLoad(ImgOutput, pixelCoords).x;
-	float mn    = float(Mn) / MIN_MAX_FLOAT_MULTIPLIER;
-	float mx    = float(Mx) / MIN_MAX_FLOAT_MULTIPLIER;
+	vec4  initialValue = imageLoad(ImgOutput, pixelCoords);
+	float mn           = float(Mn) / MIN_MAX_FLOAT_MULTIPLIER;
+	float mx           = float(Mx) / MIN_MAX_FLOAT_MULTIPLIER;
+				       
+    vec4  color        = (initialValue - mn) / (mx - mn);
 
-	      color = (color - mn) / (mx - mn);
-
-	imageStore(ImgOutput, pixelCoords, vec4(color, color, color, 1.0));
+	imageStore(ImgOutput, pixelCoords, initialValue * (1.0 - ChannelsMask) + color * ChannelsMask);
 }

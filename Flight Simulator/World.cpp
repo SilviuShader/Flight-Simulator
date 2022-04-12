@@ -24,7 +24,9 @@ World::World(int windowWidth, int windowHeight) :
 	m_terrain = new Terrain();
 
 	m_worleyNoise = new WorleyNoise();
-	m_worleyNoiseTexture = m_worleyNoise->RenderNoise({ 128, 3, 0.5f });
+	m_worleyNoiseTexture = m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 2, 4, 8, vec4(1.0f, 0.0f, 0.0f, 1.0f)});
+	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 3, 5, 9, vec4(0.0f, 1.0f, 0.0f, 0.0f) }, m_worleyNoiseTexture);
+	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 1, 2, 3, vec4(0.0f, 0.0f, 1.0f, 0.0f) }, m_worleyNoiseTexture);
 }
 
 World::~World()

@@ -1,21 +1,16 @@
 #version 430 core
-#define BLOCKS_COUNT 8
+#define BLOCKS_COUNT             8
 #define MIN_MAX_FLOAT_MULTIPLIER 100000000.0
 
-#define CELLS_A_WIDTH 2
-#define CELLS_B_WIDTH 3
-#define CELLS_C_WIDTH 4
-
-#define NUM_CELLS_A CELLS_A_WIDTH * CELLS_A_WIDTH * CELLS_A_WIDTH
-#define NUM_CELLS_B CELLS_B_WIDTH * CELLS_B_WIDTH * CELLS_B_WIDTH
-#define NUM_CELLS_C CELLS_C_WIDTH * CELLS_C_WIDTH * CELLS_C_WIDTH
+#define MAX_CELLS_WIDTH          10
+#define MAX_TOTAL_LAYER_CELLS    (MAX_CELLS_WIDTH * MAX_CELLS_WIDTH * MAX_CELLS_WIDTH)
 
 layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = BLOCKS_COUNT) in;
 layout (rgba32f, binding = 0) uniform image3D ImgOutput;
 
 layout (std140, binding = 1) uniform PointsPositions
 {
-    vec4 Points[NUM_CELLS_A + NUM_CELLS_B + NUM_CELLS_C];
+    vec4 Points[MAX_TOTAL_LAYER_CELLS * 3];
 };
 
 layout(std140, binding = 2) buffer MinMaxValues
@@ -26,6 +21,12 @@ layout(std140, binding = 2) buffer MinMaxValues
 
 uniform int   Tiles;
 uniform float Persistance;
+
+uniform int   NumCellsA;
+uniform int   NumCellsB;
+uniform int   NumCellsC;
+
+uniform vec4  ChannelsMask;
 
 ivec3 offsets[] = 
 {
@@ -123,18 +124,21 @@ void main()
 	                              pixelCoords.y / float(imageSize.y - 1),
    	                              pixelCoords.z / float(imageSize.z - 1));
 
-	float layerA      = worley(0,                         CELLS_A_WIDTH, normalizedCoords);
-	float layerB      = worley(NUM_CELLS_A,               CELLS_B_WIDTH, normalizedCoords);
-	float layerC      = worley(NUM_CELLS_A + NUM_CELLS_B, CELLS_C_WIDTH, normalizedCoords);
+	int   totalCellsA      = NumCellsA * NumCellsA * NumCellsA;
+	int   totalCellsB      = NumCellsB * NumCellsB * NumCellsB;
 
-	float persistance = 0.1;
+	float layerA           = worley(0,                         NumCellsA, normalizedCoords);
+	float layerB           = worley(totalCellsA,               NumCellsB, normalizedCoords);
+	float layerC           = worley(totalCellsA + totalCellsB, NumCellsC, normalizedCoords);
 
-	float sum         = layerA + layerB * Persistance + layerC * Persistance * Persistance;
-	      sum        /= 1 + Persistance + Persistance * Persistance;
-	      sum         = 1.0 - sum;
+	float sum              = layerA + layerB * Persistance + layerC * Persistance * Persistance;
+	      sum             /= 1 + Persistance + Persistance * Persistance;
+	      sum              = 1.0 - sum;
 
 	atomicMin(Mn, int(sum * MIN_MAX_FLOAT_MULTIPLIER));
 	atomicMax(Mx, int(sum * MIN_MAX_FLOAT_MULTIPLIER));
 	
-	imageStore(ImgOutput, pixelCoords, vec4(sum, sum, sum, 1.0));
+	vec4 initialValue = imageLoad(ImgOutput, pixelCoords);
+
+	imageStore(ImgOutput, pixelCoords, initialValue * (1.0 - ChannelsMask) + sum * ChannelsMask);
 }
