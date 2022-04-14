@@ -20,8 +20,10 @@ public:
 		   Shader*        GetFolliageBilboardedShader() const;
 
 		   Shader*        GetSkyboxShader()             const;
+		   Shader*        GetCloudsShader()             const;
 
 		   Shader*        GetColorShader()              const;
+		   Shader*        GetTextureShader()            const;
 		   Shader*        GetTexture3DSliceShader()     const;
 
 		   Shader*        GetPerlinNoiseShader()        const;
@@ -44,8 +46,10 @@ private:
 		   Shader*        m_folliageBilboardedShader;
 
 		   Shader*        m_skyboxShader;
+		   Shader*        m_cloudsShader;
 
 		   Shader*        m_colorShader;
+		   Shader*        m_textureShader;
 		   Shader*        m_texture3DSliceShader;
 
 		   Shader*        m_perlinNoiseShader;

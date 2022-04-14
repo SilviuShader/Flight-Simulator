@@ -111,6 +111,9 @@
     <ClCompile Include="Texture3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Clouds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glad\glad.h">
@@ -189,6 +192,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Texture3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Clouds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -377,6 +383,18 @@
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Texture3DNormalize.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Texture.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Texture.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Clouds.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Clouds.vert">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
   </ItemGroup>

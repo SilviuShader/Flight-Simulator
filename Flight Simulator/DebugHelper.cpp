@@ -65,6 +65,21 @@ void DebugHelper::DrawRectangles(Camera* camera)
 	glDrawElementsInstanced(GL_LINES, 24, GL_UNSIGNED_INT, 0, m_rectangleInstances.size());
 }
 
+void DebugHelper::DrawFullscreenTexture(Texture* texture)
+{
+	glDisable(GL_DEPTH);
+
+	ShaderManager* shaderManager = ShaderManager::GetInstance();
+	Shader*        textureShader = shaderManager->GetTextureShader();
+
+	textureShader->Use();
+	textureShader->SetTexture("Image", texture, 0);
+
+	FullScreenQuadDrawCall();
+
+	glEnable(GL_DEPTH);
+}
+
 void DebugHelper::DrawTexture3DSlice(Texture3D* texture3D, float slice, float scale)
 {
 	glDisable(GL_DEPTH);
@@ -79,11 +94,16 @@ void DebugHelper::DrawTexture3DSlice(Texture3D* texture3D, float slice, float sc
 	texture3DSliceShader->SetTexture3D("Image", texture3D, 0);
 	texture3DSliceShader->SetFloat("Slice",     slice);
 
+	FullScreenQuadDrawCall();
+
+	glEnable(GL_DEPTH);
+}
+
+void DebugHelper::FullScreenQuadDrawCall()
+{
 	glBindVertexArray(m_quadVAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_BINDING, m_quadEBO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-	glEnable(GL_DEPTH);
 }
 
 DebugHelper::DebugHelper()

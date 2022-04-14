@@ -1,5 +1,6 @@
 #include <queue>
 #include <unordered_set>
+#include "glad/glad.h"
 #include <glm/glm.hpp>
 
 #include "World.h"
@@ -27,10 +28,25 @@ World::World(int windowWidth, int windowHeight) :
 	m_worleyNoiseTexture = m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 2, 4, 8, vec4(1.0f, 0.0f, 0.0f, 1.0f)});
 	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 3, 5, 9, vec4(0.0f, 1.0f, 0.0f, 0.0f) }, m_worleyNoiseTexture);
 	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 1, 2, 3, vec4(0.0f, 0.0f, 1.0f, 0.0f) }, m_worleyNoiseTexture);
+
+	m_worldRenderTexture = new RenderTexture(windowWidth, windowHeight);
+	m_clouds = new Clouds();
 }
 
 World::~World()
 {
+	if (m_clouds)
+	{
+		delete m_clouds;
+		m_clouds = nullptr;
+	}
+
+	if (m_worldRenderTexture)
+	{
+		delete m_worldRenderTexture;
+		m_worldRenderTexture = nullptr;
+	}
+
 	if (m_worleyNoiseTexture)
 	{
 		delete m_worleyNoiseTexture;
@@ -90,6 +106,8 @@ float t = 0.0f;
 
 void World::Draw()
 {
+	m_worldRenderTexture->Begin();
+
 	m_skybox->Draw(m_camera);
 
 	m_terrain->Draw(m_camera, m_light);
@@ -97,6 +115,9 @@ void World::Draw()
 	if (m_renderDebug)
 		DebugHelper::GetInstance()->DrawRectangles(m_camera);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	m_clouds->Draw(m_worldRenderTexture->GetTexture(), m_worldRenderTexture->GetDepthTexture());
 	DebugHelper::GetInstance()->DrawTexture3DSlice(m_worleyNoiseTexture, sinf(t) * 0.5f + 0.5f, 0.25f);
 
 	t += 0.01f;

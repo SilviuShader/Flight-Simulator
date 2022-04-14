@@ -21,7 +21,10 @@ public:
 		   void         AddRectangleInstance(const glm::vec3&, const glm::vec3&);
 		   void         DrawRectangles(Camera*);
 
+		   void         DrawFullscreenTexture(Texture*);
 		   void         DrawTexture3DSlice(Texture3D*, float, float);
+
+		   void         FullScreenQuadDrawCall();
 
 private:
 

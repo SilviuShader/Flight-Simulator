@@ -46,10 +46,22 @@ ShaderManager::~ShaderManager()
 		m_texture3DSliceShader = nullptr;
 	}
 
+	if (m_textureShader)
+	{
+		delete m_textureShader;
+		m_textureShader = nullptr;
+	}
+
 	if (m_colorShader)
 	{
 		delete m_colorShader;
 		m_colorShader = nullptr;
+	}
+
+	if (m_cloudsShader)
+	{
+		delete m_cloudsShader;
+		m_cloudsShader = nullptr;
 	}
 
 	if (m_skyboxShader)
@@ -112,11 +124,21 @@ Shader* ShaderManager::GetFolliageBilboardedShader() const
 Shader* ShaderManager::GetSkyboxShader()             const
 {										             
 	return m_skyboxShader;				             
-}										             
+}
+
+Shader* ShaderManager::GetCloudsShader() const
+{
+	return m_cloudsShader;
+}
 										             
 Shader* ShaderManager::GetColorShader()              const
 {
 	return m_colorShader;
+}
+
+Shader* ShaderManager::GetTextureShader() const
+{
+	return m_textureShader;
 }
 
 Shader* ShaderManager::GetTexture3DSliceShader()     const
@@ -163,8 +185,10 @@ ShaderManager::ShaderManager()
 	m_folliageBilboardedShader = new Shader("Shaders/FolliageBilboard.vert", "Shaders/FolliageBilboard.frag");
 
 	m_skyboxShader             = new Shader("Shaders/Skybox.vert",           "Shaders/Skybox.frag");
+	m_cloudsShader             = new Shader("Shaders/Clouds.vert",           "Shaders/Clouds.frag");
 
 	m_colorShader              = new Shader("Shaders/Color.vert",            "Shaders/Color.frag");
+	m_textureShader            = new Shader("Shaders/Texture.vert",          "Shaders/Texture.frag");
 	m_texture3DSliceShader     = new Shader("Shaders/Texture3DSlice.vert",   "Shaders/Texture3DSlice.frag");
 
 	m_perlinNoiseShader        = new Shader("Shaders/PerlinNoise.comp");
