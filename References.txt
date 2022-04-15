@@ -36,3 +36,7 @@ https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-clas
 https://stackoverflow.com/questions/466204/rounding-up-to-next-power-of-2
 
 https://github.com/SebLague/Clouds/blob/master/Assets/Scripts/Clouds/Noise/Compute/NoiseGenCompute.compute
+
+https://github.com/SebLague/Clouds/blob/master/Assets/Scripts/Clouds/Shaders/Clouds.shader
+
+https://stackoverflow.com/questions/51108596/linearize-depth

@@ -117,7 +117,7 @@ void World::Draw()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	m_clouds->Draw(m_worldRenderTexture->GetTexture(), m_worldRenderTexture->GetDepthTexture());
+	m_clouds->Draw(m_camera, m_worldRenderTexture->GetTexture(), m_worldRenderTexture->GetDepthTexture());
 	DebugHelper::GetInstance()->DrawTexture3DSlice(m_worleyNoiseTexture, sinf(t) * 0.5f + 0.5f, 0.25f);
 
 	t += 0.01f;

@@ -23,6 +23,7 @@ Camera::Camera(float fieldOfViewY, float width, float height, float near, float 
 {
     m_projectionMatrix = perspective(fieldOfViewY, width / height, near, far);
     UpdateViewMatrix();
+    UpdateModelMatrix();
 }
 
 void Camera::UpdateWindowSize(float width, float height)
@@ -48,6 +49,7 @@ void Camera::Update(float deltaTime)
         m_rotation.x = -halfPi;
 
     UpdateViewMatrix();
+    UpdateModelMatrix();
 
     mat4 rotationMatrix = GetRotationMatrix();
 
@@ -90,6 +92,12 @@ void Camera::Update(float deltaTime)
     m_position += vec3(normalizedTranslation.x, normalizedTranslation.y, normalizedTranslation.z) * deltaTime * CAMERA_MOVE_SPEED;
 
     UpdateViewMatrix();
+    UpdateModelMatrix();
+}
+
+mat4 Camera::GetModelMatrix() const
+{
+    return m_modelMatrix;
 }
 
 mat4 Camera::GetViewMatrix() const
@@ -161,6 +169,11 @@ mat4 Camera::GetRotationMatrix()
     rotationMatrix = rotate(rotationMatrix, m_rotation.z, vec3(0.0f, 0.0f, 1.0f));
     
     return rotationMatrix;
+}
+
+void Camera::UpdateModelMatrix()
+{
+    m_modelMatrix = inverse(m_viewMatrix);
 }
 
 void Camera::UpdateViewMatrix()
