@@ -38,9 +38,6 @@ private:
 	Clouds*        m_clouds;
 
 	RenderTexture* m_worldRenderTexture;
-
-	WorleyNoise*   m_worleyNoise;
-	Texture3D*     m_worleyNoiseTexture;
 				   
 	bool           m_renderDebug;
 };

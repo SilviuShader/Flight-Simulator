@@ -24,11 +24,6 @@ World::World(int windowWidth, int windowHeight) :
 	m_skybox  = new Skybox();
 	m_terrain = new Terrain();
 
-	m_worleyNoise = new WorleyNoise();
-	m_worleyNoiseTexture = m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 2, 4, 8, vec4(1.0f, 0.0f, 0.0f, 1.0f)});
-	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 3, 5, 9, vec4(0.0f, 1.0f, 0.0f, 0.0f) }, m_worleyNoiseTexture);
-	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 1, 2, 3, vec4(0.0f, 0.0f, 1.0f, 0.0f) }, m_worleyNoiseTexture);
-
 	m_worldRenderTexture = new RenderTexture(windowWidth, windowHeight);
 	m_clouds = new Clouds();
 }
@@ -45,18 +40,6 @@ World::~World()
 	{
 		delete m_worldRenderTexture;
 		m_worldRenderTexture = nullptr;
-	}
-
-	if (m_worleyNoiseTexture)
-	{
-		delete m_worleyNoiseTexture;
-		m_worleyNoiseTexture = nullptr;
-	}
-
-	if (m_worleyNoise)
-	{
-		delete m_worleyNoise;
-		m_worleyNoise = nullptr;
 	}
 
 	if (m_terrain)
@@ -118,7 +101,7 @@ void World::Draw()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	m_clouds->Draw(m_camera, m_worldRenderTexture->GetTexture(), m_worldRenderTexture->GetDepthTexture());
-	DebugHelper::GetInstance()->DrawTexture3DSlice(m_worleyNoiseTexture, sinf(t) * 0.5f + 0.5f, 0.25f);
+	//DebugHelper::GetInstance()->DrawTexture3DSlice(m_worleyNoiseTexture, sinf(t) * 0.5f + 0.5f, 0.25f);
 
 	t += 0.01f;
 }

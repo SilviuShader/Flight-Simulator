@@ -4,12 +4,20 @@ in vec2 FSInputTexCoords;
 
 uniform sampler2D SceneTexture;
 uniform sampler2D DepthTexture;
+uniform sampler3D CloudsDensityTexture;
 
 uniform mat4  CameraMatrix;
 uniform float AspectRatio;
 uniform float Near;
 uniform float Far;
 uniform float FovY;
+
+uniform vec3 CloudScale;
+uniform vec3 CloudOffset;
+uniform float DensityThreshold;
+uniform float DensityMultiplier;
+
+uniform int StepsCount;
 
 out vec4 FSOutFragColor;
 
@@ -37,31 +45,54 @@ vec2 rayBoxDst(vec3 boundsMin, vec3 boundsMax, vec3 rayOrigin, vec3 rayDirection
 	return vec2(distToBox, distInsideBox);
 }
 
+float sampleDensity(vec3 position)
+{
+	vec3 adjustedPosition = position * CloudScale + CloudOffset;
+
+	float density = texture(CloudsDensityTexture, adjustedPosition).x;
+	
+	return max(0.0, density - DensityThreshold) * DensityMultiplier;
+}
+
 void main()
 {
-	vec3 sceneColor         = texture(SceneTexture, FSInputTexCoords).xyz;
+	vec3 sceneColor = texture(SceneTexture, FSInputTexCoords).xyz;
 	vec3 invertedSceneColor = 1.0 - sceneColor;
 
-	vec2 normalizeCoords    = FSInputTexCoords * 2.0 - vec2(1.0, 1.0);
-	     normalizeCoords.x *= AspectRatio;
-		 normalizeCoords   *= tan(FovY * 0.5) * Near;
+	vec2 normalizeCoords = FSInputTexCoords * 2.0 - vec2(1.0, 1.0);
+	normalizeCoords.x *= AspectRatio;
+	normalizeCoords *= tan(FovY * 0.5) * Near;
 
-	vec3 onCameraPoint      = vec3(normalizeCoords.x, normalizeCoords.y, -Near);
-	vec3 eye                = vec3(0.0, 0.0, 0.0);
-	vec3 rayDirection       = onCameraPoint - eye;
-	     eye                = (CameraMatrix * vec4(eye,          1.0)).xyz;
-		 rayDirection       = (CameraMatrix * vec4(rayDirection, 0.0)).xyz;
-	     onCameraPoint      = eye + rayDirection;
+	vec3 onCameraPoint = vec3(normalizeCoords.x, normalizeCoords.y, -Near);
+	vec3 eye = vec3(0.0, 0.0, 0.0);
+	vec3 rayDirection = onCameraPoint - eye;
+	eye = (CameraMatrix * vec4(eye, 1.0)).xyz;
+	rayDirection = (CameraMatrix * vec4(rayDirection, 0.0)).xyz;
+	onCameraPoint = eye + rayDirection;
 
-	vec4  depthColor        = texture(DepthTexture, FSInputTexCoords);
-	float depth             = linearizeDepth(depthColor.x, Near, Far) * (length(rayDirection) / Near);
+	vec4 depthColor = texture(DepthTexture, FSInputTexCoords);
+	float depth = linearizeDepth(depthColor.x, Near, Far) * (length(rayDirection) / Near);
 
-	     rayDirection       = normalize(rayDirection);
+	rayDirection = normalize(rayDirection);
 
-	vec2 boxIntersectDetails = rayBoxDst(vec3(-10.0, -10.0, -10.0), vec3(10.0, 10.0, 10.0), onCameraPoint, rayDirection);
+	vec2 boxIntersectDetails = rayBoxDst(vec3(-20.0, -20.0, -20.0), vec3(20.0, 20.0, 20.0), onCameraPoint, rayDirection);
 
-	if (boxIntersectDetails.y >= 0.001 && boxIntersectDetails.x < depth)
-		FSOutFragColor = vec4(0.0, 0.0, 0.0, 1.0);
-	else
-		FSOutFragColor = vec4(sceneColor, 1.0) + depthColor * 0.001;
+	float distToBox = boxIntersectDetails.x;
+	float distInsideBox = boxIntersectDetails.y;
+
+	float stepSize = distInsideBox / float(StepsCount);
+
+	float distanceAccumulated = 0.0;
+	float maxDistance = min(distInsideBox, depth - distToBox);
+
+	float totalDensity = 0.0;
+	
+	while (distanceAccumulated < maxDistance)
+	{
+		vec3 currentPosition = onCameraPoint + rayDirection * (distToBox + distanceAccumulated);
+		totalDensity = sampleDensity(currentPosition) * stepSize + totalDensity;
+		distanceAccumulated = stepSize + distanceAccumulated;
+	}
+
+	FSOutFragColor = vec4(sceneColor * exp(-totalDensity), 1.0);
 }
