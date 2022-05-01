@@ -6,18 +6,25 @@ uniform sampler2D SceneTexture;
 uniform sampler2D DepthTexture;
 uniform sampler3D CloudsDensityTexture;
 
-uniform mat4  CameraMatrix;
-uniform float AspectRatio;
-uniform float Near;
-uniform float Far;
-uniform float FovY;
+uniform mat4      CameraMatrix;
+uniform float     AspectRatio;
+uniform float     Near;
+uniform float     Far;
+uniform float     FovY;
+			      
+uniform vec3      CloudScale;
+uniform vec3      CloudOffset;
+uniform float     DensityThreshold;
+uniform float     DensityMultiplier;
+uniform float     DarknessThreshold;
+uniform vec4      PhaseParams;
+uniform int       FocusedEyeSunExponent;
+			      
+uniform vec4      DiffuseColor;
+uniform vec3      LightDirection;
 
-uniform vec3 CloudScale;
-uniform vec3 CloudOffset;
-uniform float DensityThreshold;
-uniform float DensityMultiplier;
-
-uniform int StepsCount;
+uniform int       StepsCount;
+uniform int       LightStepsCount;
 
 out vec4 FSOutFragColor;
 
@@ -25,6 +32,24 @@ float linearizeDepth(float d,float zNear,float zFar)
 {
     float z_n = 2.0 * d - 1.0;
     return 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
+}
+
+float beer(float d)
+{
+	return exp(-d);
+}
+
+float hg(float a, float g) 
+{
+    float g2 = g*g;
+    return (1-g2) / (4*3.1415*pow(1+g2-2*g*(a), 1.5));
+}
+
+float phase(float a) 
+{
+    float blend = .5;
+    float hgBlend = hg(a,PhaseParams.x) * (1-blend) + hg(a,-PhaseParams.y) * blend;
+    return PhaseParams.z + hgBlend*PhaseParams.w;
 }
 
 vec2 rayBoxDst(vec3 boundsMin, vec3 boundsMax, vec3 rayOrigin, vec3 rayDirection)
@@ -52,6 +77,30 @@ float sampleDensity(vec3 position)
 	float density = texture(CloudsDensityTexture, adjustedPosition).x;
 	
 	return max(0.0, density - DensityThreshold) * DensityMultiplier;
+}
+
+float lightMarch(vec3 pos)
+{
+	vec3  toLight = -normalize(LightDirection);
+	float distInsideBox = rayBoxDst(vec3(-20.0, -20.0, -20.0), vec3(20.0, 20.0, 20.0), pos, toLight).y;
+
+	float stepSize = distInsideBox / float(LightStepsCount);
+	float distanceAccumulated = 0.0;
+	float maxDistance = distInsideBox;
+	float totalDensity = 0.0;
+
+	while (distanceAccumulated < maxDistance)
+	{
+		float density = sampleDensity(pos + toLight * distanceAccumulated);
+		totalDensity += max(0, density * stepSize);
+		distanceAccumulated += stepSize;
+	}
+
+	float transmittance = beer(totalDensity);
+
+	transmittance = DarknessThreshold + transmittance * (1.0 - DarknessThreshold);
+
+	return transmittance;
 }
 
 void main()
@@ -85,14 +134,39 @@ void main()
 	float distanceAccumulated = 0.0;
 	float maxDistance = min(distInsideBox, depth - distToBox);
 
-	float totalDensity = 0.0;
-	
+	float transmittance = 1.0;
+	float lightEnergy = 0.0;
+
+	vec3  toLight = -normalize(LightDirection);
+	float sunDot = dot(rayDirection, toLight);
+	float phaseVal = phase(sunDot);
+
 	while (distanceAccumulated < maxDistance)
 	{
 		vec3 currentPosition = onCameraPoint + rayDirection * (distToBox + distanceAccumulated);
-		totalDensity = sampleDensity(currentPosition) * stepSize + totalDensity;
+
+		float density = sampleDensity(currentPosition);
+
+		if (density > 0)
+		{
+			float lightTransmittance = lightMarch(currentPosition);
+			lightEnergy += density * lightTransmittance * stepSize * phaseVal;
+
+			transmittance *= beer(density * stepSize);
+
+			if (transmittance < 0.01)
+				break;
+		}
+
 		distanceAccumulated = stepSize + distanceAccumulated;
 	}
 
-	FSOutFragColor = vec4(sceneColor * exp(-totalDensity), 1.0);
+	float focusedEyeCos = pow(clamp(sunDot, 0.0, 1.0), FocusedEyeSunExponent);
+	float sun = clamp(hg(focusedEyeCos, 0.9995), 0.0, 1.0) * transmittance;
+
+	vec3 cloudCol = lightEnergy * DiffuseColor.xyz;
+	vec3 col = (sceneColor * transmittance) + cloudCol;
+	col = clamp(col, 0.0, 1.0) * (1 - sun) + DiffuseColor.xyz * sun;
+
+	FSOutFragColor = vec4(col, 1.0);
 }
