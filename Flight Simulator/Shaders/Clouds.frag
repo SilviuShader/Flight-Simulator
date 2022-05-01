@@ -23,6 +23,7 @@ uniform float     DensityMultiplier;
 uniform float     DarknessThreshold;
 uniform vec4      PhaseParams;
 uniform int       FocusedEyeSunExponent;
+uniform vec4      ShapeNoiseWeights;
 			      
 uniform vec4      DiffuseColor;
 uniform vec3      LightDirection;
@@ -56,6 +57,18 @@ float phase(float a)
     return PhaseParams.z + hgBlend*PhaseParams.w;
 }
 
+float remap(float x, float oldMin, float oldMax, float newMin, float newMax)
+{
+    float oldDiff = oldMax - oldMin;
+	x = (x - oldMin) / oldDiff;
+	return newMin + x * (newMax - newMin);
+}
+
+float saturate(float x)
+{
+	return clamp(x, 0.0, 1.0);
+}
+
 vec2 rayBoxDst(vec3 boundsMin, vec3 boundsMax, vec3 rayOrigin, vec3 rayDirection)
 {
 	vec3 inverseRayDir = 1.0 / rayDirection;
@@ -76,11 +89,30 @@ vec2 rayBoxDst(vec3 boundsMin, vec3 boundsMax, vec3 rayOrigin, vec3 rayDirection
 
 float sampleDensity(vec3 position)
 {
-	vec3 adjustedPosition = position * CloudScale + CloudOffset;
-	vec2 uv = position.xz * 0.001;
+	vec3 size = BoundsMax - BoundsMin;
+	vec3 boundsCenter = (BoundsMin + BoundsMax) * 0.5;
+	vec3 uvw = (size * 0.5 + (position - boundsCenter)) * CloudScale;
+	vec3 shapeSamplePos = uvw + CloudOffset;
 
-	float density = texture(CloudsDensityTexture, adjustedPosition).x;
-	density *= texture(WeatherMap, uv).x;
+	float containerEdgeFadeDst = 50;
+	float dstFromEdgeX = min(containerEdgeFadeDst, min(position.x - BoundsMin.x, BoundsMax.x - position.x));
+	float dstFromEdgeY = min(containerEdgeFadeDst, min(position.y - BoundsMin.y, BoundsMax.y - position.y));
+	float dstFromEdgeZ = min(containerEdgeFadeDst, min(position.z - BoundsMin.z, BoundsMax.z - position.z));
+	float edgeWeight = min(min(dstFromEdgeX, dstFromEdgeY), dstFromEdgeZ) / containerEdgeFadeDst;
+
+	vec2 weatherUV = (size.xz * 0.5 + (position.xz - boundsCenter.xz)) / max(size.x, size.z);
+	float weatherMap = texture(WeatherMap, weatherUV).x;
+	float gMin = remap(weatherMap, 0, 1, 0.1, 0.5);
+	float gMax = remap(weatherMap, 0, 1, gMin, 0.9);
+	float heightPercentage = (position.y - BoundsMin.y) / size.y;
+	float heightGradient = saturate(remap(heightPercentage, 0.0, gMin, 0.0, 1.0)) * saturate(remap(heightPercentage, 1.0, gMax, 0.0, 1.0));
+	heightGradient *= edgeWeight;
+
+	vec4 shapeNoise = texture(CloudsDensityTexture, shapeSamplePos);
+	vec4 normalizedShapeWeights = ShapeNoiseWeights / dot(ShapeNoiseWeights, vec4(1.0, 1.0, 1.0, 1.0));
+	float baseShapeRawDensity = dot(shapeNoise, normalizedShapeWeights) * heightGradient;
+	
+	float density = baseShapeRawDensity;
 	
 	return max(0.0, density - DensityThreshold) * DensityMultiplier;
 }
