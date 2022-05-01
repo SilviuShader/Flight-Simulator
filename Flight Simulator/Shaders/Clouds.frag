@@ -5,6 +5,7 @@ in vec2 FSInputTexCoords;
 uniform sampler2D SceneTexture;
 uniform sampler2D DepthTexture;
 uniform sampler3D CloudsDensityTexture;
+uniform sampler3D DetailNoiseTexture;
 uniform sampler2D WeatherMap;
 
 uniform mat4      CameraMatrix;
@@ -24,6 +25,7 @@ uniform float     DarknessThreshold;
 uniform vec4      PhaseParams;
 uniform int       FocusedEyeSunExponent;
 uniform vec4      ShapeNoiseWeights;
+uniform vec4      DetailNoiseWeights;
 			      
 uniform vec4      DiffuseColor;
 uniform vec3      LightDirection;
@@ -111,10 +113,27 @@ float sampleDensity(vec3 position)
 	vec4 shapeNoise = texture(CloudsDensityTexture, shapeSamplePos);
 	vec4 normalizedShapeWeights = ShapeNoiseWeights / dot(ShapeNoiseWeights, vec4(1.0, 1.0, 1.0, 1.0));
 	float baseShapeRawDensity = dot(shapeNoise, normalizedShapeWeights) * heightGradient;
+	float baseShapeDensity = baseShapeRawDensity;
+
+	if (baseShapeRawDensity > 0.0)
+	{
+		float detailNoiseScale = 0.1; // TODO: replace this
+		vec3 detailSamplePos = uvw * detailNoiseScale;
+		vec4 detailNoise = texture(DetailNoiseTexture, detailSamplePos);
+		vec4 normalizedDetailWeights = DetailNoiseWeights / dot(DetailNoiseWeights, vec4(1.0, 1.0, 1.0, 1.0));
+		float detailRawIntensity = dot(detailNoise, normalizedDetailWeights);
+
+		float oneMinusShape = 1.0 - baseShapeRawDensity;
+		float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
+		float detailNoiseWeight = 0.2; // TODO: replace this
+		float cloudDensity = baseShapeDensity - (1 - detailRawIntensity) * detailErodeWeight * detailNoiseWeight;
 	
-	float density = baseShapeRawDensity;
-	
-	return max(0.0, density - DensityThreshold) * DensityMultiplier;
+		float finalDensity = max(0.0, cloudDensity - DensityThreshold) * DensityMultiplier;
+		
+		return finalDensity;
+	}
+
+	return 0.0;
 }
 
 float lightMarch(vec3 pos)

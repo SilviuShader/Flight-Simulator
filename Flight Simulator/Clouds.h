@@ -20,5 +20,6 @@ private:
 	PerlinNoise* m_perlinNoise;
 	
 	Texture3D*   m_worleyNoiseTexture;
+	Texture3D*   m_detailNoiseTexture;
 	Texture*     m_weatherMap;
 };

@@ -13,6 +13,10 @@ Clouds::Clouds()
 	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 3, 5, 9, vec4(0.0f, 1.0f, 0.0f, 0.0f) }, m_worleyNoiseTexture);
 	m_worleyNoise->RenderNoise({ 128, 3, 0.5f, 1, 2, 3, vec4(0.0f, 0.0f, 1.0f, 0.0f) }, m_worleyNoiseTexture);
 
+	m_detailNoiseTexture = m_worleyNoise->RenderNoise({ 32, 3, 0.5f, 2, 4, 8, vec4(1.0f, 0.0f, 0.0f, 1.0f) });
+	m_worleyNoise->RenderNoise({ 32, 3, 0.5f, 3, 5, 9, vec4(0.0f, 1.0f, 0.0f, 0.0f) }, m_detailNoiseTexture);
+	m_worleyNoise->RenderNoise({ 32, 3, 0.5f, 1, 2, 3, vec4(0.0f, 0.0f, 1.0f, 0.0f) }, m_detailNoiseTexture);
+
 	PerlinNoise::NoiseParameters noiseParameters;
 
 	noiseParameters.StartPosition = vec2(-100.0f, -100.0f);
@@ -32,6 +36,12 @@ Clouds::~Clouds()
 	{
 		delete m_weatherMap;
 		m_weatherMap = nullptr;
+	}
+
+	if (m_detailNoiseTexture)
+	{
+		delete m_detailNoiseTexture;
+		m_detailNoiseTexture = nullptr;
 	}
 
 	if (m_worleyNoiseTexture)
@@ -63,7 +73,8 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetTexture("SceneTexture",           sceneTexture,         0);
 	cloudsShader->SetTexture("DepthTexture",           depthTexture,         1);
 	cloudsShader->SetTexture3D("CloudsDensityTexture", m_worleyNoiseTexture, 2);
-	cloudsShader->SetTexture("WeatherMap",             m_weatherMap,         3);
+	cloudsShader->SetTexture3D("DetailNoiseTexture",   m_detailNoiseTexture, 3);
+	cloudsShader->SetTexture("WeatherMap",             m_weatherMap,         4);
 
 	mat4 cameraMatrix = camera->GetModelMatrix();
 
@@ -84,11 +95,12 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetVec4("PhaseParams",          vec4(0.9f, 0.1f, 0.1f, 5.0f));
 	cloudsShader->SetInt("FocusedEyeSunExponent", 2);
 	cloudsShader->SetVec4("ShapeNoiseWeights",    vec4(1.0f, 0.5f, 0.25f, 0.0f));
+	cloudsShader->SetVec4("DetailNoiseWeights",   vec4(0.25f, 1.0f, 0.5f, 0.0f));
 
 	cloudsShader->SetVec4("DiffuseColor",         light->GetDiffuseColor());
 	cloudsShader->SetVec3("LightDirection",       light->GetLightDirection());
 												  
-	cloudsShader->SetInt("LightStepsCount",       30);
+	cloudsShader->SetInt("LightStepsCount",       15);
 												  
 	cloudsShader->SetInt("StepsCount",            50);
 
