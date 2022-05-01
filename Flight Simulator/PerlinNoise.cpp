@@ -53,10 +53,26 @@ void PerlinNoise::GenerateNoiseValues(int seed)
     }
 }
 
-Texture* PerlinNoise::RenderNoise(NoiseParameters noiseParameters)
+Texture* PerlinNoise::RenderPerlinNoise(NoiseParameters noiseParameters)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        noiseShader   = shaderManager->GetPerlinNoiseShader();
+
+    return RenderNoise(noiseShader, noiseParameters, false);
+}
+
+Texture* PerlinNoise::RenderSimplexNoise(NoiseParameters noiseParameters, bool normalize)
+{
+    ShaderManager* shaderManager = ShaderManager::GetInstance();
+    Shader*        noiseShader   = shaderManager->GetSimplexNoiseShader();
+
+    return RenderNoise(noiseShader, noiseParameters, normalize);
+}
+
+
+Texture* PerlinNoise::RenderNoise(Shader* noiseShader, NoiseParameters noiseParameters, bool normalize)
+{
+    ShaderManager* shaderManager = ShaderManager::GetInstance();
     Texture*       noiseTexture  = new Texture(noiseParameters.TextureSize,
                                                noiseParameters.TextureSize,
                                                Texture::Format::R32F,
@@ -69,6 +85,24 @@ Texture* PerlinNoise::RenderNoise(NoiseParameters noiseParameters)
 
     noiseShader->SetUniformBlockBinding("NoiseValues", 1);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_noiseValuesBuffer);
+
+    if (noiseShader->HasUniform("PrepareNormalize"))
+        noiseShader->SetInt("PrepareNormalize", 0);
+    else
+        normalize = false;
+
+    unsigned int minMaxBuffer = -1;
+
+    if (normalize)
+    {
+        minMaxBuffer = Texture::CreateMinMaxBuffer();
+
+        noiseShader->SetShaderStorageBlockBinding("MinMaxValues", 2);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, minMaxBuffer);
+
+        noiseShader->SetInt("MinMaxBufferValue", Texture::MIN_MAX_BUFFER_VALUE);
+        noiseShader->SetInt("PrepareNormalize", 1);
+    }
 
     noiseShader->SetFloat("NoiseFrequency",     noiseParameters.Frequency);
     noiseShader->SetInt("OctavesAdd",           noiseParameters.OctavesCount);
@@ -85,6 +119,27 @@ Texture* PerlinNoise::RenderNoise(NoiseParameters noiseParameters)
                       Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT), 1);
 
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    if (normalize)
+    {
+        Shader* texture2DNormalizeShader = shaderManager->GetTexture2DNormalizeShader();
+
+        texture2DNormalizeShader->Use();
+
+        texture2DNormalizeShader->SetImage2D("ImgOutput", noiseTexture, 0, Texture::Format::R32F);
+        texture2DNormalizeShader->SetShaderStorageBlockBinding("MinMaxValues", 1);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, minMaxBuffer);
+
+        texture2DNormalizeShader->SetInt("MinMaxBufferValue", Texture::MIN_MAX_BUFFER_VALUE);
+
+        glDispatchCompute(Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
+                          Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
+                          1);
+
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    
+        Texture::FreeMinMaxBuffer(minMaxBuffer);
+    }
 
     return noiseTexture;
 }

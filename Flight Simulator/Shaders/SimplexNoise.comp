@@ -1,0 +1,131 @@
+#version 430 core
+#define BLOCKS_COUNT 8
+#define NOISE_SAMPLES_COUNT 256
+
+layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
+layout (r32f, binding = 0) uniform image2D ImgOutput;
+
+layout (std140, binding = 1) uniform NoiseValues
+{
+    vec4 Samples[NOISE_SAMPLES_COUNT];
+};
+
+layout(std140, binding = 2) buffer MinMaxValues
+{
+	int Mn;
+	int Mx;
+};
+
+uniform int   MinMaxBufferValue;
+uniform int   PrepareNormalize;
+
+uniform float NoiseFrequency;
+uniform int   OctavesAdd;
+
+uniform float FudgeFactor;
+uniform float Exponent;
+
+uniform vec2  OctaveOffset;
+
+uniform vec2  StartPosition;
+uniform vec2  FinalPosition;
+
+int getPermutation(int index)
+{
+    int permutationsCount = NOISE_SAMPLES_COUNT << 1;
+    if (index < 0 || index >= permutationsCount)
+    {
+        return 0;
+    }
+
+    if (index < NOISE_SAMPLES_COUNT)
+        return int(Samples[index].z);
+
+    return int(Samples[index - NOISE_SAMPLES_COUNT].w);
+}
+
+int hashPermutationsMap(int val1, int val2)
+{
+    return getPermutation(getPermutation(val1) + val2);
+}
+
+vec2 hash(vec2 position)
+{
+    int mask = NOISE_SAMPLES_COUNT - 1;
+
+    int x = (int(floor(position.x))) & mask;
+    int y = (int(floor(position.y))) & mask;
+
+    return Samples[hashPermutationsMap(x, y)].xy;
+}
+
+float getSimplexNoiseValue(in vec2 position, float defaultFrequency)
+{
+    position *= defaultFrequency;
+
+    float k1 = 0.366025404; // (sqrt(3)-1)/2;
+    float k2 = 0.211324865; // (3-sqrt(3))/6;
+
+	vec2  i = floor( position + (position.x+position.y) * k1 );
+    vec2  a = position - i + (i.x+i.y)*k2;
+    float m = step(a.y,a.x); 
+    vec2  o = vec2(m,1.0-m);
+    vec2  b = a - o + k2;
+	vec2  c = a - 1.0 + 2.0*k2;
+    vec3  h = max( 0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
+	vec3  n = h*h*h*h*vec3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
+
+    float result = dot( n, vec3(70.0) );
+
+    result *= 0.5;
+    result += 0.5;
+
+    return result;
+}
+
+float getCombinedNoiseValue(vec2 position, float defaultFrequency, int maxOctaves, float fudge, float exponent)
+{
+    float frequency = 1.0;
+    float amplitude = 1.0;
+    float result = 0.0;
+
+    float amplitudeSum = 0.0f;
+
+    for (int i = 0; i < maxOctaves; i++)
+    {
+        result += getSimplexNoiseValue(position * frequency + (OctaveOffset * i), defaultFrequency) * amplitude;
+        float percentage = clamp(result, 0.0, 1.0);
+        
+        amplitudeSum += amplitude;
+
+        frequency *= 2.0;
+        amplitude *= 0.5;
+    }
+
+    result = result / amplitudeSum;
+    result = pow(result * fudge, exponent);
+
+    return result;
+}
+
+void main()
+{
+    vec2  finalStartDiff = FinalPosition - StartPosition;
+    ivec2 pixelCoords    = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 imgSize        = imageSize(ImgOutput).xy;
+
+    if (pixelCoords.x >= imgSize.x || pixelCoords.y >= imgSize .y)
+        return;
+
+    vec2  texCoords      = vec2(pixelCoords) / vec2(imgSize);
+    vec2  noisePosition  = vec2(texCoords.x * finalStartDiff.x, texCoords.y * finalStartDiff.y) + StartPosition;
+    float noise          = getCombinedNoiseValue(noisePosition, NoiseFrequency, OctavesAdd, FudgeFactor, Exponent);
+
+    if (PrepareNormalize != 0)
+    {
+        atomicMin(Mn, int(noise * float(MinMaxBufferValue)));
+	    atomicMax(Mx, int(noise * float(MinMaxBufferValue)));
+    }
+
+    imageStore(ImgOutput, pixelCoords, vec4(noise));
+}

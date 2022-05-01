@@ -39,9 +39,12 @@ public:
     PerlinNoise(int = 0);
     ~PerlinNoise();
 
-    Texture* RenderNoise(NoiseParameters);
+    Texture* RenderPerlinNoise(NoiseParameters);
+    Texture* RenderSimplexNoise(NoiseParameters, bool = false);
 
 private:
+
+    Texture* RenderNoise(Shader*, NoiseParameters, bool);
 
     void                          GenerateNoiseValues(int seed);
                                   

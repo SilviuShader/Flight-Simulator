@@ -45,6 +45,9 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetFloat("Near",                camera->GetNear());
 	cloudsShader->SetFloat("Far",                 camera->GetFar());
 	cloudsShader->SetFloat("FovY",                camera->GetFieldOfViewY());
+
+	cloudsShader->SetVec3("BoundsMin",            vec3(-100.0f, 0.0f,  -100.0f));
+	cloudsShader->SetVec3("BoundsMin",            vec3( 100.0f, 200.0f, 100.0f));
 												  
 	cloudsShader->SetVec3("CloudScale",           0.01f * vec3(1.0f, 1.0f, 1.0f));
 	cloudsShader->SetVec3("CloudOffset",          vec3(0.0f, 0.0f, 0.0f));
@@ -57,7 +60,7 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetVec4("DiffuseColor",         light->GetDiffuseColor());
 	cloudsShader->SetVec3("LightDirection",       light->GetLightDirection());
 												  
-	cloudsShader->SetInt("LightStepsCount",       10);
+	cloudsShader->SetInt("LightStepsCount",       20);
 												  
 	cloudsShader->SetInt("StepsCount",            30);
 

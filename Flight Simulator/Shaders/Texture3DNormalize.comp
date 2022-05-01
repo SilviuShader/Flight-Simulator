@@ -1,6 +1,5 @@
 #version 430 core
 #define BLOCKS_COUNT 8
-#define MIN_MAX_FLOAT_MULTIPLIER 100000000.0
 
 layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = BLOCKS_COUNT) in;
 layout (rgba32f, binding = 0) uniform image3D ImgOutput;
@@ -10,6 +9,8 @@ layout(std140, binding = 1) buffer MinMaxValues
 	int Mn;
 	int Mx;
 };
+
+uniform int  MinMaxBufferValue;
 
 uniform vec4 ChannelsMask;
 
@@ -24,8 +25,8 @@ void main()
 		return;
 
 	vec4  initialValue = imageLoad(ImgOutput, pixelCoords);
-	float mn           = float(Mn) / MIN_MAX_FLOAT_MULTIPLIER;
-	float mx           = float(Mx) / MIN_MAX_FLOAT_MULTIPLIER;
+	float mn           = float(Mn) / float(MinMaxBufferValue);
+	float mx           = float(Mx) / float(MinMaxBufferValue);
 				       
     vec4  color        = (initialValue - mn) / (mx - mn);
 

@@ -397,5 +397,11 @@
     <CopyFileToFolders Include="Shaders\Clouds.vert">
       <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\SimplexNoise.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Texture2DNormalize.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

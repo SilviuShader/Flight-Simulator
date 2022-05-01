@@ -260,6 +260,27 @@ uint32_t Texture::GetComputeShaderGroupsCount(const uint32_t size, const uint32_
     return (size + numBlocks - 1) / numBlocks;
 }
 
+unsigned int Texture::CreateMinMaxBuffer()
+{
+    unsigned int minMaxBuffer;
+
+    MinMaxValues data;
+    data.Mn = MIN_MAX_BUFFER_VALUE;
+    data.Mx = 0;
+
+    glGenBuffers(1, &minMaxBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, minMaxBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(data), &data, GL_STATIC_DRAW);
+
+    return minMaxBuffer;
+}
+
+void Texture::FreeMinMaxBuffer(unsigned int minMaxBuffer)
+{
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    glDeleteBuffers(1, &minMaxBuffer);
+}
+
 Texture::TextureInfo Texture::GetCurrentTextureInfo() const
 {
     TextureInfo result = m_textureInfo;

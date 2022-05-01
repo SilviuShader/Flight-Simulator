@@ -32,7 +32,7 @@ Texture3D* WorleyNoise::RenderNoise(NoiseParameters noiseParameters, Texture3D* 
 	CreatePointsPositions(points, noiseParameters);
 
 	unsigned int pointsPositionsBuffer = CreatePointsPositionsBuffer(points, pointsCount);
-	unsigned int minMaxBuffer          = CreateMinMaxBuffer();
+	unsigned int minMaxBuffer          = Texture::CreateMinMaxBuffer();
 
 	noiseShader->Use();
 
@@ -44,14 +44,16 @@ Texture3D* WorleyNoise::RenderNoise(NoiseParameters noiseParameters, Texture3D* 
 	noiseShader->SetShaderStorageBlockBinding("MinMaxValues", 2);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, minMaxBuffer);
 
-	noiseShader->SetInt("Tiles",         noiseParameters.Tiles);
-	noiseShader->SetFloat("Persistance", noiseParameters.Persistance);
+	noiseShader->SetInt("MinMaxBufferValue", Texture::MIN_MAX_BUFFER_VALUE);
 
-	noiseShader->SetInt("NumCellsA",     noiseParameters.NumCellsA);
-	noiseShader->SetInt("NumCellsB",     noiseParameters.NumCellsB);
-	noiseShader->SetInt("NumCellsC",     noiseParameters.NumCellsC);
-
-	noiseShader->SetVec4("ChannelsMask", noiseParameters.ChannelsMask);
+	noiseShader->SetInt("Tiles",             noiseParameters.Tiles);
+	noiseShader->SetFloat("Persistance",     noiseParameters.Persistance);
+										     
+	noiseShader->SetInt("NumCellsA",         noiseParameters.NumCellsA);
+	noiseShader->SetInt("NumCellsB",         noiseParameters.NumCellsB);
+	noiseShader->SetInt("NumCellsC",         noiseParameters.NumCellsC);
+										     
+	noiseShader->SetVec4("ChannelsMask",     noiseParameters.ChannelsMask);
 
 	glDispatchCompute(Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
 		              Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
@@ -63,9 +65,11 @@ Texture3D* WorleyNoise::RenderNoise(NoiseParameters noiseParameters, Texture3D* 
 
 	texture3DNormalizeShader->Use();
 
-	texture3DNormalizeShader->SetImage3D("ImgOutput",         noiseTexture, 0, Texture::Format::RGBA32F);
-	noiseShader->SetShaderStorageBlockBinding("MinMaxValues", 1);
+	texture3DNormalizeShader->SetImage3D("ImgOutput", noiseTexture, 0, Texture::Format::RGBA32F);
+	texture3DNormalizeShader->SetShaderStorageBlockBinding("MinMaxValues", 1);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, minMaxBuffer);
+
+	texture3DNormalizeShader->SetInt("MinMaxBufferValue", Texture::MIN_MAX_BUFFER_VALUE);
 
 	glDispatchCompute(Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
 		              Texture::GetComputeShaderGroupsCount(noiseParameters.TextureSize, COMPUTE_SHADER_BLOCKS_COUNT),
@@ -73,7 +77,7 @@ Texture3D* WorleyNoise::RenderNoise(NoiseParameters noiseParameters, Texture3D* 
 
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-	FreeMinMaxBuffer(minMaxBuffer);
+	Texture::FreeMinMaxBuffer(minMaxBuffer);
 	FreePointsPositionsBuffer(pointsPositionsBuffer);
 
 	if (points)
@@ -141,25 +145,4 @@ void WorleyNoise::FreePointsPositionsBuffer(unsigned int pointsPositionsBuffer)
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glDeleteBuffers(1, &pointsPositionsBuffer);
-}
-
-unsigned int WorleyNoise::CreateMinMaxBuffer()
-{
-	unsigned int minMaxBuffer;
-
-	MinMaxValues data;
-	data.Mn = MIN_MAX_BUFFER_VALUE;
-	data.Mx = 0;
-
-	glGenBuffers(1, &minMaxBuffer);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, minMaxBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(data), &data, GL_STATIC_DRAW);
-
-	return minMaxBuffer;
-}
-
-void WorleyNoise::FreeMinMaxBuffer(unsigned int minMaxBuffer)
-{
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	glDeleteBuffers(1, &minMaxBuffer);
 }

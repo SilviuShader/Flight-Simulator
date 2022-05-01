@@ -27,7 +27,9 @@ public:
 		   Shader*        GetTexture3DSliceShader()     const;
 
 		   Shader*        GetPerlinNoiseShader()        const;
+		   Shader*        GetSimplexNoiseShader()       const;
 		   Shader*        GetWorleyNoiseShader()        const;
+		   Shader*        GetTexture2DNormalizeShader() const;
 		   Shader*        GetTexture3DNormalizeShader() const;
 
 		   Shader*        GetMinShader()                const;
@@ -53,7 +55,9 @@ private:
 		   Shader*        m_texture3DSliceShader;
 
 		   Shader*        m_perlinNoiseShader;
+		   Shader*        m_simplexNoiseShader;
 		   Shader*        m_worleyNoiseShader;
+		   Shader*        m_texture2DNormalizeShader;
 		   Shader*        m_texture3DNormalizeShader;
 	       		          
 	       Shader*        m_minShader;

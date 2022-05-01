@@ -68,7 +68,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
     heightParameters.OctavesCount  = Terrain::HEIGHT_OCTAVES_COUNT;
     heightParameters.TextureSize   = NOISE_TEXTURE_SIZE;
                                    
-    m_heightTexture                = m_perlinNoise->RenderNoise(heightParameters);
+    m_heightTexture                = m_perlinNoise->RenderPerlinNoise(heightParameters);
 
     PerlinNoise::NoiseParameters biomeParameters;
 
@@ -80,7 +80,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
             biomeParameters.OctavesCount  = Terrain::BIOME_OCTAVES_COUNT;
             biomeParameters.TextureSize   = NOISE_TEXTURE_SIZE;
             
-            m_biomesTexture               = m_perlinNoise->RenderNoise(biomeParameters);
+            m_biomesTexture               = m_perlinNoise->RenderPerlinNoise(biomeParameters);
                                           
     float** minValues                     = m_heightTexture->GetDownscaleValues({ shaderManager->GetMinShader(),     4, 8}, QUAD_TREE_DEPTH);
     float** maxValues                     = m_heightTexture->GetDownscaleValues({ shaderManager->GetMaxShader(),     4, 8}, QUAD_TREE_DEPTH);
@@ -101,7 +101,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
              folliageRandomnessParameters.OctavesCount  = Terrain::FOLLIAGE_RANDOMNESS_OCTAVES_COUNT;
              folliageRandomnessParameters.TextureSize   = heightBiomeDivisionsCount;
 
-    Texture* folliageRandomnessMap                      = m_perlinNoise->RenderNoise(folliageRandomnessParameters);
+    Texture* folliageRandomnessMap                      = m_perlinNoise->RenderPerlinNoise(folliageRandomnessParameters);
     float**  folliageRandomnessValues                   = Texture::GetPixelsInfo(folliageRandomnessMap);
 
     PerlinNoise::NoiseParameters folliageSelectionRandomnessParameters;
@@ -114,7 +114,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
              folliageSelectionRandomnessParameters.OctavesCount  = Terrain::FOLLIAGE_SELECTION_RANDOMNESS_OCTAVES_COUNT;
              folliageSelectionRandomnessParameters.TextureSize   = heightBiomeDivisionsCount;
 
-    Texture* folliageSelectionRandomnessMap                      = m_perlinNoise->RenderNoise(folliageSelectionRandomnessParameters);
+    Texture* folliageSelectionRandomnessMap                      = m_perlinNoise->RenderPerlinNoise(folliageSelectionRandomnessParameters);
     float**  folliageSelectionRandomnessValues                   = Texture::GetPixelsInfo(folliageSelectionRandomnessMap);
 
     BuildQuadTree(make_pair(minValues, maxValues), make_pair(heightValues, biomeValues), make_pair(folliageRandomnessValues, folliageSelectionRandomnessValues));

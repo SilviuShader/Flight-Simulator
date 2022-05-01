@@ -40,3 +40,5 @@ https://github.com/SebLague/Clouds/blob/master/Assets/Scripts/Clouds/Noise/Compu
 https://github.com/SebLague/Clouds/blob/master/Assets/Scripts/Clouds/Shaders/Clouds.shader
 
 https://stackoverflow.com/questions/51108596/linearize-depth
+
+https://www.shadertoy.com/view/Msf3WH

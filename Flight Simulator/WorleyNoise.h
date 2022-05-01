@@ -7,8 +7,7 @@ class WorleyNoise
 {
 private:
 
-	       const int COMPUTE_SHADER_BLOCKS_COUNT = 8;
-	static const int MIN_MAX_BUFFER_VALUE        = 100000000;
+	const int COMPUTE_SHADER_BLOCKS_COUNT = 8;
 
 public:
 
@@ -25,16 +24,6 @@ public:
 		glm::vec4 ChannelsMask;
 	};
 
-private:
-
-	struct MinMaxValues
-	{
-	public:
-
-		int Mn;
-		int Mx;
-	};
-
 public:
 
 	WorleyNoise();
@@ -49,7 +38,4 @@ private:
 	
 	unsigned int CreatePointsPositionsBuffer(glm::vec4*, int);
 	void         FreePointsPositionsBuffer(unsigned int);
-
-	unsigned int CreateMinMaxBuffer();
-	void         FreeMinMaxBuffer(unsigned int);
 };

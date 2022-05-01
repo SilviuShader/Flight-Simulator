@@ -1,6 +1,5 @@
 #version 430 core
 #define BLOCKS_COUNT             8
-#define MIN_MAX_FLOAT_MULTIPLIER 100000000.0
 
 #define MAX_CELLS_WIDTH          10
 #define MAX_TOTAL_LAYER_CELLS    (MAX_CELLS_WIDTH * MAX_CELLS_WIDTH * MAX_CELLS_WIDTH)
@@ -18,6 +17,8 @@ layout(std140, binding = 2) buffer MinMaxValues
 	int Mn;
 	int Mx;
 };
+
+uniform int   MinMaxBufferValue;
 
 uniform int   Tiles;
 uniform float Persistance;
@@ -135,8 +136,8 @@ void main()
 	      sum             /= 1 + Persistance + Persistance * Persistance;
 	      sum              = 1.0 - sum;
 
-	atomicMin(Mn, int(sum * MIN_MAX_FLOAT_MULTIPLIER));
-	atomicMax(Mx, int(sum * MIN_MAX_FLOAT_MULTIPLIER));
+	atomicMin(Mn, int(sum * float(MinMaxBufferValue)));
+	atomicMax(Mx, int(sum * float(MinMaxBufferValue)));
 	
 	vec4 initialValue = imageLoad(ImgOutput, pixelCoords);
 

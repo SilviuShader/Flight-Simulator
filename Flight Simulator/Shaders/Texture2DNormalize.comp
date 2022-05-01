@@ -1,0 +1,31 @@
+#version 430 core
+#define BLOCKS_COUNT 8
+
+layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
+layout (r32f, binding = 0) uniform image2D ImgOutput;
+
+layout(std140, binding = 1) buffer MinMaxValues
+{
+	int Mn;
+	int Mx;
+};
+
+uniform int MinMaxBufferValue;
+
+void main()
+{
+	ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 imageSize   = imageSize(ImgOutput);
+
+	if (pixelCoords.x >= imageSize.x || 
+	    pixelCoords.y >= imageSize.y)
+		return;
+
+	vec4  initialValue = imageLoad(ImgOutput, pixelCoords);
+	float mn           = float(Mn) / float(MinMaxBufferValue);
+	float mx           = float(Mx) / float(MinMaxBufferValue);
+				       
+    vec4  color        = (initialValue - mn) / (mx - mn);
+
+	imageStore(ImgOutput, pixelCoords, color);
+}

@@ -28,10 +28,22 @@ ShaderManager::~ShaderManager()
 		m_texture3DNormalizeShader = nullptr;
 	}
 
+	if (m_texture2DNormalizeShader)
+	{
+		delete m_texture2DNormalizeShader;
+		m_texture2DNormalizeShader = nullptr;
+	}
+
 	if (m_worleyNoiseShader)
 	{
 		delete m_worleyNoiseShader;
 		m_worleyNoiseShader = nullptr;
+	}
+
+	if (m_simplexNoiseShader)
+	{
+		delete m_simplexNoiseShader;
+		m_simplexNoiseShader = nullptr;
 	}
 
 	if (m_perlinNoiseShader)
@@ -149,11 +161,21 @@ Shader* ShaderManager::GetTexture3DSliceShader()     const
 Shader* ShaderManager::GetPerlinNoiseShader()        const
 {											         
 	return m_perlinNoiseShader;				         
-}											         
+}
+
+Shader* ShaderManager::GetSimplexNoiseShader()       const
+{
+	return m_simplexNoiseShader;
+}
 											         
 Shader* ShaderManager::GetWorleyNoiseShader()        const
 {
 	return m_worleyNoiseShader;
+}
+
+Shader* ShaderManager::GetTexture2DNormalizeShader() const
+{
+	return m_texture2DNormalizeShader;
 }
 
 Shader* ShaderManager::GetTexture3DNormalizeShader() const
@@ -192,7 +214,9 @@ ShaderManager::ShaderManager()
 	m_texture3DSliceShader     = new Shader("Shaders/Texture3DSlice.vert",   "Shaders/Texture3DSlice.frag");
 
 	m_perlinNoiseShader        = new Shader("Shaders/PerlinNoise.comp");
+	m_simplexNoiseShader       = new Shader("Shaders/SimplexNoise.comp");
 	m_worleyNoiseShader        = new Shader("Shaders/WorleyNoise.comp");
+	m_texture2DNormalizeShader = new Shader("Shaders/Texture2DNormalize.comp");
 	m_texture3DNormalizeShader = new Shader("Shaders/Texture3DNormalize.comp");
 
 	m_minShader                = new Shader("Shaders/MinMipMap.comp");

@@ -12,6 +12,9 @@ uniform float     Near;
 uniform float     Far;
 uniform float     FovY;
 			      
+uniform vec3      BoundsMin;
+uniform vec3      BoundsMax;
+
 uniform vec3      CloudScale;
 uniform vec3      CloudOffset;
 uniform float     DensityThreshold;
@@ -82,7 +85,7 @@ float sampleDensity(vec3 position)
 float lightMarch(vec3 pos)
 {
 	vec3  toLight = -normalize(LightDirection);
-	float distInsideBox = rayBoxDst(vec3(-20.0, -20.0, -20.0), vec3(20.0, 20.0, 20.0), pos, toLight).y;
+	float distInsideBox = rayBoxDst(BoundsMin, BoundsMax, pos, toLight).y;
 
 	float stepSize = distInsideBox / float(LightStepsCount);
 	float distanceAccumulated = 0.0;
@@ -124,7 +127,7 @@ void main()
 
 	rayDirection = normalize(rayDirection);
 
-	vec2 boxIntersectDetails = rayBoxDst(vec3(-20.0, -20.0, -20.0), vec3(20.0, 20.0, 20.0), onCameraPoint, rayDirection);
+	vec2 boxIntersectDetails = rayBoxDst(BoundsMin, BoundsMax, onCameraPoint, rayDirection);
 
 	float distToBox = boxIntersectDetails.x;
 	float distInsideBox = boxIntersectDetails.y;

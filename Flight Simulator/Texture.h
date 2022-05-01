@@ -42,6 +42,18 @@ private:
         int          Height;
     };
 
+    struct MinMaxValues
+    {
+    public:
+
+        int Mn;
+        int Mx;
+    };
+
+public:
+
+    static const int MIN_MAX_BUFFER_VALUE = 100000000;
+
 public:
 
     Texture(const std::string&); // load texture from file
@@ -66,6 +78,9 @@ public:
     static int          GetGLFormat(Format);
     static int          GetGLParam(Filter);
     static uint32_t     GetComputeShaderGroupsCount(const uint32_t, const uint32_t);
+
+    static unsigned int CreateMinMaxBuffer();
+    static void         FreeMinMaxBuffer(unsigned int);
 
 private:
 
