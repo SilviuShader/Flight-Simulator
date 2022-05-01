@@ -5,6 +5,7 @@ in vec2 FSInputTexCoords;
 uniform sampler2D SceneTexture;
 uniform sampler2D DepthTexture;
 uniform sampler3D CloudsDensityTexture;
+uniform sampler2D WeatherMap;
 
 uniform mat4      CameraMatrix;
 uniform float     AspectRatio;
@@ -76,8 +77,10 @@ vec2 rayBoxDst(vec3 boundsMin, vec3 boundsMax, vec3 rayOrigin, vec3 rayDirection
 float sampleDensity(vec3 position)
 {
 	vec3 adjustedPosition = position * CloudScale + CloudOffset;
+	vec2 uv = position.xz * 0.001;
 
 	float density = texture(CloudsDensityTexture, adjustedPosition).x;
+	density *= texture(WeatherMap, uv).x;
 	
 	return max(0.0, density - DensityThreshold) * DensityMultiplier;
 }

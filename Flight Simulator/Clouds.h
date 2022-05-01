@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "WorleyNoise.h"
 #include "Light.h"
+#include "PerlinNoise.h"
 
 class Clouds
 {
@@ -16,5 +17,8 @@ public:
 private:
 
 	WorleyNoise* m_worleyNoise;
+	PerlinNoise* m_perlinNoise;
+	
 	Texture3D*   m_worleyNoiseTexture;
+	Texture*     m_weatherMap;
 };
