@@ -18,19 +18,23 @@ uniform vec3      BoundsMin;
 uniform vec3      BoundsMax;
 
 uniform vec3      CloudScale;
+uniform float     DetailNoiseScale;
 uniform vec3      CloudOffset;
-uniform float     DensityThreshold;
 uniform float     DensityMultiplier;
 uniform float     DarknessThreshold;
+uniform float     DensityOffset;
 uniform vec4      PhaseParams;
 uniform int       FocusedEyeSunExponent;
 uniform vec4      ShapeNoiseWeights;
 uniform vec4      DetailNoiseWeights;
+uniform float     LightAbsorbtionTowardSun;
+uniform float     LightAbsorptionThroughCloud;
+uniform float     DetailNoiseWeight;
+uniform float     RayMarchStepSize;
 			      
 uniform vec4      DiffuseColor;
 uniform vec3      LightDirection;
 
-uniform int       StepsCount;
 uniform int       LightStepsCount;
 
 out vec4 FSOutFragColor;
@@ -93,42 +97,40 @@ float sampleDensity(vec3 position)
 {
 	vec3 size = BoundsMax - BoundsMin;
 	vec3 boundsCenter = (BoundsMin + BoundsMax) * 0.5;
-	vec3 uvw = (size * 0.5 + (position - boundsCenter)) * CloudScale;
+	vec3 uvw = (size * 0.5 + position) * CloudScale;
 	vec3 shapeSamplePos = uvw + CloudOffset;
 
 	float containerEdgeFadeDst = 50;
 	float dstFromEdgeX = min(containerEdgeFadeDst, min(position.x - BoundsMin.x, BoundsMax.x - position.x));
-	float dstFromEdgeY = min(containerEdgeFadeDst, min(position.y - BoundsMin.y, BoundsMax.y - position.y));
 	float dstFromEdgeZ = min(containerEdgeFadeDst, min(position.z - BoundsMin.z, BoundsMax.z - position.z));
-	float edgeWeight = min(min(dstFromEdgeX, dstFromEdgeY), dstFromEdgeZ) / containerEdgeFadeDst;
+
+	float edgeWeight = min(dstFromEdgeX, dstFromEdgeZ) / containerEdgeFadeDst;
 
 	vec2 weatherUV = (size.xz * 0.5 + (position.xz - boundsCenter.xz)) / max(size.x, size.z);
 	float weatherMap = texture(WeatherMap, weatherUV).x;
 	float gMin = remap(weatherMap, 0, 1, 0.1, 0.5);
 	float gMax = remap(weatherMap, 0, 1, gMin, 0.9);
 	float heightPercentage = (position.y - BoundsMin.y) / size.y;
-	float heightGradient = saturate(remap(heightPercentage, 0.0, gMin, 0.0, 1.0)) * saturate(remap(heightPercentage, 1.0, gMax, 0.0, 1.0));
+	float heightGradient =  saturate(remap(heightPercentage, 0.0, gMin, 0, 1)) * saturate(remap(heightPercentage, 1, gMax, 0, 1));
 	heightGradient *= edgeWeight;
 
 	vec4 shapeNoise = texture(CloudsDensityTexture, shapeSamplePos);
 	vec4 normalizedShapeWeights = ShapeNoiseWeights / dot(ShapeNoiseWeights, vec4(1.0, 1.0, 1.0, 1.0));
 	float baseShapeRawDensity = dot(shapeNoise, normalizedShapeWeights) * heightGradient;
-	float baseShapeDensity = baseShapeRawDensity;
+	float baseShapeDensity = baseShapeRawDensity + DensityOffset;
 
-	if (baseShapeRawDensity > 0.0)
+	if (baseShapeDensity > 0.0)
 	{
-		float detailNoiseScale = 0.1; // TODO: replace this
-		vec3 detailSamplePos = uvw * detailNoiseScale;
+		vec3 detailSamplePos = uvw * DetailNoiseScale;
 		vec4 detailNoise = texture(DetailNoiseTexture, detailSamplePos);
 		vec4 normalizedDetailWeights = DetailNoiseWeights / dot(DetailNoiseWeights, vec4(1.0, 1.0, 1.0, 1.0));
 		float detailRawIntensity = dot(detailNoise, normalizedDetailWeights);
 
 		float oneMinusShape = 1.0 - baseShapeRawDensity;
 		float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
-		float detailNoiseWeight = 0.2; // TODO: replace this
-		float cloudDensity = baseShapeDensity - (1 - detailRawIntensity) * detailErodeWeight * detailNoiseWeight;
+		float cloudDensity = baseShapeDensity - (1 - detailRawIntensity) * detailErodeWeight * DetailNoiseWeight;
 	
-		float finalDensity = max(0.0, cloudDensity - DensityThreshold) * DensityMultiplier;
+		float finalDensity = cloudDensity * DensityMultiplier;
 		
 		return finalDensity;
 	}
@@ -150,10 +152,10 @@ float lightMarch(vec3 pos)
 	{
 		float density = sampleDensity(pos + toLight * distanceAccumulated);
 		totalDensity += max(0, density * stepSize);
-		distanceAccumulated += stepSize;
+		distanceAccumulated = distanceAccumulated + stepSize;
 	}
 
-	float transmittance = beer(totalDensity);
+	float transmittance = beer(totalDensity * LightAbsorbtionTowardSun);
 
 	transmittance = DarknessThreshold + transmittance * (1.0 - DarknessThreshold);
 
@@ -186,8 +188,6 @@ void main()
 	float distToBox = boxIntersectDetails.x;
 	float distInsideBox = boxIntersectDetails.y;
 
-	float stepSize = distInsideBox / float(StepsCount);
-
 	float distanceAccumulated = 0.0;
 	float maxDistance = min(distInsideBox, depth - distToBox);
 
@@ -207,15 +207,15 @@ void main()
 		if (density > 0)
 		{
 			float lightTransmittance = lightMarch(currentPosition);
-			lightEnergy += density * lightTransmittance * stepSize * phaseVal;
+			lightEnergy += density * transmittance * lightTransmittance * RayMarchStepSize * phaseVal;
 
-			transmittance *= beer(density * stepSize);
+			transmittance *= exp(-density * RayMarchStepSize * LightAbsorptionThroughCloud);
 
 			if (transmittance < 0.01)
 				break;
 		}
 
-		distanceAccumulated = stepSize + distanceAccumulated;
+		distanceAccumulated += RayMarchStepSize;
 	}
 
 	float focusedEyeCos = pow(clamp(sunDot, 0.0, 1.0), FocusedEyeSunExponent);
