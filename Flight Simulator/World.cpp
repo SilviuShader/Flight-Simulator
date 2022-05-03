@@ -25,7 +25,14 @@ World::World(int windowWidth, int windowHeight) :
 	m_terrain = new Terrain();
 
 	m_worldRenderTexture = new RenderTexture(windowWidth, windowHeight);
-	m_clouds = new Clouds();
+
+	Clouds::CloudsProperties cloudsProperties;
+	cloudsProperties.OffsetVelocity = vec3(.01f, .02f, .03f);
+	cloudsProperties.DetailsOffsetVelocity = vec3(0.4f, 0.5f, 0.6f);
+	cloudsProperties.CloudBoxExtents = vec2(200.0f, 200.0f);
+	cloudsProperties.CloudsAltitude = 100.0f;
+
+	m_clouds = new Clouds(cloudsProperties);
 }
 
 World::~World()
@@ -83,9 +90,10 @@ void World::Update(float deltaTime)
 		DebugHelper::GetInstance()->ResetInstances();
 
 	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug);
+	m_clouds->Update(deltaTime);
 }
 
-float t = 0.0f;
+//float t = 0.0f;
 
 void World::Draw()
 {
@@ -103,7 +111,7 @@ void World::Draw()
 	m_clouds->Draw(m_camera, m_light, m_worldRenderTexture->GetTexture(), m_worldRenderTexture->GetDepthTexture());
 	//DebugHelper::GetInstance()->DrawTexture3DSlice(m_worleyNoiseTexture, sinf(t) * 0.5f + 0.5f, 0.25f);
 
-	t += 0.01f;
+	//t += 0.01f;
 }
 
 Camera* World::GetCamera() const

@@ -20,6 +20,7 @@ uniform vec3      BoundsMax;
 uniform vec3      CloudScale;
 uniform float     DetailNoiseScale;
 uniform vec3      CloudOffset;
+uniform vec3      DetailsOffset;
 uniform float     DensityMultiplier;
 uniform float     DarknessThreshold;
 uniform float     DensityOffset;
@@ -106,7 +107,7 @@ float sampleDensity(vec3 position)
 
 	float edgeWeight = min(dstFromEdgeX, dstFromEdgeZ) / containerEdgeFadeDst;
 
-	vec2 weatherUV = (size.xz * 0.5 + (position.xz - boundsCenter.xz)) / max(size.x, size.z);
+	vec2 weatherUV = (size.xz * 0.5 + position.xz) / max(size.x, size.z);
 	float weatherMap = texture(WeatherMap, weatherUV).x;
 	float gMin = remap(weatherMap, 0, 1, 0.1, 0.5);
 	float gMax = remap(weatherMap, 0, 1, gMin, 0.9);
@@ -121,7 +122,7 @@ float sampleDensity(vec3 position)
 
 	if (baseShapeDensity > 0.0)
 	{
-		vec3 detailSamplePos = uvw * DetailNoiseScale;
+		vec3 detailSamplePos = uvw * DetailNoiseScale + DetailsOffset;
 		vec4 detailNoise = texture(DetailNoiseTexture, detailSamplePos);
 		vec4 normalizedDetailWeights = DetailNoiseWeights / dot(DetailNoiseWeights, vec4(1.0, 1.0, 1.0, 1.0));
 		float detailRawIntensity = dot(detailNoise, normalizedDetailWeights);
