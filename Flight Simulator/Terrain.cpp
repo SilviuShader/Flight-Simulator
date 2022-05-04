@@ -68,7 +68,7 @@ void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug)
 	m_firstFrame = false;
 }
 
-void Terrain::Draw(Camera* camera, Light* light, Texture* reflectionTexture, Camera* reflectionCamera)
+void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture)
 {
 	for (auto& chunk : m_chunksList)
 		chunk->DrawTerrain(camera, light, m_terrainMaterials, m_terrainBiomesData);
@@ -76,11 +76,11 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* reflectionTexture, Cam
 	for (auto& chunk : m_chunksList)
 		chunk->DrawFolliage(camera, light);
 
-	if (!reflectionTexture)
+	if (!refractionTexture || !reflectionTexture)
 		return;
 
 	for (auto& chunk : m_chunksList)
-		chunk->DrawWater(camera, reflectionTexture, reflectionCamera);
+		chunk->DrawWater(camera, refractionTexture, reflectionTexture);
 }
 
 void Terrain::CreateTerrainObjects()

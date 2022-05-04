@@ -32,7 +32,7 @@ public:
 
 private:
 
-	void RenderScene(Camera* camera, RenderTexture* = nullptr, Texture* = nullptr, Camera* = nullptr);
+	void RenderScene(Camera*, bool, RenderTexture* = nullptr, Texture* = nullptr, Texture* = nullptr);
 
 private:
 
@@ -45,6 +45,7 @@ private:
 				      
 	RenderTexture*    m_auxilliaryRenderTexture;
 	RenderTexture*    m_reflectionRenderTexture;
+	RenderTexture*    m_refractionRenderTexture;
 				      
 	bool              m_renderDebug;
 };

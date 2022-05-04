@@ -360,7 +360,7 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
     }
 }
 
-void Chunk::DrawWater(Camera* camera, Texture* reflectionTexture, Camera* reflectionCamera)
+void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* reflectionTexture)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
@@ -375,11 +375,8 @@ void Chunk::DrawWater(Camera* camera, Texture* reflectionTexture, Camera* reflec
     waterShader->SetMatrix4("View",              view);
     waterShader->SetMatrix4("Projection",        projection);
 
-    mat4 reflectionViewMatrix = reflectionCamera->GetViewMatrix();
-
-    //waterShader->SetMatrix4("ReflectionView",    reflectionViewMatrix);
-
-    waterShader->SetTexture("ReflectionTexture", reflectionTexture, 0);
+    waterShader->SetTexture("RefractionTexture", refractionTexture, 0);
+    waterShader->SetTexture("ReflectionTexture", reflectionTexture, 1);
 
     glBindVertexArray(m_waterVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
