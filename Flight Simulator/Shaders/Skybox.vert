@@ -8,8 +8,13 @@ uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
 
+uniform vec4 ClipPlane;
+
 void main()
 {
-	FSInputTexCoords = VSInputPosition;
-	gl_Position      = Projection * View * Model * vec4(VSInputPosition, 1.0);
+	FSInputTexCoords   = VSInputPosition;
+	vec4 worldPosition = Model * vec4(VSInputPosition, 1.0);
+
+	gl_ClipDistance[0] = dot(ClipPlane, worldPosition);
+	gl_Position        = Projection * View * worldPosition;
 }

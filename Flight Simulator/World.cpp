@@ -8,6 +8,7 @@
 #include "DebugHelper.h"
 #include <glm/ext/matrix_transform.hpp>
 #include "Biome.h"
+#include "RenderSettings.h"
 
 using namespace std;
 using namespace glm;
@@ -21,10 +22,12 @@ World::World(int windowWidth, int windowHeight) :
 	m_light->SetSpecularPower(4.0f);
 
 	m_camera  = new Camera(radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 1000.0f);
+	m_reflectionCamera = new ReflectionCamera(m_camera, Terrain::WATER_LEVEL);
 	m_skybox  = new Skybox();
 	m_terrain = new Terrain();
 
-	m_worldRenderTexture = new RenderTexture(windowWidth, windowHeight);
+	m_auxilliaryRenderTexture = new RenderTexture(windowWidth, windowHeight);
+	m_reflectionRenderTexture = new RenderTexture(windowWidth, windowHeight);
 
 	Clouds::CloudsProperties cloudsProperties;
 	cloudsProperties.OffsetVelocity = vec3(.01f, .02f, .03f);
@@ -43,10 +46,16 @@ World::~World()
 		m_clouds = nullptr;
 	}
 
-	if (m_worldRenderTexture)
+	if (m_reflectionRenderTexture)
 	{
-		delete m_worldRenderTexture;
-		m_worldRenderTexture = nullptr;
+		delete m_reflectionRenderTexture;
+		m_reflectionRenderTexture = nullptr;
+	}
+
+	if (m_auxilliaryRenderTexture)
+	{
+		delete m_auxilliaryRenderTexture;
+		m_auxilliaryRenderTexture = nullptr;
 	}
 
 	if (m_terrain)
@@ -59,6 +68,12 @@ World::~World()
 	{
 		delete m_skybox;
 		m_skybox = nullptr;
+	}
+
+	if (m_reflectionCamera)
+	{
+		delete m_reflectionCamera;
+		m_reflectionCamera = nullptr;
 	}
 
 	if (m_camera)
@@ -82,6 +97,8 @@ void World::UpdateWindowSize(int width, int height)
 void World::Update(float deltaTime)
 {
 	m_camera->Update(deltaTime);
+	m_reflectionCamera->Update(deltaTime);
+	m_clouds->Update(deltaTime);
 
 	if (InputWrapper::GetInstance()->GetKeyUp(InputWrapper::Keys::Debug))
 		m_renderDebug = !m_renderDebug;
@@ -89,32 +106,42 @@ void World::Update(float deltaTime)
 	if (m_renderDebug)
 		DebugHelper::GetInstance()->ResetInstances();
 
-	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug);
-	m_clouds->Update(deltaTime);
-}
+	RenderSettings* renderSettings = RenderSettings::GetInstance();
+	m_terrain->Udpate(m_reflectionCamera, 0.0f, m_renderDebug);
 
-//float t = 0.0f;
+	renderSettings->EnablePlaneClipping(vec4(0.0f, 1.0f, 0.0f, -Terrain::WATER_LEVEL));
+	RenderScene(m_reflectionCamera, m_reflectionRenderTexture);
+	renderSettings->DisablePlaneClipping();
+
+	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug);
+}
 
 void World::Draw()
 {
-	m_worldRenderTexture->Begin();
-
-	m_skybox->Draw(m_camera);
-
-	m_terrain->Draw(m_camera, m_light);
-
-	if (m_renderDebug)
-		DebugHelper::GetInstance()->DrawRectangles(m_camera);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	m_clouds->Draw(m_camera, m_light, m_worldRenderTexture->GetTexture(), m_worldRenderTexture->GetDepthTexture());
-	//DebugHelper::GetInstance()->DrawTexture3DSlice(m_worleyNoiseTexture, sinf(t) * 0.5f + 0.5f, 0.25f);
-
-	//t += 0.01f;
+	RenderScene(m_camera, nullptr, m_reflectionRenderTexture->GetTexture(), m_reflectionCamera);
+	//DebugHelper::GetInstance()->DrawFullscreenTexture(m_reflectionRenderTexture->GetTexture());
 }
 
 Camera* World::GetCamera() const
 {
 	return m_camera;
+}
+
+void World::RenderScene(Camera* camera, RenderTexture* targetTexture, Texture* reflectionTexture, Camera* reflectionCamera)
+{
+	m_auxilliaryRenderTexture->Begin();
+
+	m_skybox->Draw(camera);
+
+	m_terrain->Draw(camera, m_light, reflectionTexture, reflectionCamera);
+
+	if (m_renderDebug)
+		DebugHelper::GetInstance()->DrawRectangles(camera);
+
+	if (targetTexture)
+		targetTexture->Begin();
+	else
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	m_clouds->Draw(camera, m_light, m_auxilliaryRenderTexture->GetTexture(), m_auxilliaryRenderTexture->GetDepthTexture());
 }

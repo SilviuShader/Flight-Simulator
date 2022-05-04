@@ -94,6 +94,12 @@ ShaderManager::~ShaderManager()
 		m_folliageShader = nullptr;
 	}
 
+	if (m_waterShader)
+	{
+		delete m_waterShader;
+		m_waterShader = nullptr;
+	}
+
 	if (m_terrainShader)
 	{
 		delete m_terrainShader;
@@ -121,7 +127,12 @@ void ShaderManager::FreeInstance()
 Shader* ShaderManager::GetTerrainShader()            const
 {										             
 	return m_terrainShader;				             
-}										             
+}
+
+Shader* ShaderManager::GetWaterShader()              const
+{
+	return m_waterShader;
+}
 										             
 Shader* ShaderManager::GetFolliageShader()           const
 {
@@ -138,7 +149,7 @@ Shader* ShaderManager::GetSkyboxShader()             const
 	return m_skyboxShader;				             
 }
 
-Shader* ShaderManager::GetCloudsShader() const
+Shader* ShaderManager::GetCloudsShader()             const
 {
 	return m_cloudsShader;
 }
@@ -148,7 +159,7 @@ Shader* ShaderManager::GetColorShader()              const
 	return m_colorShader;
 }
 
-Shader* ShaderManager::GetTextureShader() const
+Shader* ShaderManager::GetTextureShader()            const
 {
 	return m_textureShader;
 }
@@ -202,6 +213,8 @@ ShaderManager::ShaderManager()
 {
 	m_terrainShader            = new Shader("Shaders/Terrain.vert",          "Shaders/Terrain.frag",
 		                                    "Shaders/Terrain.tesc",          "Shaders/Terrain.tese");
+
+	m_waterShader              = new Shader("Shaders/Water.vert",            "Shaders/Water.frag");
 
 	m_folliageShader           = new Shader("Shaders/Folliage.vert",         "Shaders/Folliage.frag");
 	m_folliageBilboardedShader = new Shader("Shaders/FolliageBilboard.vert", "Shaders/FolliageBilboard.frag");

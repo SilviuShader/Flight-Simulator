@@ -15,6 +15,7 @@ public:
 	static void           FreeInstance();
 
 	       Shader*        GetTerrainShader()            const;
+		   Shader*        GetWaterShader()              const;
 											            
 		   Shader*        GetFolliageShader()           const;
 		   Shader*        GetFolliageBilboardedShader() const;
@@ -43,6 +44,7 @@ private:
 private:
 
 	       Shader*        m_terrainShader;
+		   Shader*        m_waterShader;
 
 		   Shader*        m_folliageShader;
 		   Shader*        m_folliageBilboardedShader;

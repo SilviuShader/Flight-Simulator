@@ -4,6 +4,7 @@
 
 #include "glad/glad.h"
 #include "Shader.h"
+#include "RenderSettings.h"
 
 using namespace std;
 using namespace glm;
@@ -160,7 +161,12 @@ Shader::~Shader()
 
 void Shader::Use()
 {
+    RenderSettings* renderSettings = RenderSettings::GetInstance();
     glUseProgram(m_programId);
+
+    if (renderSettings->PlaneClippingEnabled())
+        if (HasUniform("ClipPlane"))
+            SetVec4("ClipPlane", renderSettings->ClipPlane());
 }
 
 bool Shader::HasUniform(const string& name)

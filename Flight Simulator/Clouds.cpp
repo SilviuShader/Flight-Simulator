@@ -1,6 +1,7 @@
 #include "Clouds.h"
 #include "DebugHelper.h"
 #include "ShaderManager.h"
+#include "Terrain.h"
 
 using namespace glm;
 
@@ -99,7 +100,7 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	position = vec3(position.x, 0.0f, position.z);
 	vec3 extent = vec3(m_cloudsProperties.CloudBoxExtents.x, 0.0f, m_cloudsProperties.CloudBoxExtents.y);
 
-	vec3 boundsMin = position - extent;
+	vec3 boundsMin = position - extent + vec3(0.0f, Terrain::WATER_LEVEL,              0.0f);
 	vec3 boundsMax = position + extent + vec3(0.0f, m_cloudsProperties.CloudsAltitude, 0.0f);
 												          
 	cloudsShader->SetVec3("BoundsMin",                    boundsMin);

@@ -19,6 +19,7 @@
 #include "InputWrapper.h"
 #include "TextureLoadHelper.h"
 #include "ShaderManager.h"
+#include "RenderSettings.h"
 
 using namespace std;
 using namespace glm;
@@ -131,6 +132,7 @@ int main(int argc, char const* argv[])
         previousTime = currentTime;
     }
 
+    RenderSettings::FreeInstance();
     TextureLoadHelper::FreeInstance();
     InputWrapper::FreeInstance();
     DebugHelper::FreeInstance();

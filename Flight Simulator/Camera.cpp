@@ -7,7 +7,12 @@
 #include "Camera.h"
 #include "InputWrapper.h"
 
+using namespace std;
 using namespace glm;
+
+Camera::Camera()
+{
+}
 
 Camera::Camera(float fieldOfViewY, float width, float height, float near, float far) :
     m_position(vec3(0.0f, 10.0f, 0.0f)),
@@ -16,11 +21,12 @@ Camera::Camera(float fieldOfViewY, float width, float height, float near, float 
     m_height(height),
     m_fieldOfViewY(fieldOfViewY),
     m_near(near),
-    m_far(far),
-    m_forward(vec3(0.0f, 0.0f, -1.0f)),
-    m_right(vec3(1.0f, 0.0f, 0.0f)),
-    m_up(vec3(0.0f, 1.0f, 0.0f))
+    m_far(far)
 {
+    m_directions.Forward = vec3(0.0f, 0.0f, -1.0f);
+    m_directions.Right   = vec3(1.0f, 0.0f, 0.0f);
+    m_directions.Up      = vec3(0.0f, 1.0f, 0.0f);
+
     m_projectionMatrix = perspective(fieldOfViewY, width / height, near, far);
     UpdateViewMatrix();
     UpdateModelMatrix();
@@ -145,19 +151,44 @@ float Camera::GetFar() const
     return m_far;
 }
 
-glm::vec3 Camera::GetForward() const
+vec3 Camera::GetForward() const
 {
-    return m_forward;
+    return m_directions.Forward;
 }
 
-glm::vec3 Camera::GetRight() const
+vec3 Camera::GetRight() const
 {
-    return m_right;
+    return m_directions.Right;
 }
 
-glm::vec3 Camera::GetUp() const
+vec3 Camera::GetUp() const
 {
-    return m_up;
+    return m_directions.Up;
+}
+
+Camera::Directions Camera::GetReflectedVectors()
+{
+    vec4 forward = vec4(0.0f, 0.0f, -1.0f, 0.0f);
+    vec4 right   = vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    vec4 up      = vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+    m_rotation.x = -m_rotation.x;
+
+    mat4 rotationMatrix = GetRotationMatrix();
+
+    forward = forward * rotationMatrix;
+    right   = right   * rotationMatrix;
+    up      = up      * rotationMatrix;
+    
+    m_rotation.x = -m_rotation.x;
+
+    Directions result;
+
+    result.Forward = vec3(forward.x, forward.y, forward.z);
+    result.Right   = vec3(right.x,   right.y,   right.z);
+    result.Up      = vec3(up.x,      up.y,      up.z);
+
+    return result;
 }
 
 mat4 Camera::GetRotationMatrix()
@@ -184,13 +215,13 @@ void Camera::UpdateViewMatrix()
 
     mat4 rotationMatrix = GetRotationMatrix();
     
-         forward        = forward * rotationMatrix;
-         right          = right   * rotationMatrix;
-         up             = up      * rotationMatrix;
+    forward = forward * rotationMatrix;
+    right   = right   * rotationMatrix;
+    up      = up      * rotationMatrix;
 
-         m_forward      = normalize(vec3(forward.x, forward.y, forward.z));
-         m_right        = normalize(vec3(right.x,   right.y,   right.z  ));
-         m_up           = normalize(vec3(up.x,      up.y,      up.z     ));
+    m_directions.Forward = normalize(vec3(forward.x, forward.y, forward.z));
+    m_directions.Right   = normalize(vec3(right.x,   right.y,   right.z  ));
+    m_directions.Up      = normalize(vec3(up.x,      up.y,      up.z     ));
     
-         m_viewMatrix   = lookAt(m_position, m_position + m_forward, m_up);
+    m_viewMatrix = lookAt(m_position, m_position + m_directions.Forward, m_directions.Up);
 }

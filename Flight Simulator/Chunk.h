@@ -75,6 +75,7 @@ public:
            void      Update(Camera*, float, bool);
            void      DrawTerrain(Camera*, Light*, const std::vector<Material*>&, Texture*);
            void      DrawFolliage(Camera*, Light*);
+           void      DrawWater(Camera*, Texture*, Camera*);
 
            glm::vec3 GetTranslation() const;
 
@@ -83,45 +84,48 @@ public:
 
 private:
 
-                void  CreateTerrainBuffers();
-                void  FreeTerrainBuffers();
-                      
-                void  BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
-                Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
-                      
-                void  FillZoneRanges(const MathHelper::Frustum&, Node*);
-                void  UpdateZoneRangesBuffer();
-                      
-                void  FillFolliageInstances(Camera*, const MathHelper::Frustum&, Node*);
+          void  CreateTerrainBuffers();
+          void  FreeTerrainBuffers();
 
-          template<typename T>
-          const T&    RouletteWheelSelection(const std::vector<T>& models, float r)
-          {
-              int resultIndex = 0;
-              float totalSum = 0.0f;
+          void  CreateWaterBuffers();
+          void  FreeWaterBuffers();
+                        
+          void  BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
+          Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
+                        
+          void  FillZoneRanges(const MathHelper::Frustum&, Node*);
+          void  UpdateZoneRangesBuffer();
+                        
+          void  FillFolliageInstances(Camera*, const MathHelper::Frustum&, Node*);
 
-              for (auto& model : models)
-                  totalSum += model.Chance;
+    template<typename T>
+    const T&    RouletteWheelSelection(const std::vector<T>& models, float r)
+    {
+        int resultIndex = 0;
+        float totalSum = 0.0f;
 
-              float slice = r * totalSum;
+        for (auto& model : models)
+            totalSum += model.Chance;
 
-              float accumulatedSum = 0.0f;
+        float slice = r * totalSum;
 
-              int index = 0;
-              for (auto& model : models)
-              {
-                  accumulatedSum += model.Chance;
-                  if (accumulatedSum >= slice)
-                  {
-                      resultIndex = index;
-                      break;
-                  }
+        float accumulatedSum = 0.0f;
 
-                  index++;
-              }
+        int index = 0;
+        for (auto& model : models)
+        {
+            accumulatedSum += model.Chance;
+            if (accumulatedSum >= slice)
+            {
+                resultIndex = index;
+                break;
+            }
 
-              return models[resultIndex];
-          }
+            index++;
+        }
+
+        return models[resultIndex];
+    }
 
 private:
 
@@ -131,6 +135,10 @@ private:
     unsigned int                                                                                 m_instanceVbo;
     unsigned int                                                                                 m_ebo;
     unsigned int                                                                                 m_vao;
+
+    unsigned int                                                                                 m_waterVbo;
+    unsigned int                                                                                 m_waterEbo;
+    unsigned int                                                                                 m_waterVao;
                                                                                                  
     PerlinNoise*                                                                                 m_perlinNoise;
     Texture*                                                                                     m_heightTexture;

@@ -1,4 +1,5 @@
 #include "MathHelper.h"
+#include "Camera.h"
 
 using namespace std;
 using namespace glm;

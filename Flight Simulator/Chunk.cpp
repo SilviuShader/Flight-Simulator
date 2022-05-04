@@ -43,8 +43,12 @@ Chunk::Node::~Node()
 
 Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
     m_vbo(0),
+    m_instanceVbo(0),
     m_ebo(0),
     m_vao(0),
+    m_waterVbo(0),
+    m_waterEbo(0),
+    m_waterVao(0),
     m_perlinNoise(perlinNoise),
     m_chunkID(chunkID),
     m_quadTree(nullptr),
@@ -52,6 +56,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     CreateTerrainBuffers();
+    CreateWaterBuffers();
 
     vec3 translation = GetTranslation();
 
@@ -241,6 +246,7 @@ Chunk::~Chunk()
         m_heightTexture = nullptr;
     }
 
+    FreeWaterBuffers();
     FreeTerrainBuffers();
 }
 
@@ -352,6 +358,32 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
         model->SetInstances(keyValue.second);
         model->Draw(shader, "DiffuseTextures", "NormalTextures", "SpecularTextures", 1);
     }
+}
+
+void Chunk::DrawWater(Camera* camera, Texture* reflectionTexture, Camera* reflectionCamera)
+{
+    ShaderManager* shaderManager = ShaderManager::GetInstance();
+    Shader*        waterShader   = shaderManager->GetWaterShader();
+
+    mat4 model      = translate(mat4(1.0f), GetTranslation() + vec3(0.0f, Terrain::WATER_LEVEL, 0.0f)) * scale(mat4(1.0f), vec3(Terrain::CHUNK_WIDTH, Terrain::CHUNK_WIDTH, Terrain::CHUNK_WIDTH));
+    mat4 view       = camera->GetViewMatrix();
+    mat4 projection = camera->GetProjectionMatrix();
+
+    waterShader->Use();
+
+    waterShader->SetMatrix4("Model",             model);
+    waterShader->SetMatrix4("View",              view);
+    waterShader->SetMatrix4("Projection",        projection);
+
+    mat4 reflectionViewMatrix = reflectionCamera->GetViewMatrix();
+
+    //waterShader->SetMatrix4("ReflectionView",    reflectionViewMatrix);
+
+    waterShader->SetTexture("ReflectionTexture", reflectionTexture, 0);
+
+    glBindVertexArray(m_waterVao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 vec3 Chunk::GetTranslation() const
@@ -467,6 +499,55 @@ void Chunk::FreeTerrainBuffers()
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &m_vao);
+}
+
+void Chunk::CreateWaterBuffers()
+{
+    VertexPositionTexture vertices[] =
+    {
+        VertexPositionTexture(vec3(-0.5f, 0.0f,  0.5f), vec2(0.0f, 0.0f)),
+        VertexPositionTexture(vec3( 0.5f, 0.0f,  0.5f), vec2(1.0f, 0.0f)),
+        VertexPositionTexture(vec3( 0.5f, 0.0f, -0.5f), vec2(1.0f, 1.0f)),
+        VertexPositionTexture(vec3(-0.5f, 0.0f, -0.5f), vec2(0.0f, 1.0f))
+    };
+
+    unsigned int indices[] =
+    {
+        0, 1, 3,
+        1, 2, 3
+    };
+
+    glGenVertexArrays(1, &m_waterVao);
+    
+    glBindVertexArray(m_waterVao);
+
+    glGenBuffers(1, &m_waterVbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_waterVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    VertexPositionTexture::SetLayout();
+
+    glGenBuffers(1, &m_waterEbo);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, indices, GL_STATIC_DRAW);
+}
+
+void Chunk::FreeWaterBuffers()
+{
+    glBindVertexArray(m_waterVao);
+
+    VertexPositionTexture::ResetLayout();
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &m_waterVbo);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &m_waterEbo);
+
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &m_waterVao);
 }
 
 void Chunk::BuildQuadTree(pair<float**, float**> minMax, pair<float**, float**> heightBiome, pair<float**, float**> folliageRandomnessValues)

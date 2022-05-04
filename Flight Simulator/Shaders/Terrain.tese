@@ -15,6 +15,8 @@ uniform float TerrainAmplitude;
 uniform sampler2D HeightTexture;
 uniform sampler2D BiomeTexture;
 
+uniform vec4 ClipPlane;
+
 in vec3 TESInputWorldPosition[];
 in vec3 TESInputPosition[];
 in vec2 TESInputTexCoords[];
@@ -93,6 +95,9 @@ void main()
 
     FSInputBiomeData     = calculateBiome(rawPosition.xz, worldPosition.y);
     FSInputWorldPosition = worldPosition;
+
+    gl_ClipDistance[0]   = dot(ClipPlane, vec4(FSInputWorldPosition, 1.0));
+
     FSInputTexCoords     = interpolate2D(TESInputTexCoords[0], TESInputTexCoords[1], TESInputTexCoords[2]);
     gl_Position          = Projection * View * vec4(worldPosition, 1.0);
 

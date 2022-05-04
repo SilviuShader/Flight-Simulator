@@ -14,6 +14,8 @@ uniform float GridWidth;
 uniform float GridHeight;
 uniform float TerrainAmplitude;
 
+uniform vec4  ClipPlane;
+
 uniform sampler2D NoiseTexture;
 
 out vec3 FSInputWorldPosition;
@@ -42,6 +44,8 @@ void main()
     mat4 model                   = mat4(1.0);
 
 	     FSInputWorldPosition    = (VSInputModelMatrix * vec4(VSInputPosition, 1.0)).xyz;
+
+         gl_ClipDistance[0]      = dot(ClipPlane, vec4(FSInputWorldPosition, 1.0));
 
     vec3 worldOriginPosition     = (VSInputModelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	vec3 positionInChunk         = worldOriginPosition - ChunkCenter;

@@ -14,6 +14,7 @@
 #include "Terrain.h"
 #include "WorleyNoise.h"
 #include "Clouds.h"
+#include "ReflectionCamera.h"
 
 class World
 {
@@ -31,13 +32,19 @@ public:
 
 private:
 
-	Light*         m_light;
-	Camera*        m_camera;
-	Terrain*       m_terrain;
-	Skybox*        m_skybox;
-	Clouds*        m_clouds;
+	void RenderScene(Camera* camera, RenderTexture* = nullptr, Texture* = nullptr, Camera* = nullptr);
 
-	RenderTexture* m_worldRenderTexture;
-				   
-	bool           m_renderDebug;
+private:
+
+	Light*            m_light;
+	Camera*           m_camera;
+	ReflectionCamera* m_reflectionCamera;
+	Terrain*          m_terrain;
+	Skybox*           m_skybox;
+	Clouds*           m_clouds;
+				      
+	RenderTexture*    m_auxilliaryRenderTexture;
+	RenderTexture*    m_reflectionRenderTexture;
+				      
+	bool              m_renderDebug;
 };

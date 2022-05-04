@@ -9,6 +9,7 @@ public:
 
 	static const float CHUNK_WIDTH;
 	static const float TERRAIN_AMPLITUDE;
+	static const float WATER_LEVEL;
 	static const float DISTANCE_FOR_DETAILS;
 	static const float MAX_TESSELATION;
 	static const float GAMMA;
@@ -46,7 +47,7 @@ public:
 	~Terrain();
 
 	void Udpate(Camera*, float, bool);
-	void Draw(Camera*, Light*);
+	void Draw(Camera*, Light*, Texture* = nullptr, Camera* = nullptr);
 
 private:
 
