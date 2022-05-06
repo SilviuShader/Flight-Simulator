@@ -35,9 +35,12 @@ const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FUDGE_FACTOR  = 1.2f;
 const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_EXPONENT      = 3.0f;
 const int   Terrain::FOLLIAGE_SELECTION_RANDOMNESS_OCTAVES_COUNT = 20;
 
+const float Terrain::WATER_MOVE_SPEED                            = 0.01f;
+
 Terrain::Terrain() : 
 	m_accumulatedCurrentChunksTime(0.0f),
-	m_firstFrame(true)
+	m_firstFrame(true),
+	m_waterMoveFactor(0.0f)
 {
 	CreateTerrainObjects();
 }
@@ -65,6 +68,10 @@ void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug)
 	for (auto& chunk : m_chunksList)
 		chunk->Update(camera, deltaTime, renderDebug);
 
+	m_waterMoveFactor += deltaTime * WATER_MOVE_SPEED;
+	if (m_waterMoveFactor >= 1.0f)
+		m_waterMoveFactor -= 1.0f;
+
 	m_firstFrame = false;
 }
 
@@ -80,7 +87,7 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 		return;
 
 	for (auto& chunk : m_chunksList)
-		chunk->DrawWater(camera, refractionTexture, reflectionTexture);
+		chunk->DrawWater(camera, refractionTexture, reflectionTexture, m_waterDuTexture, m_waterDvTexture, m_waterMoveFactor);
 }
 
 void Terrain::CreateTerrainObjects()
@@ -118,11 +125,37 @@ void Terrain::CreateTerrainObjects()
 
 	m_terrainBiomesData = Biome::CreateBiomesTexture();
 	m_terrainMaterials  = Biome::GetBiomesMaterials();
+
+	PerlinNoise::NoiseParameters waterDuParameters;
+	waterDuParameters.StartPosition = vec2(-100.0f, -100.0f);
+	waterDuParameters.EndPosition = vec2(100.0f, 100.0f);
+	waterDuParameters.Frequency = 0.1f;
+	waterDuParameters.OctavesCount = 20;
+	waterDuParameters.FudgeFactor = 1.2f;
+	waterDuParameters.Exponent = 3.0f;
+	waterDuParameters.TextureSize = 1024;
+	m_waterDuTexture = m_noise->RenderPerlinNoise(waterDuParameters);
+
+	PerlinNoise::NoiseParameters waterDvParameters = waterDuParameters;
+	waterDvParameters.Frequency = 0.2f;
+	m_waterDvTexture = m_noise->RenderPerlinNoise(waterDvParameters);
 }
 
 void Terrain::FreeTerrainObjects()
 {
 	Biome::Free();
+
+	if (m_waterDvTexture)
+	{
+		delete m_waterDvTexture;
+		m_waterDvTexture = nullptr;
+	}
+
+	if (m_waterDuTexture)
+	{
+		delete m_waterDuTexture;
+		m_waterDuTexture = nullptr;
+	}
 
 	if (m_noise)
 	{

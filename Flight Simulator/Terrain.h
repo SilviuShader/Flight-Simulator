@@ -36,6 +36,8 @@ public:
 	static const float FOLLIAGE_SELECTION_RANDOMNESS_EXPONENT;
 	static const int   FOLLIAGE_SELECTION_RANDOMNESS_OCTAVES_COUNT;
 
+	static const float WATER_MOVE_SPEED;
+
 private:
 
 	const int   MAX_CHUNKS                    = 54;
@@ -67,8 +69,12 @@ private:
 												              
 	std::vector<Material*>                                    m_terrainMaterials;
 	Texture*                                                  m_terrainBiomesData;
+
+	Texture*                                                  m_waterDuTexture;
+	Texture*                                                  m_waterDvTexture;
 												              
 	float                                                     m_accumulatedCurrentChunksTime;
 												              
 	bool                                                      m_firstFrame;
+	float                                                     m_waterMoveFactor;
 };

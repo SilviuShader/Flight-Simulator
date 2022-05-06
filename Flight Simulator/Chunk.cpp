@@ -360,7 +360,7 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
     }
 }
 
-void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* reflectionTexture)
+void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* reflectionTexture, Texture* duTexture, Texture* dvTexture, float waterMoveFactor)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
@@ -371,12 +371,18 @@ void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* refle
 
     waterShader->Use();
 
-    waterShader->SetMatrix4("Model",             model);
-    waterShader->SetMatrix4("View",              view);
-    waterShader->SetMatrix4("Projection",        projection);
+    waterShader->SetMatrix4("Model",              model);
+    waterShader->SetMatrix4("View",               view);
+    waterShader->SetMatrix4("Projection",         projection);
+                                                  
+    waterShader->SetTexture("RefractionTexture",  refractionTexture, 0);
+    waterShader->SetTexture("ReflectionTexture",  reflectionTexture, 1);
+    waterShader->SetTexture("DuTexture",          duTexture,         2);
+    waterShader->SetTexture("DvTexture",          dvTexture,         3);
 
-    waterShader->SetTexture("RefractionTexture", refractionTexture, 0);
-    waterShader->SetTexture("ReflectionTexture", reflectionTexture, 1);
+    waterShader->SetFloat("DisplacementStrength", 0.02f);
+
+    waterShader->SetFloat("MoveFactor",           waterMoveFactor);
 
     glBindVertexArray(m_waterVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
