@@ -13,7 +13,7 @@
 using namespace std;
 using namespace glm;
 
-const float Chunk::CHUNK_CLOSE_BIAS = 1.0f;
+const float Chunk::CHUNK_CLOSE_BIAS = 0.1f;
 
 Chunk::Node::Node()
 {
@@ -363,7 +363,7 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
     }
 }
 
-void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* reflectionTexture, Texture* duTexture, Texture* dvTexture, float waterMoveFactor)
+void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* duTexture, Texture* dvTexture, float waterMoveFactor, Texture* waterTexture, Texture* waterNormalMap)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
@@ -381,7 +381,7 @@ void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* refle
     waterShader->SetVec3("CameraPosition",        camera->GetPosition());
 
     waterShader->SetFloat("DistanceForDetails",   100.0f);
-    waterShader->SetFloat("TessellationLevel",    30);
+    waterShader->SetFloat("TessellationLevel",    150);
 
     waterShader->SetFloat("Time",                 m_waterTime);
 
@@ -389,11 +389,15 @@ void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* refle
     waterShader->SetTexture("ReflectionTexture",  reflectionTexture, 1);
     waterShader->SetTexture("DuTexture",          duTexture,         2);
     waterShader->SetTexture("DvTexture",          dvTexture,         3);
+    waterShader->SetTexture("WaterTexture",       waterTexture,      4);
+    waterShader->SetTexture("WaterNormalMap",     waterNormalMap,    5);
 
     waterShader->SetFloat("DisplacementStrength", 0.01f);
 
     waterShader->SetFloat("MoveFactor",           waterMoveFactor);
-    waterShader->SetFloat("ReflectivePower",      10.0);
+    waterShader->SetFloat("ReflectivePower",      1.0);
+
+    waterShader->SetLight(camera, light);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

@@ -12,9 +12,10 @@ uniform mediump mat4 Projection;
 
 uniform float Time;
 
-out vec2 FSInputTexCoords;
-out vec4 FSInputReflectionPosition;
-out vec3 FSInputWaterToCamera;
+out vec2 GSInputTexCoords;
+out vec4 GSInputWorldPosition;
+out vec4 GSInputReflectionPosition;
+out vec3 GSInputWaterToCamera;
 
 vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
 {
@@ -40,25 +41,26 @@ vec3 trochoidalWave(vec2 rotateDirection, vec2 xz, float speed, float offset, fl
     result.x = horizontalMovement * xz.x;
     result.z = horizontalMovement * xz.y;
 
-    result.y = cos(Time * speed + spaceProjection * offset) * radius;
+    result.y = cos(Time * speed + spaceProjection * offset) * radius * 30.0;
 
     return result;
 }
 
 vec3 vertexDisplacement(vec2 xz)
 {
-    return trochoidalWave(vec2(1.0, 0.0), xz, 1.0, 1.0, 0.05);
+    // TODO: Combine more waves at different frequencies
+    return trochoidalWave(vec2(1.0, 0.0), xz, 1.0, 1.0, 0.005);
 }
 
 void main()
 {
-    vec3 worldPosition             = interpolate3D(TESInputWorldPosition[0].xyz,  TESInputWorldPosition[1].xyz,  TESInputWorldPosition[2].xyz);
+    GSInputWorldPosition      = interpolate4D(TESInputWorldPosition[0],  TESInputWorldPosition[1],  TESInputWorldPosition[2]);
 
-         worldPosition            += vertexDisplacement(worldPosition.xz);
+    GSInputWorldPosition.xyz += vertexDisplacement(GSInputWorldPosition.xz);
 
-         FSInputTexCoords          = interpolate2D(TESInputTexCoords[0],          TESInputTexCoords[1],          TESInputTexCoords[2]);
-         FSInputReflectionPosition = interpolate4D(TESInputReflectionPosition[0], TESInputReflectionPosition[1], TESInputReflectionPosition[2]);
-         FSInputWaterToCamera      = interpolate3D(TESInputWaterToCamera[0],      TESInputWaterToCamera[1],      TESInputWaterToCamera[2]);
+    GSInputTexCoords          = interpolate2D(TESInputTexCoords[0],          TESInputTexCoords[1],          TESInputTexCoords[2]);
+    GSInputReflectionPosition = interpolate4D(TESInputReflectionPosition[0], TESInputReflectionPosition[1], TESInputReflectionPosition[2]);
+    GSInputWaterToCamera      = interpolate3D(TESInputWaterToCamera[0],      TESInputWaterToCamera[1],      TESInputWaterToCamera[2]);
 
-    gl_Position = Projection * View * vec4(worldPosition, 1.0);
+    gl_Position = Projection * View * GSInputWorldPosition;
 }

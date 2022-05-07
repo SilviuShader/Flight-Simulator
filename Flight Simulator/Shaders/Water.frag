@@ -3,16 +3,29 @@
 in vec2 FSInputTexCoords;
 in vec4 FSInputReflectionPosition;
 in vec3 FSInputWaterToCamera;
+in vec3 FSInputNormal;
+in vec3 FSInputTangent;
+in vec3 FSInputBinormal;
+in vec4 FSInputWorldPosition;
 
 uniform sampler2D RefractionTexture;
 uniform sampler2D ReflectionTexture;
 uniform sampler2D DuTexture;
 uniform sampler2D DvTexture;
+uniform sampler2D WaterTexture;
+uniform sampler2D WaterNormalMap;
 
 uniform float     DisplacementStrength;
 
 uniform float     MoveFactor;
 uniform float     ReflectivePower;
+
+uniform vec4  AmbientColor;
+uniform vec4  DiffuseColor;
+uniform vec3  LightDirection;
+uniform float SpecularPower; 
+
+uniform mediump vec3 CameraPosition;
 
 out vec4 FSOutFragColor;
 
@@ -30,12 +43,18 @@ vec2 sampleDuDv(vec2 texCoords)
 
 void main()
 {
-	vec2 clipTexCoords = FSInputReflectionPosition.xy / FSInputReflectionPosition.w * 0.5 + 0.5;
+	vec2 clipTexCoords    = FSInputReflectionPosition.xy / FSInputReflectionPosition.w * 0.5 + 0.5;
 	vec2 refractTexCoords = clipTexCoords;
 	vec2 reflectTexCoords = vec2(clipTexCoords.x, 1.0 - clipTexCoords.y);
 
 	vec2 displacedTexCoords = FSInputTexCoords;
 	displacedTexCoords = FSInputTexCoords + sampleDuDv(displacedTexCoords + vec2(MoveFactor, 0.0)) * DisplacementStrength + vec2(0.0, MoveFactor);
+
+	vec3 normalData       = texture(WaterNormalMap, displacedTexCoords).rgb * 2.0 - vec3(1.0, 1.0, 1.0);
+
+	vec3 normal = (FSInputTangent * normalData.x) + (FSInputBinormal * normalData.y) + (FSInputNormal * normalData.z);
+	float specularStrength = 0.1;
+	FSOutFragColor = AmbientColor;
 
 	vec2 displacement = sampleDuDv(displacedTexCoords) * DisplacementStrength;
 
@@ -49,9 +68,26 @@ void main()
 	vec4 reflectionColor = texture(ReflectionTexture, reflectTexCoords);
 
 	vec3 waterToCamera = normalize(FSInputWaterToCamera);
-	float reflectiveness = dot(waterToCamera, vec3(0.0, 1.0, 0.0));
+	float reflectiveness = dot(waterToCamera, normal);
 
 	reflectiveness = pow(reflectiveness, ReflectivePower);
 
-	FSOutFragColor = mix(refractionColor, reflectionColor, 1.0 - reflectiveness);
+	vec4 albedo = mix(refractionColor, reflectionColor, 1.0 - reflectiveness);
+	albedo = mix(albedo, texture(WaterTexture, displacedTexCoords), 0.05);
+
+	vec3 lightDir = normalize(-LightDirection);
+    float lightIntensity = clamp(dot(normal, lightDir), 0.0, 1.0);
+
+	if (lightIntensity > 0.0)
+        FSOutFragColor += lightIntensity * DiffuseColor;
+
+    vec3 viewDir = normalize(CameraPosition - FSInputWorldPosition.xyz);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float specular = pow(max(dot(viewDir, reflectDir), 0.0), SpecularPower);
+    
+    FSOutFragColor = clamp(FSOutFragColor, 0.0, 1.0);
+	FSOutFragColor = FSOutFragColor * albedo;
+
+	FSOutFragColor += specularStrength * specular * DiffuseColor;
+    FSOutFragColor = FSOutFragColor;
 }

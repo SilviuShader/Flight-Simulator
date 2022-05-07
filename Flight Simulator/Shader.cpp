@@ -10,12 +10,16 @@ using namespace std;
 using namespace glm;
 
 Shader::Shader(const string vertexPath, const string fragmentPath, 
-    const string tessControlPath, const string tessEvaluationPath)
+    const string tessControlPath, const string tessEvaluationPath,
+    const string geometryShaderPath)
 {
     unsigned int vertex, fragment;
     unsigned int tessControl, tessEvaluation;
-    bool addedTessControl = false;
+    unsigned int geometry;
+
+    bool addedTessControl    = false;
     bool addedTessEvaluation = false;
+    bool addedGeometryShader = false;
     int success;
     char infoLog[SHADER_COMPILE_LOG_LENGTH];
 
@@ -74,6 +78,25 @@ Shader::Shader(const string vertexPath, const string fragmentPath,
         addedTessEvaluation = true;
     }
 
+    if (geometryShaderPath.size() > 0)
+    {
+        string geomString = ReadFile(geometryShaderPath);
+        const char* geomShaderSource = geomString.c_str();
+
+        geometry = glCreateShader(GL_GEOMETRY_SHADER);
+        glShaderSource(geometry, 1, &geomShaderSource, NULL);
+        glCompileShader(geometry);
+
+        glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(geometry, SHADER_COMPILE_LOG_LENGTH, NULL, infoLog);
+            cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << endl;
+        }
+
+        addedGeometryShader = true;
+    }
+
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragment);
@@ -92,6 +115,8 @@ Shader::Shader(const string vertexPath, const string fragmentPath,
         glAttachShader(m_programId, tessControl);
     if (addedTessEvaluation)
         glAttachShader(m_programId, tessEvaluation);
+    if (addedGeometryShader)
+        glAttachShader(m_programId, geometry);
 
     glAttachShader(m_programId, fragment);
     glLinkProgram(m_programId);
@@ -112,6 +137,9 @@ Shader::Shader(const string vertexPath, const string fragmentPath,
 
     if (addedTessEvaluation)
         glDeleteShader(tessEvaluation);
+
+    if (addedGeometryShader)
+        glDeleteShader(geometry);
 }
 
 Shader::Shader(const string computePath)

@@ -42,3 +42,7 @@ https://github.com/SebLague/Clouds/blob/master/Assets/Scripts/Clouds/Shaders/Clo
 https://stackoverflow.com/questions/51108596/linearize-depth
 
 https://www.shadertoy.com/view/Msf3WH
+
+https://www.cadhatch.com/seamless-water-textures
+
+http://fire-face.com/personal/water/

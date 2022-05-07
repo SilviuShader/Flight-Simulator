@@ -31,6 +31,9 @@
     <Filter Include="Resource Files\Assets\Models">
       <UniqueIdentifier>{5ff0ba74-1bcd-439c-a502-d53cb94e13c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Assets\Water">
+      <UniqueIdentifier>{103856b6-38ca-49ae-9caf-ed0276dd3989}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -426,6 +429,15 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\Water.tese">
       <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\Water.geom">
+      <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Water\WaterColor.jpg">
+      <Filter>Resource Files\Assets\Water</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Water\WaterNormal.jpg">
+      <Filter>Resource Files\Assets\Water</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

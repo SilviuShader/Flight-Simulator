@@ -75,7 +75,7 @@ public:
            void      Update(Camera*, float, bool);
            void      DrawTerrain(Camera*, Light*, const std::vector<Material*>&, Texture*);
            void      DrawFolliage(Camera*, Light*);
-           void      DrawWater(Camera*, Texture*, Texture*, Texture*, Texture*, float);
+           void      DrawWater(Camera*, Light*, Texture*, Texture*, Texture*, Texture*, float, Texture*, Texture*);
 
            glm::vec3 GetTranslation() const;
 

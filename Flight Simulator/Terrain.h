@@ -72,6 +72,8 @@ private:
 
 	Texture*                                                  m_waterDuTexture;
 	Texture*                                                  m_waterDvTexture;
+	Texture*                                                  m_waterTexture;
+	Texture*                                                  m_waterNormalMap;
 												              
 	float                                                     m_accumulatedCurrentChunksTime;
 												              
