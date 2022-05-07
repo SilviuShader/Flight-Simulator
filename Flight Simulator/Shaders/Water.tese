@@ -1,0 +1,64 @@
+#version 430 core
+
+layout (triangles, fractional_odd_spacing, ccw) in;
+
+in vec2 TESInputTexCoords[];
+in vec4 TESInputWorldPosition[];
+in vec4 TESInputReflectionPosition[];
+in vec3 TESInputWaterToCamera[];
+
+uniform mediump mat4 View;
+uniform mediump mat4 Projection;
+
+uniform float Time;
+
+out vec2 FSInputTexCoords;
+out vec4 FSInputReflectionPosition;
+out vec3 FSInputWaterToCamera;
+
+vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
+{
+    return u * gl_TessCoord.x + v * gl_TessCoord.y + w * gl_TessCoord.z;
+}
+
+vec3 interpolate3D(vec3 u, vec3 v, vec3 w)
+{
+    return u * gl_TessCoord.x + v * gl_TessCoord.y + w * gl_TessCoord.z;
+}
+
+vec4 interpolate4D(vec4 u, vec4 v, vec4 w)
+{
+    return u * gl_TessCoord.x + v * gl_TessCoord.y + w * gl_TessCoord.z;
+}
+
+vec3 trochoidalWave(vec2 rotateDirection, vec2 xz, float speed, float offset, float radius)
+{
+    float spaceProjection = dot(rotateDirection, xz);
+    vec3 result;
+
+    float horizontalMovement = sin(Time * speed + spaceProjection * offset) * radius;
+    result.x = horizontalMovement * xz.x;
+    result.z = horizontalMovement * xz.y;
+
+    result.y = cos(Time * speed + spaceProjection * offset) * radius;
+
+    return result;
+}
+
+vec3 vertexDisplacement(vec2 xz)
+{
+    return trochoidalWave(vec2(1.0, 0.0), xz, 1.0, 1.0, 0.05);
+}
+
+void main()
+{
+    vec3 worldPosition             = interpolate3D(TESInputWorldPosition[0].xyz,  TESInputWorldPosition[1].xyz,  TESInputWorldPosition[2].xyz);
+
+         worldPosition            += vertexDisplacement(worldPosition.xz);
+
+         FSInputTexCoords          = interpolate2D(TESInputTexCoords[0],          TESInputTexCoords[1],          TESInputTexCoords[2]);
+         FSInputReflectionPosition = interpolate4D(TESInputReflectionPosition[0], TESInputReflectionPosition[1], TESInputReflectionPosition[2]);
+         FSInputWaterToCamera      = interpolate3D(TESInputWaterToCamera[0],      TESInputWaterToCamera[1],      TESInputWaterToCamera[2]);
+
+    gl_Position = Projection * View * vec4(worldPosition, 1.0);
+}

@@ -152,4 +152,6 @@ private:
     Node*                                                                                        m_quadTree;
                                                                                                  
     bool                                                                                         m_renderDebug;
+
+    float                                                                                        m_waterTime;
 };

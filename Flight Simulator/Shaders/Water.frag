@@ -35,7 +35,7 @@ void main()
 	vec2 reflectTexCoords = vec2(clipTexCoords.x, 1.0 - clipTexCoords.y);
 
 	vec2 displacedTexCoords = FSInputTexCoords;
-	displacedTexCoords = FSInputTexCoords + sampleDuDv(displacedTexCoords + vec2(MoveFactor, 0.0)) * DisplacementStrength + vec2(0.0f, MoveFactor);
+	displacedTexCoords = FSInputTexCoords + sampleDuDv(displacedTexCoords + vec2(MoveFactor, 0.0)) * DisplacementStrength + vec2(0.0, MoveFactor);
 
 	vec2 displacement = sampleDuDv(displacedTexCoords) * DisplacementStrength;
 

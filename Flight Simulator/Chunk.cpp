@@ -52,7 +52,8 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
     m_perlinNoise(perlinNoise),
     m_chunkID(chunkID),
     m_quadTree(nullptr),
-    m_renderDebug(false)
+    m_renderDebug(false),
+    m_waterTime(0.0f)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     CreateTerrainBuffers();
@@ -276,6 +277,8 @@ void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
                 return distance(vec3(valsA[12], valsA[13], valsA[14]), camera->GetPosition()) > distance(vec3(valsB[12], valsB[13], valsB[14]), camera->GetPosition());
             });
     }
+
+    m_waterTime += deltaTime;
 }
 
 void Chunk::DrawTerrain(Camera* camera, Light* light, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
@@ -376,7 +379,12 @@ void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* refle
     waterShader->SetMatrix4("Projection",         projection);
 
     waterShader->SetVec3("CameraPosition",        camera->GetPosition());
-                                                  
+
+    waterShader->SetFloat("DistanceForDetails",   100.0f);
+    waterShader->SetFloat("TessellationLevel",    30);
+
+    waterShader->SetFloat("Time",                 m_waterTime);
+
     waterShader->SetTexture("RefractionTexture",  refractionTexture, 0);
     waterShader->SetTexture("ReflectionTexture",  reflectionTexture, 1);
     waterShader->SetTexture("DuTexture",          duTexture,         2);
@@ -387,9 +395,13 @@ void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* refle
     waterShader->SetFloat("MoveFactor",           waterMoveFactor);
     waterShader->SetFloat("ReflectivePower",      10.0);
 
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glBindVertexArray(m_waterVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_PATCHES, 6, GL_UNSIGNED_INT, 0);
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 vec3 Chunk::GetTranslation() const

@@ -214,7 +214,8 @@ ShaderManager::ShaderManager()
 	m_terrainShader            = new Shader("Shaders/Terrain.vert",          "Shaders/Terrain.frag",
 		                                    "Shaders/Terrain.tesc",          "Shaders/Terrain.tese");
 
-	m_waterShader              = new Shader("Shaders/Water.vert",            "Shaders/Water.frag");
+	m_waterShader              = new Shader("Shaders/Water.vert",            "Shaders/Water.frag",
+		                                    "Shaders/Water.tesc",            "Shaders/Water.tese");
 
 	m_folliageShader           = new Shader("Shaders/Folliage.vert",         "Shaders/Folliage.frag");
 	m_folliageBilboardedShader = new Shader("Shaders/FolliageBilboard.vert", "Shaders/FolliageBilboard.frag");
