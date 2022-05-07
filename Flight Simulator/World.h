@@ -32,7 +32,7 @@ public:
 
 private:
 
-	void RenderScene(Camera*, bool, RenderTexture* = nullptr, Texture* = nullptr, Texture* = nullptr);
+	void RenderScene(RenderTexture*, Camera*, bool, RenderTexture* = nullptr, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr);
 
 private:
 
@@ -44,6 +44,7 @@ private:
 	Clouds*           m_clouds;
 				      
 	RenderTexture*    m_auxilliaryRenderTexture;
+	RenderTexture*    m_refractionAuxiliaryRenderTexture;
 	RenderTexture*    m_reflectionRenderTexture;
 	RenderTexture*    m_refractionRenderTexture;
 				      

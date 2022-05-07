@@ -8,7 +8,7 @@ using namespace glm;
 
 const float Terrain::CHUNK_WIDTH                                 = 64.0f;
 const float Terrain::TERRAIN_AMPLITUDE                           = 75.0f;
-const float Terrain::WATER_LEVEL                                 = 5.0f;
+const float Terrain::WATER_LEVEL                                 = 10.0f;
 const float Terrain::DISTANCE_FOR_DETAILS                        = 512.0f;
 const float Terrain::MAX_TESSELATION                             = 16.0f;
 const float Terrain::GAMMA                                       = 1.5f;
@@ -75,7 +75,7 @@ void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug)
 	m_firstFrame = false;
 }
 
-void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture)
+void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture)
 {
 	for (auto& chunk : m_chunksList)
 		chunk->DrawTerrain(camera, light, m_terrainMaterials, m_terrainBiomesData);
@@ -83,11 +83,11 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 	for (auto& chunk : m_chunksList)
 		chunk->DrawFolliage(camera, light);
 
-	if (!refractionTexture || !reflectionTexture)
+	if (!refractionTexture || !reflectionTexture || !refractionDepthTexture)
 		return;
 
 	for (auto& chunk : m_chunksList)
-		chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, m_waterDuTexture, m_waterDvTexture, m_waterMoveFactor, m_waterTexture, m_waterNormalMap);
+		chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, m_waterDuTexture, m_waterDvTexture, m_waterMoveFactor, m_waterTexture, m_waterNormalMap);
 }
 
 void Terrain::CreateTerrainObjects()

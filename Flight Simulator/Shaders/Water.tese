@@ -1,5 +1,6 @@
 #version 430 core
 
+// TODO: FIX THE Tessellation at the margins.
 layout (triangles, fractional_odd_spacing, ccw) in;
 
 in vec2 TESInputTexCoords[];
