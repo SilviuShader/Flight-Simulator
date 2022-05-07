@@ -2,6 +2,7 @@
 
 in vec2 FSInputTexCoords;
 in vec4 FSInputReflectionPosition;
+in vec3 FSInputWaterToCamera;
 
 uniform sampler2D RefractionTexture;
 uniform sampler2D ReflectionTexture;
@@ -11,6 +12,7 @@ uniform sampler2D DvTexture;
 uniform float     DisplacementStrength;
 
 uniform float     MoveFactor;
+uniform float     ReflectivePower;
 
 out vec4 FSOutFragColor;
 
@@ -46,5 +48,10 @@ void main()
 	vec4 refractionColor = texture(RefractionTexture, refractTexCoords);
 	vec4 reflectionColor = texture(ReflectionTexture, reflectTexCoords);
 
-	FSOutFragColor = mix(refractionColor, reflectionColor, 0.5);
+	vec3 waterToCamera = normalize(FSInputWaterToCamera);
+	float reflectiveness = dot(waterToCamera, vec3(0.0, 1.0, 0.0));
+
+	reflectiveness = pow(reflectiveness, ReflectivePower);
+
+	FSOutFragColor = mix(refractionColor, reflectionColor, 1.0 - reflectiveness);
 }

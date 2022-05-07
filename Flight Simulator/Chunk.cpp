@@ -374,15 +374,18 @@ void Chunk::DrawWater(Camera* camera, Texture* refractionTexture, Texture* refle
     waterShader->SetMatrix4("Model",              model);
     waterShader->SetMatrix4("View",               view);
     waterShader->SetMatrix4("Projection",         projection);
+
+    waterShader->SetVec3("CameraPosition",        camera->GetPosition());
                                                   
     waterShader->SetTexture("RefractionTexture",  refractionTexture, 0);
     waterShader->SetTexture("ReflectionTexture",  reflectionTexture, 1);
     waterShader->SetTexture("DuTexture",          duTexture,         2);
     waterShader->SetTexture("DvTexture",          dvTexture,         3);
 
-    waterShader->SetFloat("DisplacementStrength", 0.02f);
+    waterShader->SetFloat("DisplacementStrength", 0.01f);
 
     waterShader->SetFloat("MoveFactor",           waterMoveFactor);
+    waterShader->SetFloat("ReflectivePower",      10.0);
 
     glBindVertexArray(m_waterVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);

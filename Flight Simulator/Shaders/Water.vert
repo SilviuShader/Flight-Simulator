@@ -6,15 +6,17 @@ uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
 
-uniform mat4 ReflectionView;
+uniform vec3 CameraPosition;
 
 out vec2 FSInputTexCoords;
 out vec4 FSInputReflectionPosition;
+out vec3 FSInputWaterToCamera;
 
 void main()
 {
-
-    gl_Position               = Projection * View * Model * vec4(VSInputPosition, 1.0);
-	FSInputReflectionPosition = Projection * View * Model * vec4(VSInputPosition, 1.0);
+	vec4 worldPosition        = Model * vec4(VSInputPosition, 1.0);
+	FSInputReflectionPosition = Projection * View * worldPosition;
+    gl_Position               = FSInputReflectionPosition;
 	FSInputTexCoords          = VSInputTexCoords;
+	FSInputWaterToCamera      = CameraPosition - worldPosition.xyz;
 }
