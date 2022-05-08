@@ -8,17 +8,17 @@ uniform mediump mat4 Projection;
 
 uniform mediump vec3 CameraPosition;
 
+uniform float Tiling;
+
 out vec2 TCSInputTexCoords;
 out vec4 TCSInputWorldPosition;
 out vec4 TCSInputReflectionPosition;
 out vec3 TCSInputWaterToCamera;
 
-// TODO: Uniforms for all the hard-coded constants.
-
 void main()
 {
 	TCSInputWorldPosition      = Model * vec4(VSInputPosition, 1.0);
 	TCSInputReflectionPosition = Projection * View * TCSInputWorldPosition;
-	TCSInputTexCoords          = VSInputTexCoords * 100.0;
+	TCSInputTexCoords          = VSInputTexCoords * Tiling;
 	TCSInputWaterToCamera      = CameraPosition - TCSInputWorldPosition.xyz;
 }

@@ -1,6 +1,5 @@
 #version 430 core
 
-// TODO: FIX THE Tessellation at the margins.
 layout (triangles, fractional_odd_spacing, ccw) in;
 
 in vec2 TESInputTexCoords[];
@@ -12,6 +11,7 @@ uniform mediump mat4 View;
 uniform mediump mat4 Projection;
 
 uniform float Time;
+uniform float ScreenEdgeCorrectionDistance;
 
 uniform vec4 WavesWeights;
 uniform vec4 WavesSpeeds;
@@ -72,11 +72,23 @@ vec3 vertexDisplacement(vec2 xz)
 void main()
 {
     GSInputWorldPosition      = interpolate4D(TESInputWorldPosition[0],  TESInputWorldPosition[1],  TESInputWorldPosition[2]);
+    GSInputReflectionPosition = interpolate4D(TESInputReflectionPosition[0], TESInputReflectionPosition[1], TESInputReflectionPosition[2]);
 
     GSInputWorldPosition.xyz += vertexDisplacement(GSInputWorldPosition.xz);
 
+    vec4 correctReflectionPosition = Projection * View * GSInputWorldPosition;
+
+    vec2 clipSpaceCords = GSInputReflectionPosition.xy / GSInputReflectionPosition.w * 0.5 + 0.5;
+    float horizontalDistance = min(clipSpaceCords.x, 1.0 - clipSpaceCords.x);
+    float verticalDistance = min(clipSpaceCords.y, 1.0 - clipSpaceCords.y);
+    float minDistance = min(horizontalDistance, verticalDistance);
+
+    float correctnessPercentage = clamp(minDistance / ScreenEdgeCorrectionDistance, 0.0, 1.0);
+
+    GSInputReflectionPosition = mix(correctReflectionPosition, GSInputReflectionPosition, correctnessPercentage);
+
+
     GSInputTexCoords          = interpolate2D(TESInputTexCoords[0],          TESInputTexCoords[1],          TESInputTexCoords[2]);
-    GSInputReflectionPosition = interpolate4D(TESInputReflectionPosition[0], TESInputReflectionPosition[1], TESInputReflectionPosition[2]);
     GSInputWaterToCamera      = interpolate3D(TESInputWaterToCamera[0],      TESInputWaterToCamera[1],      TESInputWaterToCamera[2]);
 
     gl_Position = Projection * View * GSInputWorldPosition;

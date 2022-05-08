@@ -87,7 +87,7 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 		return;
 
 	for (auto& chunk : m_chunksList)
-		chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterDuTexture, m_waterDvTexture, m_waterMoveFactor, m_waterTexture, m_waterNormalMap);
+		chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterTexture, m_waterNormalMap);
 }
 
 void Terrain::CreateTerrainObjects()
@@ -126,20 +126,6 @@ void Terrain::CreateTerrainObjects()
 	m_terrainBiomesData = Biome::CreateBiomesTexture();
 	m_terrainMaterials  = Biome::GetBiomesMaterials();
 
-	PerlinNoise::NoiseParameters waterDuParameters;
-	waterDuParameters.StartPosition = vec2(-100.0f, -100.0f);
-	waterDuParameters.EndPosition = vec2(100.0f, 100.0f);
-	waterDuParameters.Frequency = 0.1f;
-	waterDuParameters.OctavesCount = 20;
-	waterDuParameters.FudgeFactor = 1.2f;
-	waterDuParameters.Exponent = 3.0f;
-	waterDuParameters.TextureSize = 1024;
-	m_waterDuTexture = m_noise->RenderPerlinNoise(waterDuParameters);
-
-	PerlinNoise::NoiseParameters waterDvParameters = waterDuParameters;
-	waterDvParameters.Frequency = 0.2f;
-	m_waterDvTexture = m_noise->RenderPerlinNoise(waterDvParameters);
-
 	// TODO: Replace this with a material
 	m_waterTexture = new Texture("Assets/Water/WaterColor.jpg");
 	m_waterNormalMap = new Texture("Assets/Water/WaterNormal.jpg");
@@ -159,18 +145,6 @@ void Terrain::FreeTerrainObjects()
 	{
 		delete m_waterTexture;
 		m_waterTexture = nullptr;
-	}
-
-	if (m_waterDvTexture)
-	{
-		delete m_waterDvTexture;
-		m_waterDvTexture = nullptr;
-	}
-
-	if (m_waterDuTexture)
-	{
-		delete m_waterDuTexture;
-		m_waterDuTexture = nullptr;
 	}
 
 	if (m_noise)

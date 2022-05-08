@@ -363,7 +363,7 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
     }
 }
 
-void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture, Texture* duTexture, Texture* dvTexture, float waterMoveFactor, Texture* waterTexture, Texture* waterNormalMap)
+void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture, float waterMoveFactor, Texture* waterTexture, Texture* waterNormalMap)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
@@ -372,47 +372,54 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     mat4 view       = camera->GetViewMatrix();
     mat4 projection = camera->GetProjectionMatrix();
 
+    // TODO: Find a way to pass all these variabiles without hard-coded constants.
+
     waterShader->Use();
 
-    waterShader->SetMatrix4("Model",              model);
-    waterShader->SetMatrix4("View",               view);
-    waterShader->SetMatrix4("Projection",         projection);
+    waterShader->SetMatrix4("Model",                      model);
+    waterShader->SetMatrix4("View",                       view);
+    waterShader->SetMatrix4("Projection",                 projection);
+                                                          
+    waterShader->SetVec3("CameraPosition",                camera->GetPosition());
+                                                          
+    waterShader->SetFloat("Tiling",                       100.0f);
+                                                          
+    waterShader->SetFloat("DistanceForDetails",           100.0f);
+    waterShader->SetFloat("TessellationLevel",            6);
+                                                          
+    waterShader->SetVec4("WavesWeights",                  vec4(4, 3, 2, 1));
+    waterShader->SetVec4("WavesSpeeds",                   vec4(0.125f, 0.25f, 0.5f, 1.0f));
+    waterShader->SetVec4("WavesOffsets",                  vec4(0.2f, 0.4f, 0.8f, 1.6f));
+    waterShader->SetVec4("WavesRadiuses",                 vec4(1.0f, 0.5f, 0.25f, 0.125f));
+                                                          
+    waterShader->SetVec2("WaveADirection",                vec2(1.0f, 0.0f));
+    waterShader->SetVec2("WaveBDirection",                vec2(0.0f, 1.0f));
+    waterShader->SetVec2("WaveCDirection",                vec2(-1.0f, 0.0f));
+    waterShader->SetVec2("WaveDDirection",                vec2(0.0f, -1.0f));
+                                                          
+    waterShader->SetFloat("Time",                         m_waterTime);
+    waterShader->SetFloat("ScreenEdgeCorrectionDistance", 0.2f);
 
-    waterShader->SetVec3("CameraPosition",        camera->GetPosition());
-
-    waterShader->SetFloat("DistanceForDetails",   100.0f);
-    waterShader->SetFloat("TessellationLevel",    6);
-
-    waterShader->SetVec4("WavesWeights", vec4(4, 3, 2, 1));
-    waterShader->SetVec4("WavesSpeeds", vec4(0.125f, 0.25f, 0.5f, 1.0f));
-    waterShader->SetVec4("WavesOffsets", vec4(0.2f, 0.4f, 0.8f, 1.6f));
-    waterShader->SetVec4("WavesRadiuses", vec4(1.0f, 0.5f, 0.25f, 0.125f));
-
-    waterShader->SetVec2("WaveADirection", vec2(1.0f, 0.0f));
-    waterShader->SetVec2("WaveBDirection", vec2(0.0f, 1.0f));
-    waterShader->SetVec2("WaveCDirection", vec2(-1.0f, 0.0f));
-    waterShader->SetVec2("WaveDDirection", vec2(0.0f, -1.0f));
-
-    waterShader->SetFloat("Time",                 m_waterTime);
-
-    waterShader->SetTexture("RefractionTexture",      refractionTexture,      0);
-    waterShader->SetTexture("ReflectionTexture",      reflectionTexture,      1);
-    waterShader->SetTexture("DuTexture",              duTexture,              2);
-    waterShader->SetTexture("DvTexture",              dvTexture,              3);
-    waterShader->SetTexture("RefractionDepthTexture", refractionDepthTexture, 4);
-    waterShader->SetTexture("ReflectionDepthTexture", reflectionDepthTexture, 5);
-    waterShader->SetTexture("WaterTexture",           waterTexture,           6);
-    waterShader->SetTexture("WaterNormalMap",         waterNormalMap,         7);
-
-    waterShader->SetFloat("DisplacementStrength", 0.01f);
-
-    waterShader->SetFloat("MoveFactor",           waterMoveFactor);
-    waterShader->SetFloat("ReflectivePower",      0.5);
-
-    waterShader->SetLight(camera, light);
-
-    waterShader->SetFloat("Near",                 camera->GetNear());
-    waterShader->SetFloat("Far",                  camera->GetFar());
+    waterShader->SetTexture("RefractionTexture",          refractionTexture,      0);
+    waterShader->SetTexture("ReflectionTexture",          reflectionTexture,      1);
+    waterShader->SetTexture("RefractionDepthTexture",     refractionDepthTexture, 2);
+    waterShader->SetTexture("ReflectionDepthTexture",     reflectionDepthTexture, 3);
+    waterShader->SetTexture("WaterTexture",               waterTexture,           4);
+    waterShader->SetTexture("WaterNormalMap",             waterNormalMap,         5);
+                                                          
+    waterShader->SetFloat("AlterRefractionDepth",         20.0f);
+    waterShader->SetFloat("FadeWaterDepth",               10.0f);
+                                                          
+    waterShader->SetFloat("MoveFactor",                   waterMoveFactor);
+    waterShader->SetFloat("ReflectivePower",              0.5);
+    waterShader->SetFloat("TextureMultiplier",            0.1f);
+                                                          
+    waterShader->SetLight(camera, light);                 
+                                                          
+    waterShader->SetFloat("SpecularStrength",             0.1f);
+                                                          
+    waterShader->SetFloat("Near",                         camera->GetNear());
+    waterShader->SetFloat("Far",                          camera->GetFar());
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

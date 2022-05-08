@@ -26,9 +26,13 @@ void main()
 	vec3 u = vec3(1.0, 0.0, 0.0);
 	vec3 v = vec3(0.0, 0.0, 1.0);
 	float normSquared = dot(normal, normal);
+
+	// we can't use the 'a' and 'b' variables as tangents/ bionormals because they are not perpendicular to eachother.
+	// that's why we must project the default tangents/ binormal onto our plane so we can get the correct ones.
 	vec3 tangent = normalize(u - ((dot(u, normal) / normSquared) * normal));
 	vec3 binormal = normalize(v - ((dot(v, normal) / normSquared) * normal));
 
+	// instead of using a for loop, the 3 vertices are emitted manually so we can reduce the number of branch instructions.
 	FSInputTexCoords          = GSInputTexCoords[0];
 	FSInputReflectionPosition = GSInputReflectionPosition[0];
 	FSInputWaterToCamera      = GSInputWaterToCamera[0];

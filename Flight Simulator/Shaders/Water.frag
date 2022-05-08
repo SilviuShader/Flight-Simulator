@@ -10,17 +10,17 @@ in vec4 FSInputWorldPosition;
 
 uniform sampler2D RefractionTexture;
 uniform sampler2D ReflectionTexture;
-uniform sampler2D DuTexture;
-uniform sampler2D DvTexture;
 uniform sampler2D RefractionDepthTexture;
 uniform sampler2D ReflectionDepthTexture;
 uniform sampler2D WaterTexture;
 uniform sampler2D WaterNormalMap;
 
-uniform float     DisplacementStrength;
-
-uniform float     MoveFactor;
-uniform float     ReflectivePower;
+uniform float AlterRefractionDepth;
+uniform float FadeWaterDepth;
+			  
+uniform float MoveFactor;
+uniform float ReflectivePower;
+uniform float TextureMultiplier;
 
 uniform vec4  AmbientColor;
 uniform vec4  DiffuseColor;
@@ -29,22 +29,12 @@ uniform float SpecularPower;
 
 uniform mediump vec3 CameraPosition;
 
+uniform float SpecularStrength;
+
 uniform float Near;
 uniform float Far;
 
 out vec4 FSOutFragColor;
-
-vec2 sampleDuDv(vec2 texCoords)
-{
-	vec2 result;
-	result.x = texture(DuTexture, texCoords).x;
-	result.y = texture(DvTexture, texCoords).x;
-
-	result *= 2.0;
-	result -= 1.0;
-
-	return result;
-}
 
 float linearizeDepth(float d,float zNear,float zFar)
 {
@@ -67,24 +57,14 @@ void main()
 
 	float depthDifference = belowDepth - currentDepth;
 
-	float displacementEdgeMultiplier = clamp(depthDifference / 10.0, 0, 1);
-	float finalAlpha = clamp(depthDifference / 5.0, 0, 1);
+	float displacementEdgeMultiplier = clamp(depthDifference / AlterRefractionDepth, 0, 1);
+	float finalAlpha = clamp(depthDifference / FadeWaterDepth, 0, 1);
 
 	vec2 displacedTexCoords = FSInputTexCoords;
-	displacedTexCoords = FSInputTexCoords + sampleDuDv(displacedTexCoords + vec2(MoveFactor, 0.0)) * DisplacementStrength + vec2(0.0, MoveFactor);
 
 	vec3 normalData       = texture(WaterNormalMap, displacedTexCoords).rgb * 2.0 - vec3(1.0, 1.0, 1.0);
 	vec3 normal = (FSInputTangent * normalData.x) + (FSInputBinormal * normalData.y) + (FSInputNormal * normalData.z);
-	float specularStrength = 0.5;
 	FSOutFragColor = AmbientColor;
-
-	vec2 displacement = sampleDuDv(displacedTexCoords) * DisplacementStrength * displacementEdgeMultiplier;
-
-	refractTexCoords += displacement;
-	reflectTexCoords += displacement;
-
-	refractTexCoords = clamp(refractTexCoords, 0.001, 0.999);
-	reflectTexCoords = clamp(reflectTexCoords, 0.001, 0.999);
 	
 	vec4 refractionColor = texture(RefractionTexture, refractTexCoords);
 	vec4 reflectionColor = texture(ReflectionTexture, reflectTexCoords);
@@ -95,7 +75,7 @@ void main()
 	reflectiveness = pow(reflectiveness, ReflectivePower);
 
 	vec4 albedo = mix(refractionColor, reflectionColor, 1.0 - reflectiveness);
-	albedo = mix(albedo, texture(WaterTexture, displacedTexCoords), 0.001);
+	albedo = mix(albedo, texture(WaterTexture, displacedTexCoords), TextureMultiplier);
 
 	vec3 lightDir = normalize(-LightDirection);
     float lightIntensity = clamp(dot(normal, lightDir), 0.0, 1.0);
@@ -110,7 +90,7 @@ void main()
     FSOutFragColor = clamp(FSOutFragColor, 0.0, 1.0);
 	FSOutFragColor = FSOutFragColor * albedo;
 
-	FSOutFragColor += specularStrength * specular * DiffuseColor;
+	FSOutFragColor += SpecularStrength * specular * DiffuseColor;
     FSOutFragColor = FSOutFragColor;
 	FSOutFragColor = FSOutFragColor;
 	FSOutFragColor.a = finalAlpha;

@@ -70,8 +70,6 @@ private:
 	std::vector<Material*>                                    m_terrainMaterials;
 	Texture*                                                  m_terrainBiomesData;
 
-	Texture*                                                  m_waterDuTexture;
-	Texture*                                                  m_waterDvTexture;
 	Texture*                                                  m_waterTexture;
 	Texture*                                                  m_waterNormalMap;
 												              
