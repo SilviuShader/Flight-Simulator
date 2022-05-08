@@ -49,7 +49,7 @@ public:
 	~Terrain();
 
 	void Udpate(Camera*, float, bool);
-	void Draw(Camera*, Light*, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr);
+	void Draw(Camera*, Light*, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr);
 
 private:
 

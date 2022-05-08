@@ -13,6 +13,7 @@ uniform sampler2D ReflectionTexture;
 uniform sampler2D DuTexture;
 uniform sampler2D DvTexture;
 uniform sampler2D RefractionDepthTexture;
+uniform sampler2D ReflectionDepthTexture;
 uniform sampler2D WaterTexture;
 uniform sampler2D WaterNormalMap;
 
@@ -58,7 +59,10 @@ void main()
 	vec2 reflectTexCoords = vec2(clipTexCoords.x, 1.0 - clipTexCoords.y);
 
 	float belowDepth   = linearizeDepth(texture(RefractionDepthTexture, refractTexCoords).x, Near, Far);
-	// TODO: Take reflection into account too (min distance), the displacement in the tessellation shader fucks up the math.
+	float aboveDepth   = linearizeDepth(texture(ReflectionDepthTexture, refractTexCoords).x, Near, Far);
+
+	belowDepth = min(belowDepth, aboveDepth);
+
 	float currentDepth = linearizeDepth(gl_FragCoord.z, Near, Far);
 
 	float depthDifference = belowDepth - currentDepth;
@@ -110,4 +114,6 @@ void main()
     FSOutFragColor = FSOutFragColor;
 	FSOutFragColor = FSOutFragColor;
 	FSOutFragColor.a = finalAlpha;
+
+	FSOutFragColor = FSOutFragColor, 0, 1;
 }

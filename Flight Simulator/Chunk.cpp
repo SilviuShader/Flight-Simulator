@@ -363,7 +363,7 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
     }
 }
 
-void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* duTexture, Texture* dvTexture, float waterMoveFactor, Texture* waterTexture, Texture* waterNormalMap)
+void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture, Texture* duTexture, Texture* dvTexture, float waterMoveFactor, Texture* waterTexture, Texture* waterNormalMap)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
@@ -390,8 +390,9 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetTexture("DuTexture",              duTexture,              2);
     waterShader->SetTexture("DvTexture",              dvTexture,              3);
     waterShader->SetTexture("RefractionDepthTexture", refractionDepthTexture, 4);
-    waterShader->SetTexture("WaterTexture",           waterTexture,           5);
-    waterShader->SetTexture("WaterNormalMap",         waterNormalMap,         6);
+    waterShader->SetTexture("ReflectionDepthTexture", reflectionDepthTexture, 5);
+    waterShader->SetTexture("WaterTexture",           waterTexture,           6);
+    waterShader->SetTexture("WaterNormalMap",         waterNormalMap,         7);
 
     waterShader->SetFloat("DisplacementStrength", 0.01f);
 

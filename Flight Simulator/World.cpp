@@ -26,10 +26,12 @@ World::World(int windowWidth, int windowHeight) :
 	m_skybox  = new Skybox();
 	m_terrain = new Terrain();
 
-	m_auxilliaryRenderTexture          = new RenderTexture(windowWidth, windowHeight);
-	m_refractionAuxiliaryRenderTexture = new RenderTexture(windowWidth, windowHeight);
-	m_reflectionRenderTexture          = new RenderTexture(windowWidth, windowHeight);
-	m_refractionRenderTexture          = new RenderTexture(windowWidth, windowHeight);
+	m_auxilliaryRenderTexture               = new RenderTexture(windowWidth, windowHeight);
+	m_aboveRefractionAuxiliaryRenderTexture = new RenderTexture(windowWidth, windowHeight);
+	m_refractionAuxiliaryRenderTexture      = new RenderTexture(windowWidth, windowHeight);
+	m_reflectionRenderTexture               = new RenderTexture(windowWidth, windowHeight);
+	m_refractionRenderTexture               = new RenderTexture(windowWidth, windowHeight);
+	m_aboveRefractionRenderTexture          = new RenderTexture(windowWidth, windowHeight);
 
 	Clouds::CloudsProperties cloudsProperties;
 	cloudsProperties.OffsetVelocity = vec3(.01f, .02f, .03f);
@@ -48,6 +50,12 @@ World::~World()
 		m_clouds = nullptr;
 	}
 
+	if (m_aboveRefractionRenderTexture)
+	{
+		delete m_aboveRefractionRenderTexture;
+		m_aboveRefractionRenderTexture = nullptr;
+	}
+
 	if (m_refractionRenderTexture)
 	{
 		delete m_refractionRenderTexture;
@@ -64,6 +72,12 @@ World::~World()
 	{
 		delete m_refractionAuxiliaryRenderTexture;
 		m_refractionAuxiliaryRenderTexture = nullptr;
+	}
+
+	if (m_aboveRefractionAuxiliaryRenderTexture)
+	{
+		delete m_aboveRefractionAuxiliaryRenderTexture;
+		m_aboveRefractionAuxiliaryRenderTexture = nullptr;
 	}
 
 	if (m_auxilliaryRenderTexture)
@@ -127,6 +141,11 @@ void World::Update(float deltaTime)
 	RenderScene(m_auxilliaryRenderTexture, m_reflectionCamera, true, m_reflectionRenderTexture);
 	
 	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug);
+
+	renderSettings->EnablePlaneClipping(vec4(0.0f, 1.0f, 0.0f, -Terrain::WATER_LEVEL));
+	RenderScene(m_aboveRefractionAuxiliaryRenderTexture, m_camera, true, m_aboveRefractionRenderTexture);
+	renderSettings->DisablePlaneClipping();
+
 	renderSettings->EnablePlaneClipping(vec4(0.0f, -1.0f, 0.0f, Terrain::WATER_LEVEL));
 	RenderScene(m_refractionAuxiliaryRenderTexture, m_camera, false, m_refractionRenderTexture);
 	renderSettings->DisablePlaneClipping();
@@ -134,7 +153,9 @@ void World::Update(float deltaTime)
 
 void World::Draw()
 {
-	RenderScene(m_auxilliaryRenderTexture, m_camera, true, nullptr, m_refractionRenderTexture->GetTexture(), m_reflectionRenderTexture->GetTexture(), m_refractionAuxiliaryRenderTexture->GetDepthTexture());
+	RenderScene(m_auxilliaryRenderTexture, m_camera, true, nullptr, m_refractionRenderTexture->GetTexture(), m_reflectionRenderTexture->GetTexture(), m_refractionAuxiliaryRenderTexture->GetDepthTexture(), m_aboveRefractionAuxiliaryRenderTexture->GetDepthTexture());
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//DebugHelper::GetInstance()->DrawFullscreenTexture(m_aboveRefractionAuxiliaryRenderTexture->GetTexture());
 }
 
 Camera* World::GetCamera() const
@@ -142,13 +163,13 @@ Camera* World::GetCamera() const
 	return m_camera;
 }
 
-void World::RenderScene(RenderTexture* auxiliaryRenderTexture, Camera* camera, bool renderClouds, RenderTexture* targetTexture, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture)
+void World::RenderScene(RenderTexture* auxiliaryRenderTexture, Camera* camera, bool renderClouds, RenderTexture* targetTexture, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture)
 {
 	auxiliaryRenderTexture->Begin();
 
 	m_skybox->Draw(camera);
 
-	m_terrain->Draw(camera, m_light, refractionTexture, reflectionTexture, refractionDepthTexture);
+	m_terrain->Draw(camera, m_light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture);
 
 	if (m_renderDebug)
 		DebugHelper::GetInstance()->DrawRectangles(camera);
