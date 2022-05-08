@@ -163,6 +163,7 @@ Camera* World::GetCamera() const
 	return m_camera;
 }
 
+// TODO: TOOO MANY ARGUMENTS HERE (also, inconsistency in naming the last argument)
 void World::RenderScene(RenderTexture* auxiliaryRenderTexture, Camera* camera, bool renderClouds, RenderTexture* targetTexture, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture)
 {
 	auxiliaryRenderTexture->Begin();

@@ -381,7 +381,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetVec3("CameraPosition",        camera->GetPosition());
 
     waterShader->SetFloat("DistanceForDetails",   100.0f);
-    waterShader->SetFloat("TessellationLevel",    100);
+    waterShader->SetFloat("TessellationLevel",    6);
 
     waterShader->SetFloat("Time",                 m_waterTime);
 
@@ -408,7 +408,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
 
     glBindVertexArray(m_waterVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
-    glDrawElements(GL_PATCHES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -530,19 +530,50 @@ void Chunk::FreeTerrainBuffers()
 
 void Chunk::CreateWaterBuffers()
 {
-    VertexPositionTexture vertices[] =
-    {
-        VertexPositionTexture(vec3(-0.5f, 0.0f,  0.5f), vec2(0.0f, 0.0f)),
-        VertexPositionTexture(vec3( 0.5f, 0.0f,  0.5f), vec2(1.0f, 0.0f)),
-        VertexPositionTexture(vec3( 0.5f, 0.0f, -0.5f), vec2(1.0f, 1.0f)),
-        VertexPositionTexture(vec3(-0.5f, 0.0f, -0.5f), vec2(0.0f, 1.0f))
-    };
+    // TODO: Implement instancing for water and use the same function for generating the chunk geometry, or use the same geometry
+    constexpr int verticesWidth = CHUNK_GRID_WIDTH + 1;
+    constexpr int verticesHeight = CHUNK_GRID_HEIGHT + 1;
 
-    unsigned int indices[] =
+    constexpr int verticesCount = verticesWidth * verticesHeight;
+
+    VertexPositionTexture* vertices = new VertexPositionTexture[verticesCount];
+
+    for (int i = 0; i < verticesHeight; i++)
     {
-        0, 1, 3,
-        1, 2, 3
-    };
+        for (int j = 0; j < verticesWidth; j++)
+        {
+            float adjustedI = (float)i / (float)(verticesWidth - 1);
+            float adjustedJ = (float)j / (float)(verticesHeight - 1);
+
+            vec2 planePosition = vec2(adjustedJ, adjustedI);
+
+            vertices[i * verticesWidth + j].Position = vec3(planePosition.x, 0.0f, planePosition.y);
+            vertices[i * verticesWidth + j].TexCoords = vec2(j * TEX_COORDS_MULTIPLIER, verticesHeight - i * TEX_COORDS_MULTIPLIER - 1);
+        }
+    }
+
+    unsigned int* indices = new unsigned int[INDICES_COUNT];
+
+    int indicesIndex = 0;
+
+    for (int i = 0; i < CHUNK_GRID_HEIGHT; i++)
+    {
+        for (int j = 0; j < CHUNK_GRID_WIDTH; j++)
+        {
+            int pivot = i * verticesWidth + j;
+            int right = i * verticesHeight + j + 1;
+            int bottom = (i + 1) * verticesWidth + j;
+            int bottomRight = (i + 1) * verticesHeight + j + 1;
+
+            indices[indicesIndex++] = pivot;
+            indices[indicesIndex++] = bottom;
+            indices[indicesIndex++] = right;
+
+            indices[indicesIndex++] = right;
+            indices[indicesIndex++] = bottom;
+            indices[indicesIndex++] = bottomRight;
+        }
+    }
 
     glGenVertexArrays(1, &m_waterVao);
     
@@ -551,14 +582,26 @@ void Chunk::CreateWaterBuffers()
     glGenBuffers(1, &m_waterVbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_waterVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPositionTexture) * verticesCount, vertices, GL_STATIC_DRAW);
 
     VertexPositionTexture::SetLayout();
 
     glGenBuffers(1, &m_waterEbo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * INDICES_COUNT, indices, GL_STATIC_DRAW);
+
+    if (indices)
+    {
+        delete[] indices;
+        indices = nullptr;
+    }
+
+    if (vertices)
+    {
+        delete[] vertices;
+        vertices = nullptr;
+    }
 }
 
 void Chunk::FreeWaterBuffers()
