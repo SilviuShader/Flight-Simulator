@@ -383,6 +383,16 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetFloat("DistanceForDetails",   100.0f);
     waterShader->SetFloat("TessellationLevel",    6);
 
+    waterShader->SetVec4("WavesWeights", vec4(4, 3, 2, 1));
+    waterShader->SetVec4("WavesSpeeds", vec4(0.125f, 0.25f, 0.5f, 1.0f));
+    waterShader->SetVec4("WavesOffsets", vec4(0.2f, 0.4f, 0.8f, 1.6f));
+    waterShader->SetVec4("WavesRadiuses", vec4(1.0f, 0.5f, 0.25f, 0.125f));
+
+    waterShader->SetVec2("WaveADirection", vec2(1.0f, 0.0f));
+    waterShader->SetVec2("WaveBDirection", vec2(0.0f, 1.0f));
+    waterShader->SetVec2("WaveCDirection", vec2(-1.0f, 0.0f));
+    waterShader->SetVec2("WaveDDirection", vec2(0.0f, -1.0f));
+
     waterShader->SetFloat("Time",                 m_waterTime);
 
     waterShader->SetTexture("RefractionTexture",      refractionTexture,      0);
@@ -531,6 +541,7 @@ void Chunk::FreeTerrainBuffers()
 void Chunk::CreateWaterBuffers()
 {
     // TODO: Implement instancing for water and use the same function for generating the chunk geometry, or use the same geometry
+    // TODO: Also make water related to the biomes somehow.
     constexpr int verticesWidth = CHUNK_GRID_WIDTH + 1;
     constexpr int verticesHeight = CHUNK_GRID_HEIGHT + 1;
 

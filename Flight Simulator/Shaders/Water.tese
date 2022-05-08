@@ -13,6 +13,16 @@ uniform mediump mat4 Projection;
 
 uniform float Time;
 
+uniform vec4 WavesWeights;
+uniform vec4 WavesSpeeds;
+uniform vec4 WavesOffsets;
+uniform vec4 WavesRadiuses;
+
+uniform vec2 WaveADirection;
+uniform vec2 WaveBDirection;
+uniform vec2 WaveCDirection;
+uniform vec2 WaveDDirection;
+
 out vec2 GSInputTexCoords;
 out vec4 GSInputWorldPosition;
 out vec4 GSInputReflectionPosition;
@@ -49,8 +59,14 @@ vec3 trochoidalWave(vec2 rotateDirection, vec2 xz, float speed, float offset, fl
 
 vec3 vertexDisplacement(vec2 xz)
 {
-    // TODO: Combine more waves at different frequencies
-    return trochoidalWave(vec2(1.0, 0.0), xz, 1.0, 1.0, 0.03) + trochoidalWave(vec2(0.0, 1.0), xz, 0.1, 10.0, 0.02);
+    vec4 normalizedWeights = WavesWeights / dot(WavesWeights, vec4(1.0, 1.0, 1.0, 1.0));
+
+    vec3 waveA = trochoidalWave(WaveADirection, xz, WavesSpeeds.x, WavesOffsets.x, WavesRadiuses.x);
+    vec3 waveB = trochoidalWave(WaveBDirection, xz, WavesSpeeds.y, WavesOffsets.y, WavesRadiuses.y);
+    vec3 waveC = trochoidalWave(WaveCDirection, xz, WavesSpeeds.z, WavesOffsets.z, WavesRadiuses.z);
+    vec3 waveD = trochoidalWave(WaveDDirection, xz, WavesSpeeds.w, WavesOffsets.w, WavesRadiuses.w);
+
+    return waveA * normalizedWeights.x + waveB * normalizedWeights.y + waveC * normalizedWeights.z + waveD * normalizedWeights.w;
 }
 
 void main()
