@@ -15,10 +15,8 @@ uniform sampler2D ReflectionDepthTexture;
 uniform sampler2D WaterTexture;
 uniform sampler2D WaterNormalMap;
 
-uniform float AlterRefractionDepth;
 uniform float FadeWaterDepth;
 			  
-uniform float MoveFactor;
 uniform float ReflectivePower;
 uniform float TextureMultiplier;
 
@@ -57,7 +55,6 @@ void main()
 
 	float depthDifference = belowDepth - currentDepth;
 
-	float displacementEdgeMultiplier = clamp(depthDifference / AlterRefractionDepth, 0, 1);
 	float finalAlpha = clamp(depthDifference / FadeWaterDepth, 0, 1);
 
 	vec2 displacedTexCoords = FSInputTexCoords;

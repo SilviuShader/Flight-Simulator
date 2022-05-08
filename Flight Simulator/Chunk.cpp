@@ -407,10 +407,8 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetTexture("WaterTexture",               waterTexture,           4);
     waterShader->SetTexture("WaterNormalMap",             waterNormalMap,         5);
                                                           
-    waterShader->SetFloat("AlterRefractionDepth",         20.0f);
     waterShader->SetFloat("FadeWaterDepth",               10.0f);
                                                           
-    waterShader->SetFloat("MoveFactor",                   waterMoveFactor);
     waterShader->SetFloat("ReflectivePower",              0.5);
     waterShader->SetFloat("TextureMultiplier",            0.1f);
                                                           
