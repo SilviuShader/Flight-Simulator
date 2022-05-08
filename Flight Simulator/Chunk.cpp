@@ -397,7 +397,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetFloat("DisplacementStrength", 0.01f);
 
     waterShader->SetFloat("MoveFactor",           waterMoveFactor);
-    waterShader->SetFloat("ReflectivePower",      1.0);
+    waterShader->SetFloat("ReflectivePower",      0.5);
 
     waterShader->SetLight(camera, light);
 

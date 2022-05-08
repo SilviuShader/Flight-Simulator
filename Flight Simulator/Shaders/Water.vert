@@ -19,6 +19,6 @@ void main()
 {
 	TCSInputWorldPosition      = Model * vec4(VSInputPosition, 1.0);
 	TCSInputReflectionPosition = Projection * View * TCSInputWorldPosition;
-	TCSInputTexCoords          = VSInputTexCoords * 50.0;
+	TCSInputTexCoords          = VSInputTexCoords * 100.0;
 	TCSInputWaterToCamera      = CameraPosition - TCSInputWorldPosition.xyz;
 }

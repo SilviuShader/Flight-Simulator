@@ -75,7 +75,7 @@ void main()
 
 	vec3 normalData       = texture(WaterNormalMap, displacedTexCoords).rgb * 2.0 - vec3(1.0, 1.0, 1.0);
 	vec3 normal = (FSInputTangent * normalData.x) + (FSInputBinormal * normalData.y) + (FSInputNormal * normalData.z);
-	float specularStrength = 0.1;
+	float specularStrength = 0.5;
 	FSOutFragColor = AmbientColor;
 
 	vec2 displacement = sampleDuDv(displacedTexCoords) * DisplacementStrength * displacementEdgeMultiplier;
@@ -95,7 +95,7 @@ void main()
 	reflectiveness = pow(reflectiveness, ReflectivePower);
 
 	vec4 albedo = mix(refractionColor, reflectionColor, 1.0 - reflectiveness);
-	albedo = mix(albedo, texture(WaterTexture, displacedTexCoords), 0.05);
+	albedo = mix(albedo, texture(WaterTexture, displacedTexCoords), 0.001);
 
 	vec3 lightDir = normalize(-LightDirection);
     float lightIntensity = clamp(dot(normal, lightDir), 0.0, 1.0);
@@ -114,6 +114,4 @@ void main()
     FSOutFragColor = FSOutFragColor;
 	FSOutFragColor = FSOutFragColor;
 	FSOutFragColor.a = finalAlpha;
-
-	FSOutFragColor = FSOutFragColor, 0, 1;
 }

@@ -39,10 +39,10 @@ vec3 trochoidalWave(vec2 rotateDirection, vec2 xz, float speed, float offset, fl
     vec3 result;
 
     float horizontalMovement = sin(Time * speed + spaceProjection * offset) * radius;
-    result.x = horizontalMovement * xz.x;
-    result.z = horizontalMovement * xz.y;
+    result.x = horizontalMovement * rotateDirection.x;
+    result.z = horizontalMovement * rotateDirection.y;
 
-    result.y = cos(Time * speed + spaceProjection * offset) * radius * 30.0;
+    result.y = cos(Time * speed + spaceProjection * offset) * radius;
 
     return result;
 }
@@ -50,7 +50,7 @@ vec3 trochoidalWave(vec2 rotateDirection, vec2 xz, float speed, float offset, fl
 vec3 vertexDisplacement(vec2 xz)
 {
     // TODO: Combine more waves at different frequencies
-    return trochoidalWave(vec2(1.0, 0.0), xz, 1.0, 1.0, 0.005);
+    return trochoidalWave(vec2(1.0, 0.0), xz, 1.0, 1.0, 0.03) + trochoidalWave(vec2(0.0, 1.0), xz, 0.1, 10.0, 0.02);
 }
 
 void main()
