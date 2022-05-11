@@ -363,7 +363,7 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
     }
 }
 
-void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture, float waterMoveFactor, Texture* waterTexture, Texture* waterNormalMap)
+void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture, float waterMoveFactor, Material* waterMaterial)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
@@ -404,17 +404,16 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetTexture("ReflectionTexture",          reflectionTexture,      1);
     waterShader->SetTexture("RefractionDepthTexture",     refractionDepthTexture, 2);
     waterShader->SetTexture("ReflectionDepthTexture",     reflectionDepthTexture, 3);
-    waterShader->SetTexture("WaterTexture",               waterTexture,           4);
-    waterShader->SetTexture("WaterNormalMap",             waterNormalMap,         5);
+    waterShader->SetMaterials("WaterTextures",
+                              "WaterNormalTextures",
+                              "WaterSpecularTextures", { waterMaterial }, 4);
                                                           
-    waterShader->SetFloat("FadeWaterDepth",               10.0f);
+    waterShader->SetFloat("FadeWaterDepth",               1.0f);
                                                           
     waterShader->SetFloat("ReflectivePower",              0.5);
-    waterShader->SetFloat("TextureMultiplier",            0.1f);
+    waterShader->SetFloat("TextureMultiplier",            0.5f);
                                                           
     waterShader->SetLight(camera, light);                 
-                                                          
-    waterShader->SetFloat("SpecularStrength",             0.1f);
                                                           
     waterShader->SetFloat("Near",                         camera->GetNear());
     waterShader->SetFloat("Far",                          camera->GetFar());

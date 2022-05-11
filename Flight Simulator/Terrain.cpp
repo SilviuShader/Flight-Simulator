@@ -8,7 +8,7 @@ using namespace glm;
 
 const float Terrain::CHUNK_WIDTH                                 = 64.0f;
 const float Terrain::TERRAIN_AMPLITUDE                           = 75.0f;
-const float Terrain::WATER_LEVEL                                 = 10.0f;
+const float Terrain::WATER_LEVEL                                 = 5.0f;
 const float Terrain::DISTANCE_FOR_DETAILS                        = 512.0f;
 const float Terrain::MAX_TESSELATION                             = 16.0f;
 const float Terrain::GAMMA                                       = 1.5f;
@@ -87,7 +87,7 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 		return;
 
 	for (auto& chunk : m_chunksList)
-		chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterTexture, m_waterNormalMap);
+		chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterMaterial);
 }
 
 void Terrain::CreateTerrainObjects()
@@ -126,25 +126,17 @@ void Terrain::CreateTerrainObjects()
 	m_terrainBiomesData = Biome::CreateBiomesTexture();
 	m_terrainMaterials  = Biome::GetBiomesMaterials();
 
-	// TODO: Replace this with a material
-	m_waterTexture = new Texture("Assets/Water/WaterColor.jpg");
-	m_waterNormalMap = new Texture("Assets/Water/WaterNormal.jpg");
+	m_waterMaterial = new Material("Assets/Water/WaterColor.jpg", "Assets/Water/WaterNormal.jpg");
 }
 
 void Terrain::FreeTerrainObjects()
 {
 	Biome::Free();
 
-	if (m_waterNormalMap)
+	if (m_waterMaterial)
 	{
-		delete m_waterNormalMap;
-		m_waterNormalMap = nullptr;
-	}
-
-	if (m_waterTexture)
-	{
-		delete m_waterTexture;
-		m_waterTexture = nullptr;
+		delete m_waterMaterial;
+		m_waterMaterial = nullptr;
 	}
 
 	if (m_noise)

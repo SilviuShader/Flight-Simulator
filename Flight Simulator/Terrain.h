@@ -70,8 +70,7 @@ private:
 	std::vector<Material*>                                    m_terrainMaterials;
 	Texture*                                                  m_terrainBiomesData;
 
-	Texture*                                                  m_waterTexture;
-	Texture*                                                  m_waterNormalMap;
+	Material*                                                 m_waterMaterial;
 												              
 	float                                                     m_accumulatedCurrentChunksTime;
 												              

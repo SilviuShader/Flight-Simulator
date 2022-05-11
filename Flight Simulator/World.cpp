@@ -143,7 +143,7 @@ void World::Update(float deltaTime)
 	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug);
 
 	renderSettings->EnablePlaneClipping(vec4(0.0f, 1.0f, 0.0f, -Terrain::WATER_LEVEL));
-	RenderScene(m_aboveRefractionAuxiliaryRenderTexture, m_camera, true, m_aboveRefractionRenderTexture);
+	RenderScene(m_aboveRefractionAuxiliaryRenderTexture, m_camera, false, m_aboveRefractionRenderTexture);
 	renderSettings->DisablePlaneClipping();
 
 	renderSettings->EnablePlaneClipping(vec4(0.0f, -1.0f, 0.0f, Terrain::WATER_LEVEL));

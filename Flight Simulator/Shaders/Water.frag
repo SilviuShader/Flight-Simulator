@@ -1,4 +1,5 @@
 #version 430 core
+#define MODEL_MATERIALS_COUNT 1
 
 in vec2 FSInputTexCoords;
 in vec4 FSInputReflectionPosition;
@@ -12,8 +13,10 @@ uniform sampler2D RefractionTexture;
 uniform sampler2D ReflectionTexture;
 uniform sampler2D RefractionDepthTexture;
 uniform sampler2D ReflectionDepthTexture;
-uniform sampler2D WaterTexture;
-uniform sampler2D WaterNormalMap;
+
+uniform sampler2D WaterTextures[MODEL_MATERIALS_COUNT];
+uniform sampler2D WaterNormalTextures[MODEL_MATERIALS_COUNT];
+uniform sampler2D WaterSpecularTextures[MODEL_MATERIALS_COUNT];
 
 uniform float FadeWaterDepth;
 			  
@@ -26,8 +29,6 @@ uniform vec3  LightDirection;
 uniform float SpecularPower; 
 
 uniform mediump vec3 CameraPosition;
-
-uniform float SpecularStrength;
 
 uniform float Near;
 uniform float Far;
@@ -59,9 +60,11 @@ void main()
 
 	vec2 displacedTexCoords = FSInputTexCoords;
 
-	vec3 normalData       = texture(WaterNormalMap, displacedTexCoords).rgb * 2.0 - vec3(1.0, 1.0, 1.0);
+	vec3 normalData       = texture(WaterNormalTextures[0], displacedTexCoords).rgb * 2.0 - vec3(1.0, 1.0, 1.0);
 	vec3 normal = (FSInputTangent * normalData.x) + (FSInputBinormal * normalData.y) + (FSInputNormal * normalData.z);
 	FSOutFragColor = AmbientColor;
+
+	float specularStrength  = texture(WaterSpecularTextures[0], displacedTexCoords).r;
 	
 	vec4 refractionColor = texture(RefractionTexture, refractTexCoords);
 	vec4 reflectionColor = texture(ReflectionTexture, reflectTexCoords);
@@ -72,7 +75,7 @@ void main()
 	reflectiveness = pow(reflectiveness, ReflectivePower);
 
 	vec4 albedo = mix(refractionColor, reflectionColor, 1.0 - reflectiveness);
-	albedo = mix(albedo, texture(WaterTexture, displacedTexCoords), TextureMultiplier);
+	albedo = mix(albedo, texture(WaterTextures[0], displacedTexCoords), TextureMultiplier);
 
 	vec3 lightDir = normalize(-LightDirection);
     float lightIntensity = clamp(dot(normal, lightDir), 0.0, 1.0);
@@ -87,7 +90,7 @@ void main()
     FSOutFragColor = clamp(FSOutFragColor, 0.0, 1.0);
 	FSOutFragColor = FSOutFragColor * albedo;
 
-	FSOutFragColor += SpecularStrength * specular * DiffuseColor;
+	FSOutFragColor += specularStrength * specular * DiffuseColor;
     FSOutFragColor = FSOutFragColor;
 	FSOutFragColor = FSOutFragColor;
 	FSOutFragColor.a = finalAlpha;
