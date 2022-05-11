@@ -9,7 +9,7 @@ using namespace glm;
 const float Terrain::CHUNK_WIDTH                                 = 64.0f;
 const float Terrain::TERRAIN_AMPLITUDE                           = 75.0f;
 const float Terrain::WATER_LEVEL                                 = 5.0f;
-const float Terrain::DISTANCE_FOR_DETAILS                        = 512.0f;
+const float Terrain::DISTANCE_FOR_DETAILS                        = 256.0f;
 const float Terrain::MAX_TESSELATION                             = 16.0f;
 const float Terrain::GAMMA                                       = 1.5f;
 
@@ -68,11 +68,17 @@ void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug)
 	for (auto& chunk : m_chunksList)
 		chunk->Update(camera, deltaTime, renderDebug);
 
+	m_firstFrame = false;
+}
+
+void Terrain::UpdateWater(Camera* camera, float deltaTime, bool renderDebug)
+{
+	for (auto& chunk : m_chunksList)
+		chunk->UpdateWater(camera, deltaTime, renderDebug);
+
 	m_waterMoveFactor += deltaTime * WATER_MOVE_SPEED;
 	if (m_waterMoveFactor >= 1.0f)
 		m_waterMoveFactor -= 1.0f;
-
-	m_firstFrame = false;
 }
 
 void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture)

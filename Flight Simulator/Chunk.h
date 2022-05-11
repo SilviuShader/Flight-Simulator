@@ -46,6 +46,8 @@ private:
         MathHelper::AABB                                                                                    BoundingBox;
 
         std::unordered_map<Biome::FolliageModel, std::vector<FolliageProperties>, Biome::HashFolliageModel> DesiredInstances;
+
+        Node*                                                                                               LinkedNode;
     };
 
 public:
@@ -73,6 +75,7 @@ public:
     ~Chunk();
 
            void      Update(Camera*, float, bool);
+           void      UpdateWater(Camera*, float, bool);
            void      DrawTerrain(Camera*, Light*, const std::vector<Material*>&, Texture*);
            void      DrawFolliage(Camera*, Light*);
            void      DrawWater(Camera*, Light*, Texture*, Texture*, Texture*, Texture*, float, Material*);
@@ -92,9 +95,15 @@ private:
                         
           void  BuildQuadTree(std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
           Node* CreateNode(int, const glm::vec2&, const glm::vec2&, std::pair<int, int>, std::pair<float**, float**>, std::pair<float**, float**>, std::pair<float**, float**>);
-                        
+          
+          void  BuildWaterQuadTree();
+          Node* CreateWaterNode(int, Node*);
+
           void  FillZoneRanges(const MathHelper::Frustum&, Node*);
           void  UpdateZoneRangesBuffer();
+
+          void  FillWaterZoneRanges(const MathHelper::Frustum&, Node*);
+          void  UpdateWaterZoneRangesBuffer();
                         
           void  FillFolliageInstances(Camera*, const MathHelper::Frustum&, Node*);
 
@@ -137,6 +146,7 @@ private:
     unsigned int                                                                                 m_vao;
 
     unsigned int                                                                                 m_waterVbo;
+    unsigned int                                                                                 m_waterInstanceVbo;
     unsigned int                                                                                 m_waterEbo;
     unsigned int                                                                                 m_waterVao;
                                                                                                  
@@ -144,12 +154,15 @@ private:
     Texture*                                                                                     m_heightTexture;
     Texture*                                                                                     m_biomesTexture;
     glm::vec4*                                                                                   m_drawZonesRanges; 
+    glm::vec4*                                                                                   m_waterDrawZonesRanges;
 
     std::unordered_map<std::pair<Model*, Shader*>, std::vector<glm::mat4>, HashHelper::HashPair> m_folliageModelsInstances;
                                                        
     int                                                                                          m_zoneRangesIndex;
+    int                                                                                          m_waterZoneRangesIndex;
                                                                                                  
     Node*                                                                                        m_quadTree;
+    Node*                                                                                        m_waterQuadTree;
                                                                                                  
     bool                                                                                         m_renderDebug;
 

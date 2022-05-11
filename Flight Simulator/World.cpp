@@ -36,7 +36,7 @@ World::World(int windowWidth, int windowHeight) :
 	Clouds::CloudsProperties cloudsProperties;
 	cloudsProperties.OffsetVelocity = vec3(.01f, .02f, .03f);
 	cloudsProperties.DetailsOffsetVelocity = vec3(0.4f, 0.5f, 0.6f);
-	cloudsProperties.CloudBoxExtents = vec2(200.0f, 200.0f);
+	cloudsProperties.CloudBoxExtents = vec2(100.0f, 100.0f);
 	cloudsProperties.CloudsAltitude = 100.0f;
 
 	m_clouds = new Clouds(cloudsProperties);
@@ -149,6 +149,8 @@ void World::Update(float deltaTime)
 	renderSettings->EnablePlaneClipping(vec4(0.0f, -1.0f, 0.0f, Terrain::WATER_LEVEL));
 	RenderScene(m_refractionAuxiliaryRenderTexture, m_camera, false, m_refractionRenderTexture);
 	renderSettings->DisablePlaneClipping();
+
+	m_terrain->UpdateWater(m_camera, deltaTime, m_renderDebug);
 }
 
 void World::Draw()

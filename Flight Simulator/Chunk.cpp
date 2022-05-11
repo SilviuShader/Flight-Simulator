@@ -124,8 +124,10 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
     float**  folliageSelectionRandomnessValues                   = Texture::GetPixelsInfo(folliageSelectionRandomnessMap);
 
     BuildQuadTree(make_pair(minValues, maxValues), make_pair(heightValues, biomeValues), make_pair(folliageRandomnessValues, folliageSelectionRandomnessValues));
+    BuildWaterQuadTree();
 
     m_drawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
+    m_waterDrawZonesRanges = new vec4[quadTreesDivisionsCount * quadTreesDivisionsCount];
 
     for (int i = 0; i < heightBiomeDivisionsCount; i++)
     {
@@ -223,10 +225,22 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
 
 Chunk::~Chunk()
 {
+    if (m_waterDrawZonesRanges)
+    {
+        delete[] m_waterDrawZonesRanges;
+        m_waterDrawZonesRanges = nullptr;
+    }
+
     if (m_drawZonesRanges)
     {
         delete[] m_drawZonesRanges;
         m_drawZonesRanges = nullptr;
+    }
+
+    if (m_waterQuadTree)
+    {
+        delete m_waterQuadTree;
+        m_waterQuadTree = nullptr;
     }
 
     if (m_quadTree)
@@ -277,8 +291,20 @@ void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
                 return distance(vec3(valsA[12], valsA[13], valsA[14]), camera->GetPosition()) > distance(vec3(valsB[12], valsB[13], valsB[14]), camera->GetPosition());
             });
     }
+}
+
+void Chunk::UpdateWater(Camera* camera, float deltaTime, bool renderDebug)
+{
+    m_renderDebug = renderDebug;
 
     m_waterTime += deltaTime;
+
+    m_waterZoneRangesIndex = 0;
+
+    MathHelper::Frustum cameraFrustum = MathHelper::GetCameraFrustum(camera);
+
+    FillWaterZoneRanges(cameraFrustum, m_waterQuadTree);
+    UpdateWaterZoneRangesBuffer();
 }
 
 void Chunk::DrawTerrain(Camera* camera, Light* light, const vector<Material*>& terrainMaterials, Texture* terrainBiomesData)
@@ -368,7 +394,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
 
-    mat4 model      = translate(mat4(1.0f), GetTranslation() + vec3(0.0f, Terrain::WATER_LEVEL, 0.0f)) * scale(mat4(1.0f), vec3(Terrain::CHUNK_WIDTH, Terrain::CHUNK_WIDTH, Terrain::CHUNK_WIDTH));
+    mat4 model      = translate(mat4(1.0f), GetTranslation() + vec3(0.0f, Terrain::WATER_LEVEL, 0.0f)); 
     mat4 view       = camera->GetViewMatrix();
     mat4 projection = camera->GetProjectionMatrix();
 
@@ -385,12 +411,12 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetFloat("Tiling",                       100.0f);
                                                           
     waterShader->SetFloat("DistanceForDetails",           100.0f);
-    waterShader->SetFloat("TessellationLevel",            6);
+    waterShader->SetFloat("TessellationLevel",            2);
                                                           
     waterShader->SetVec4("WavesWeights",                  vec4(4, 3, 2, 1));
     waterShader->SetVec4("WavesSpeeds",                   vec4(0.125f, 0.25f, 0.5f, 1.0f));
     waterShader->SetVec4("WavesOffsets",                  vec4(0.2f, 0.4f, 0.8f, 1.6f));
-    waterShader->SetVec4("WavesRadiuses",                 vec4(1.0f, 0.5f, 0.25f, 0.125f));
+    waterShader->SetVec4("WavesRadiuses",                 vec4(2.0f, 1.0f, 0.5f, 0.25f));
                                                           
     waterShader->SetVec2("WaveADirection",                vec2(1.0f, 0.0f));
     waterShader->SetVec2("WaveBDirection",                vec2(0.0f, 1.0f));
@@ -408,7 +434,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
                               "WaterNormalTextures",
                               "WaterSpecularTextures", { waterMaterial }, 4);
                                                           
-    waterShader->SetFloat("FadeWaterDepth",               1.0f);
+    waterShader->SetFloat("FadeWaterDepth",               3.0f);
                                                           
     waterShader->SetFloat("ReflectivePower",              0.5);
     waterShader->SetFloat("TextureMultiplier",            0.5f);
@@ -422,7 +448,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
 
     glBindVertexArray(m_waterVao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
-    glDrawElements(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0);
+    glDrawElementsInstanced(GL_PATCHES, INDICES_COUNT, GL_UNSIGNED_INT, 0, m_waterZoneRangesIndex);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -601,6 +627,14 @@ void Chunk::CreateWaterBuffers()
 
     VertexPositionTexture::SetLayout();
 
+    glGenBuffers(1, &m_waterInstanceVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_waterInstanceVbo);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribDivisor(2, 1);
+
     glGenBuffers(1, &m_waterEbo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_waterEbo);
@@ -624,9 +658,13 @@ void Chunk::FreeWaterBuffers()
     glBindVertexArray(m_waterVao);
 
     VertexPositionTexture::ResetLayout();
+    glDisableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_waterVbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &m_waterInstanceVbo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &m_waterEbo);
@@ -655,6 +693,7 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
 
     result->ZoneRange       = vec4(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y);
     result->PositionId      = positionId;
+    result->LinkedNode      = nullptr;
 
     vec3 boundingBoxCenter  = vec3((bottomLeft.x + topRight.x) * 0.5f, 0.0f,
                                    (bottomLeft.y + topRight.y) * 0.5f) + GetTranslation();
@@ -785,6 +824,42 @@ Chunk::Node* Chunk::CreateNode(int depth, const vec2& bottomLeft, const vec2& to
     return result;
 }
 
+void Chunk::BuildWaterQuadTree()
+{
+    m_waterQuadTree = CreateWaterNode(0, m_quadTree);
+}
+
+Chunk::Node* Chunk::CreateWaterNode(int depth, Node* linkedNode)
+{
+    if (depth >= QUAD_TREE_DEPTH)
+        return nullptr;
+
+    Node* result = new Node();
+
+    MathHelper::AABB linkedBoundingBox = linkedNode->BoundingBox;
+
+    result->ZoneRange  = linkedNode->ZoneRange;
+    result->PositionId = linkedNode->PositionId;
+    result->LinkedNode = linkedNode;
+    result->IsLeaf     = linkedNode->IsLeaf;
+
+    
+    if (!result->IsLeaf)
+    {
+        result->Children[0] = CreateWaterNode(depth + 1, linkedNode->Children[0]);
+        result->Children[1] = CreateWaterNode(depth + 1, linkedNode->Children[1]);
+        result->Children[2] = CreateWaterNode(depth + 1, linkedNode->Children[2]);
+        result->Children[3] = CreateWaterNode(depth + 1, linkedNode->Children[3]);
+    }
+
+    MathHelper::AABB aabb = linkedBoundingBox;
+    aabb.Center = vec3(aabb.Center.x, Terrain::WATER_LEVEL, aabb.Center.z);
+    aabb.Extents = vec3(aabb.Extents.x, 3.0f, aabb.Extents.z); // TODO: Replace this hard-coded number
+    result->BoundingBox = aabb;
+
+    return result;
+}
+
 void Chunk::FillZoneRanges(const MathHelper::Frustum& frustum, Node* node)
 {
     if (!node->BoundingBox.IsOnFrustum(frustum))
@@ -811,6 +886,36 @@ void Chunk::UpdateZoneRangesBuffer()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void Chunk::FillWaterZoneRanges(const MathHelper::Frustum& frustum, Node* node)
+{
+    if (!node->BoundingBox.IsOnFrustum(frustum))
+        return;
+
+    MathHelper::AABB otherAABB = node->LinkedNode->BoundingBox;
+    MathHelper::AABB currentAABB = node->BoundingBox;
+
+    if (otherAABB.Center.y - otherAABB.Extents.y > currentAABB.Center.y + currentAABB.Extents.y)
+        return;
+
+    if (node->IsLeaf)
+    {
+        m_waterDrawZonesRanges[m_waterZoneRangesIndex++] = node->ZoneRange;
+        if (m_renderDebug)
+            DebugHelper::GetInstance()->AddRectangleInstance(node->BoundingBox.Center, node->BoundingBox.Extents);
+    }
+    else
+    {
+        for (int i = 0; i < Node::CHILDREN_COUNT; i++)
+            FillWaterZoneRanges(frustum, node->Children[i]);
+    }
+}
+
+void Chunk::UpdateWaterZoneRangesBuffer()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, m_waterInstanceVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec4) * m_waterZoneRangesIndex, m_waterDrawZonesRanges, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
 void Chunk::FillFolliageInstances(Camera* camera, const MathHelper::Frustum& frustum, Node* node)
 {
