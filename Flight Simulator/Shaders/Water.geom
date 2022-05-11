@@ -8,6 +8,7 @@ in vec2 GSInputTexCoords[];
 in vec4 GSInputWorldPosition[];
 in vec4 GSInputReflectionPosition[];
 in vec3 GSInputWaterToCamera[];
+in vec4 GSInputRealClipCoords[];
 
 out vec2 FSInputTexCoords;
 out vec4 FSInputReflectionPosition;
@@ -16,6 +17,7 @@ out vec3 FSInputNormal;
 out vec3 FSInputTangent;
 out vec3 FSInputBinormal;
 out vec4 FSInputWorldPosition;
+out vec4 FSInputRealClipCoords;
 
 void main()
 {
@@ -40,6 +42,7 @@ void main()
 	FSInputTangent            = tangent;
 	FSInputBinormal           = binormal;
 	FSInputWorldPosition      = GSInputWorldPosition[0];
+	FSInputRealClipCoords     = GSInputRealClipCoords[0];
 	gl_Position               = gl_in[0].gl_Position;
 	EmitVertex();
 
@@ -50,6 +53,7 @@ void main()
 	FSInputTangent            = tangent;
 	FSInputBinormal           = binormal;
 	FSInputWorldPosition      = GSInputWorldPosition[1];
+	FSInputRealClipCoords     = GSInputRealClipCoords[1];
 	gl_Position               = gl_in[1].gl_Position;
 	EmitVertex();
 
@@ -60,6 +64,7 @@ void main()
 	FSInputTangent            = tangent;
 	FSInputBinormal           = binormal;
 	FSInputWorldPosition      = GSInputWorldPosition[2];
+	FSInputRealClipCoords     = GSInputRealClipCoords[2];
 	gl_Position               = gl_in[2].gl_Position;
 	EmitVertex();
 

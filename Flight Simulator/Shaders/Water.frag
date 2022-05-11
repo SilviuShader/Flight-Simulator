@@ -8,6 +8,7 @@ in vec3 FSInputNormal;
 in vec3 FSInputTangent;
 in vec3 FSInputBinormal;
 in vec4 FSInputWorldPosition;
+in vec4 FSInputRealClipCoords;
 
 uniform sampler2D RefractionTexture;
 uniform sampler2D ReflectionTexture;
@@ -43,18 +44,23 @@ float linearizeDepth(float d,float zNear,float zFar)
 
 void main()
 {
-	vec2 clipTexCoords    = FSInputReflectionPosition.xy / FSInputReflectionPosition.w * 0.5 + 0.5;
-	vec2 refractTexCoords = clipTexCoords;
-	vec2 reflectTexCoords = vec2(clipTexCoords.x, 1.0 - clipTexCoords.y);
+	vec2 realClipCoords   = FSInputRealClipCoords.xy / FSInputRealClipCoords.w * 0.5 + 0.5;
 
-	float belowDepth   = linearizeDepth(texture(RefractionDepthTexture, refractTexCoords).x, Near, Far);
-	float aboveDepth   = linearizeDepth(texture(ReflectionDepthTexture, refractTexCoords).x, Near, Far);
+	float belowDepth   = linearizeDepth(texture(RefractionDepthTexture, realClipCoords).x, Near, Far);
+	float aboveDepth   = linearizeDepth(texture(ReflectionDepthTexture, realClipCoords).x, Near, Far);
 
 	belowDepth = min(belowDepth, aboveDepth);
-
 	float currentDepth = linearizeDepth(gl_FragCoord.z, Near, Far);
 
 	float depthDifference = belowDepth - currentDepth;
+	
+	float disturbance = clamp(depthDifference / 5.0, 0.0f, 1.0);
+
+	vec2 alteredClipCoords = FSInputReflectionPosition.xy / FSInputReflectionPosition.w * 0.5 + 0.5;
+
+	vec2 clipTexCoords    = mix(realClipCoords, alteredClipCoords, disturbance);
+	vec2 refractTexCoords = clipTexCoords;
+	vec2 reflectTexCoords = vec2(clipTexCoords.x, 1.0 - clipTexCoords.y);
 
 	float finalAlpha = clamp(depthDifference / FadeWaterDepth, 0, 1);
 	

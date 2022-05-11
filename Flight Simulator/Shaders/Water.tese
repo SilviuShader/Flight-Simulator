@@ -27,6 +27,7 @@ out vec2 GSInputTexCoords;
 out vec4 GSInputWorldPosition;
 out vec4 GSInputReflectionPosition;
 out vec3 GSInputWaterToCamera;
+out vec4 GSInputRealClipCoords;
 
 vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
 {
@@ -91,5 +92,7 @@ void main()
     GSInputTexCoords          = interpolate2D(TESInputTexCoords[0],          TESInputTexCoords[1],          TESInputTexCoords[2]);
     GSInputWaterToCamera      = interpolate3D(TESInputWaterToCamera[0],      TESInputWaterToCamera[1],      TESInputWaterToCamera[2]);
 
-    gl_Position = Projection * View * GSInputWorldPosition;
+    GSInputRealClipCoords     = Projection * View * GSInputWorldPosition;
+
+    gl_Position               = GSInputRealClipCoords;
 }

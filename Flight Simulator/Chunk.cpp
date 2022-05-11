@@ -416,7 +416,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetVec4("WavesWeights",                  vec4(4, 3, 2, 1));
     waterShader->SetVec4("WavesSpeeds",                   vec4(0.125f, 0.25f, 0.5f, 1.0f));
     waterShader->SetVec4("WavesOffsets",                  vec4(0.2f, 0.4f, 0.8f, 1.6f));
-    waterShader->SetVec4("WavesRadiuses",                 vec4(2.0f, 1.0f, 0.5f, 0.25f));
+    waterShader->SetVec4("WavesRadiuses",                 vec4(1.0f, 0.5f, 0.25f, 0.125f));
                                                           
     waterShader->SetVec2("WaveADirection",                vec2(1.0f, 0.0f));
     waterShader->SetVec2("WaveBDirection",                vec2(0.0f, 1.0f));
