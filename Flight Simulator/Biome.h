@@ -118,6 +118,7 @@ public:
 
 		Material*                  Material;
 		std::vector<FolliageModel> FolliageModels;
+		std::vector<FolliageModel> WaterFolliageModels;
 	};
 
 
@@ -128,7 +129,7 @@ public:
 
 	~Biome();
 
-	       void                              AddTerrainLevel(Material*, const std::vector<FolliageModel>& = std::vector<FolliageModel>());
+	       void                              AddTerrainLevel(Material*, const std::vector<FolliageModel>& = std::vector<FolliageModel>(), const std::vector<FolliageModel>& = std::vector<FolliageModel>());
 				                             
 		   std::vector<TerrainLevel>&        GetTerrainLevels();
 									         
@@ -144,6 +145,7 @@ public:
 private:
 
 	static std::pair<int, float> StepGradient(int, float);
+	static float                 InvesreStepGradient(int, int);
 
 private:
 

@@ -57,7 +57,7 @@ void main()
 	float depthDifference = belowDepth - currentDepth;
 
 	float finalAlpha = clamp(depthDifference / FadeWaterDepth, 0, 1);
-
+	
 	vec2 displacedTexCoords = FSInputTexCoords;
 
 	vec3 normalData       = texture(WaterNormalTextures[0], displacedTexCoords).rgb * 2.0 - vec3(1.0, 1.0, 1.0);

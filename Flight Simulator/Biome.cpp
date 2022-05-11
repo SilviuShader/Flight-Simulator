@@ -1,5 +1,6 @@
 #include "Biome.h"
 #include "MathHelper.h"
+#include "Terrain.h"
 
 using namespace std;
 
@@ -14,7 +15,7 @@ Biome::~Biome()
 {
 }
 
-void Biome::AddTerrainLevel(Material* material, const std::vector<FolliageModel>& models)
+void Biome::AddTerrainLevel(Material* material, const vector<FolliageModel>& models, const vector<FolliageModel>& waterFolliageModels)
 {
 	int materialsCount = g_materials.size();
 
@@ -32,7 +33,18 @@ void Biome::AddTerrainLevel(Material* material, const std::vector<FolliageModel>
 		}
 	}
 
-	m_terrainLevels.push_back(TerrainLevel{ material, models });
+	for (auto& model : waterFolliageModels)
+	{
+		auto& modelLODs = model.ModelLODs;
+		for (auto& actualModel : modelLODs)
+		{
+			auto& actualModelPtr = actualModel.Model;
+			if (g_folliageModels.find(actualModelPtr) == g_folliageModels.end())
+				g_folliageModels.insert(actualModelPtr);
+		}
+	}
+
+	m_terrainLevels.push_back(TerrainLevel{ material, models, waterFolliageModels });
 }
 
 vector<Biome::TerrainLevel>& Biome::GetTerrainLevels()
@@ -121,10 +133,17 @@ vector<Biome::FolliageModelsVector> Biome::GetBiomeFolliageModels(float height, 
 	int  divCurrentAltitude          = (g_levelsPerBiome / g_biomeInstances[currentBiome]->m_terrainLevels.size());
 	int  divCurrentAltitudeNextBiome = (g_levelsPerBiome / g_biomeInstances[nextBiome   ]->m_terrainLevels.size());
 
-	auto currentModels               = g_biomeInstances[currentBiome]->m_terrainLevels[currentAltitude         / divCurrentAltitude         ].FolliageModels;
-	auto nextBiomeModels             = g_biomeInstances[nextBiome   ]->m_terrainLevels[currentAltitude         / divCurrentAltitudeNextBiome].FolliageModels;
-	auto nextAltitudeModels          = g_biomeInstances[currentBiome]->m_terrainLevels[nextAltitude            / divCurrentAltitude         ].FolliageModels;
-	auto nextBiomeAltitudeModels     = g_biomeInstances[nextBiome   ]->m_terrainLevels[nextAltitudeInNextBiome / divCurrentAltitudeNextBiome].FolliageModels;
+	Biome::TerrainLevel& currentLevel           = g_biomeInstances[currentBiome]->m_terrainLevels[currentAltitude / divCurrentAltitude];
+	Biome::TerrainLevel& nextBiomeLevel         = g_biomeInstances[nextBiome]->m_terrainLevels[currentAltitude / divCurrentAltitudeNextBiome];
+	Biome::TerrainLevel& nextAltitudeLevel      = g_biomeInstances[currentBiome]->m_terrainLevels[nextAltitude / divCurrentAltitude];
+	Biome::TerrainLevel& nextBiomeAltitudeLevel = g_biomeInstances[nextBiome]->m_terrainLevels[nextAltitudeInNextBiome / divCurrentAltitudeNextBiome];
+
+	float actualHeght                = height * Terrain::TERRAIN_AMPLITUDE;
+
+	auto currentModels               = (actualHeght > Terrain::WATER_LEVEL) ? currentLevel.FolliageModels           : currentLevel.WaterFolliageModels;
+	auto nextBiomeModels             = (actualHeght > Terrain::WATER_LEVEL) ? nextBiomeLevel.FolliageModels         : nextBiomeLevel.WaterFolliageModels;
+	auto nextAltitudeModels          = (actualHeght > Terrain::WATER_LEVEL) ? nextAltitudeLevel.FolliageModels      : nextAltitudeLevel.WaterFolliageModels;
+	auto nextBiomeAltitudeModels     = (actualHeght > Terrain::WATER_LEVEL) ? nextBiomeAltitudeLevel.FolliageModels : nextBiomeAltitudeLevel.WaterFolliageModels;
 
 	FolliageModelsVector currentVector;
 	currentVector.Models = currentModels;
@@ -206,6 +225,14 @@ pair<int, float> Biome::StepGradient(int totalValues, float t)
 	}
 
 	return make_pair(index, percentage);
+}
+
+float Biome::InvesreStepGradient(int totalValues, int altitudeStart)
+{
+	int intervalsCount = 1 + (totalValues - 1) * 2;
+	int actualIndex    = altitudeStart * 2;
+
+	return (float)actualIndex / (float)intervalsCount;
 }
 
 Biome::Biome() :

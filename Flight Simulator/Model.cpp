@@ -57,7 +57,7 @@ int Model::Draw(Shader* shader, const string& texturesName, const string& normal
 
 void Model::LoadModel(const string& path)
 {
-	if (GetFileExtension(path) == "png")
+	if (GetFileExtension(path) == "png" || GetFileExtension(path) == "jpg")
 	{
 		vector<VertexNormalTextureBinormalTangent> vertices
 		{

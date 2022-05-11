@@ -34,6 +34,9 @@
     <Filter Include="Resource Files\Assets\Water">
       <UniqueIdentifier>{103856b6-38ca-49ae-9caf-ed0276dd3989}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Assets\Models\Reeds">
+      <UniqueIdentifier>{ab70dd37-eda7-494e-b30d-6b59761c6ffb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -438,6 +441,9 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="Assets\Water\WaterNormal.jpg">
       <Filter>Resource Files\Assets\Water</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Reeds\pxfuel.com.png">
+      <Filter>Resource Files\Assets\Models\Reeds</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

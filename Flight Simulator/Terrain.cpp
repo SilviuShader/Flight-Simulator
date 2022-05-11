@@ -86,14 +86,12 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 	for (auto& chunk : m_chunksList)
 		chunk->DrawTerrain(camera, light, m_terrainMaterials, m_terrainBiomesData);
 
+	if (refractionTexture && reflectionTexture && refractionDepthTexture && reflectionDepthTexture)
+		for (auto& chunk : m_chunksList)
+			chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterMaterial);
+	
 	for (auto& chunk : m_chunksList)
 		chunk->DrawFolliage(camera, light);
-
-	if (!refractionTexture || !reflectionTexture || !refractionDepthTexture || !reflectionDepthTexture)
-		return;
-
-	for (auto& chunk : m_chunksList)
-		chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterMaterial);
 }
 
 void Terrain::CreateTerrainObjects()
@@ -124,7 +122,12 @@ void Terrain::CreateTerrainObjects()
 			Biome::ModelLevelOfDetail(new Model("Assets/Models/GrassBilboard.png", true), shaderManager->GetFolliageBilboardedShader(), 5.0f,   1.0f, true)
 		}, 1.0f);
 
-	forestBiome->AddTerrainLevel(forestLeaves, { grassModel });
+	Biome::FolliageModel reedModel = Biome::FolliageModel(
+		{
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/Reeds/pxfuel.com.png", true), shaderManager->GetFolliageBilboardedShader(), 10.0f, 1.0f, true)
+		}, 1.0f);
+
+	forestBiome->AddTerrainLevel(forestLeaves, { grassModel }, { reedModel });
 	forestBiome->AddTerrainLevel(brownMudLeaves);
 	forestBiome->AddTerrainLevel(medievalBlocks);
 	forestBiome->AddTerrainLevel(snow3);

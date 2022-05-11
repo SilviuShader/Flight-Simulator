@@ -157,7 +157,7 @@ void World::Draw()
 {
 	RenderScene(m_auxilliaryRenderTexture, m_camera, true, nullptr, m_refractionRenderTexture->GetTexture(), m_reflectionRenderTexture->GetTexture(), m_refractionAuxiliaryRenderTexture->GetDepthTexture(), m_aboveRefractionAuxiliaryRenderTexture->GetDepthTexture());
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//DebugHelper::GetInstance()->DrawFullscreenTexture(m_aboveRefractionAuxiliaryRenderTexture->GetTexture());
+	//DebugHelper::GetInstance()->DrawFullscreenTexture(m_reflectionRenderTexture->GetTexture());
 }
 
 Camera* World::GetCamera() const

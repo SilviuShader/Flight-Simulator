@@ -16,4 +16,5 @@ void main()
 		discard;
 
     FSOutFragColor = textureColor;
+	FSOutFragColor.a = 1.0;
 }
