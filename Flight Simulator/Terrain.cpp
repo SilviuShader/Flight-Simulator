@@ -97,6 +97,7 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 void Terrain::CreateTerrainObjects()
 {
 	          m_noise                    = new PerlinNoise();
+			  m_hydraulicErosion         = new HydraulicErosion( {102400, 0, 3} );
 
 	Material* snow2                      = new Material("Assets/snow_02_diff_1k.png",             "Assets/snow_02_nor_gl_1k.png",             "Assets/snow_02_spec_1k.png");
 	Material* medievalBlocks             = new Material("Assets/medieval_blocks_02_diff_1k.png",  "Assets/medieval_blocks_02_nor_gl_1k.png",  "Assets/medieval_blocks_02_spec_1k.png");
@@ -146,6 +147,12 @@ void Terrain::FreeTerrainObjects()
 	{
 		delete m_waterMaterial;
 		m_waterMaterial = nullptr;
+	}
+
+	if (m_hydraulicErosion)
+	{
+		delete m_hydraulicErosion;
+		m_hydraulicErosion = nullptr;
 	}
 
 	if (m_noise)
@@ -242,7 +249,7 @@ void Terrain::UpdateChunksVisibility(Camera* camera, float deltaTime, int diffSi
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, targetChunk);
+				Chunk* chunk = new Chunk(m_noise, m_hydraulicErosion, targetChunk);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

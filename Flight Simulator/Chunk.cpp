@@ -41,7 +41,7 @@ Chunk::Node::~Node()
     }
 }
 
-Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
+Chunk::Chunk(PerlinNoise* perlinNoise, HydraulicErosion* hydraulicErosion, pair<int, int> chunkID) :
     m_vbo(0),
     m_instanceVbo(0),
     m_ebo(0),
@@ -50,6 +50,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
     m_waterEbo(0),
     m_waterVao(0),
     m_perlinNoise(perlinNoise),
+    m_hydraulicErosion(hydraulicErosion),
     m_chunkID(chunkID),
     m_quadTree(nullptr),
     m_renderDebug(false),
@@ -75,6 +76,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, pair<int, int> chunkID) :
     heightParameters.TextureSize   = NOISE_TEXTURE_SIZE;
                                    
     m_heightTexture                = m_perlinNoise->RenderPerlinNoise(heightParameters);
+    m_hydraulicErosion->ApplyErosion(m_heightTexture);
 
     PerlinNoise::NoiseParameters biomeParameters;
 

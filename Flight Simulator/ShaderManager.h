@@ -33,6 +33,8 @@ public:
 		   Shader*        GetTexture2DNormalizeShader() const;
 		   Shader*        GetTexture3DNormalizeShader() const;
 
+		   Shader*        GetHydraulicErosionShader()   const;
+
 		   Shader*        GetMinShader()                const;
 		   Shader*        GetMaxShader()                const;
 		   Shader*        GetAverageShader()            const;
@@ -61,6 +63,8 @@ private:
 		   Shader*        m_worleyNoiseShader;
 		   Shader*        m_texture2DNormalizeShader;
 		   Shader*        m_texture3DNormalizeShader;
+
+		   Shader*        m_hydraulicErosionShader;
 	       		          
 	       Shader*        m_minShader;
 	       Shader*        m_maxShader;

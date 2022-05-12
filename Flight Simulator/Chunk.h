@@ -13,6 +13,7 @@
 #include "MathHelper.h"
 #include "Model.h"
 #include "Biome.h"
+#include "HydraulicErosion.h"
 
 class Chunk
 {
@@ -71,7 +72,7 @@ private:
 
 public:
 
-    Chunk(PerlinNoise*, std::pair<int, int>);
+    Chunk(PerlinNoise*, HydraulicErosion*, std::pair<int, int>);
     ~Chunk();
 
            void      Update(Camera*, float, bool);
@@ -151,6 +152,8 @@ private:
     unsigned int                                                                                 m_waterVao;
                                                                                                  
     PerlinNoise*                                                                                 m_perlinNoise;
+    HydraulicErosion*                                                                            m_hydraulicErosion;
+
     Texture*                                                                                     m_heightTexture;
     Texture*                                                                                     m_biomesTexture;
     glm::vec4*                                                                                   m_drawZonesRanges; 

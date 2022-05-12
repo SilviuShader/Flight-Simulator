@@ -1,0 +1,157 @@
+#version 430 core
+#define THREADS_COUNT      1024
+#define MAX_RANDOM_INDICES 4096
+#define MAX_BRUSH_WIDTH    9
+#define MAX_BRUSH_SIZE     MAX_BRUSH_WIDTH * MAX_BRUSH_WIDTH
+
+layout (local_size_x = THREADS_COUNT, local_size_y = 1, local_size_z = 1) in;
+
+layout (r32f, binding = 0) uniform image2D ImgOutput;
+
+layout (std140, binding = 1) uniform RandomIndices
+{
+    int Indices[MAX_RANDOM_INDICES];
+};
+
+layout (std140, binding = 2) uniform ErosionBrushDetails
+{
+	vec4 ErosionBrush[MAX_BRUSH_SIZE];
+};
+
+uniform int BrushWidth;
+uniform int DropletLifetime;
+
+uniform float InitialWater;
+uniform float EvaporateSpeed;
+uniform float InitialSpeed;
+uniform float SedimentCapacityFactor;
+uniform float MinSedimentCapacity;
+uniform float DepositSpeed;
+uniform float ErodeSpeed;
+uniform float Gravity;
+uniform float Inertia;
+
+vec2 sampleGradient(vec2 pos)
+{
+	ivec2 cell = ivec2(pos);
+	vec2 perc = pos - cell;
+
+	float bottomLeft  = imageLoad(ImgOutput, cell).x;
+	float bottomRight = imageLoad(ImgOutput, cell + ivec2(1, 0)).x;
+	float topLeft     = imageLoad(ImgOutput, cell + ivec2(0, 1)).x;
+	float topRight    = imageLoad(ImgOutput, cell + ivec2(1, 1)).x;
+	
+	vec2 gradient;
+	
+	gradient.x = (bottomRight - bottomLeft) * (1.0 - perc.y) + (topRight - topLeft) * perc.y;
+	gradient.y = (topLeft     - bottomLeft) * (1.0 - perc.x) + (topRight - bottomRight) * perc.x;
+
+	return gradient;
+}
+
+float sampleHeight(vec2 pos)
+{
+	ivec2 cell = ivec2(pos);
+	vec2 perc = pos - cell;
+
+	float bottomLeft  = imageLoad(ImgOutput, cell).x;
+	float bottomRight = imageLoad(ImgOutput, cell + ivec2(1, 0)).x;
+	float topLeft     = imageLoad(ImgOutput, cell + ivec2(0, 1)).x;
+	float topRight    = imageLoad(ImgOutput, cell + ivec2(1, 1)).x;
+
+	return bottomLeft * (1.0 - perc.x) * (1.0 - perc.y) + bottomRight * perc.x * (1.0 - perc.y) + topLeft * (1.0 - perc.x) * perc.y + topRight * perc.x * perc.y;
+}
+
+vec2 safeNormalize(vec2 vec)
+{
+	float lgh = max(0.001, length(vec));
+
+	return vec / lgh;
+}
+
+void main()
+{
+	int index = int(gl_GlobalInvocationID.x);
+	int newIndex = Indices[index % MAX_RANDOM_INDICES];
+	int imgSize = imageSize(ImgOutput).x;
+
+	int indexInImage = (newIndex % (imgSize * imgSize));
+
+	vec2 pos = vec2(indexInImage % imgSize, indexInImage / imgSize);
+
+	float water = InitialWater;
+	float speed = InitialSpeed;
+
+	float sediment = 0.0;
+
+	vec2 dir = vec2(0.0, 0.0);
+	
+	for (int i = 0; i < DropletLifetime; i++)
+	{
+		ivec2 cell = ivec2(pos);
+		vec2 percentage = pos - cell;
+
+		vec2 gradient = sampleGradient(pos);
+		float oldHeight = sampleHeight(pos);
+
+		dir = dir * Inertia - gradient * (1 - Inertia);
+		dir = safeNormalize(dir);
+
+		pos += dir;
+
+		if (length(dir) <= 0.01 || pos.x < 10 || pos.x > imgSize - 10 || pos.y < 10 || pos.y > imgSize - 10) {
+            break;
+        }
+
+		float newHeight = sampleHeight(pos);
+		float heightDiff = newHeight - oldHeight;
+
+		float sedimentCapacity = max(-heightDiff * speed * water * SedimentCapacityFactor, MinSedimentCapacity);
+
+		if (sediment > sedimentCapacity || heightDiff > 0)
+		{
+			float amountToDeposit;
+
+			if (heightDiff > 0)
+				amountToDeposit = min(heightDiff, sediment);
+			else
+				amountToDeposit = (sediment - sedimentCapacity) * DepositSpeed;
+
+			sediment -= amountToDeposit;
+
+			float bottomLeft  = imageLoad(ImgOutput, cell).x;
+			imageStore(ImgOutput, cell,               vec4(bottomLeft  + amountToDeposit * (1 - percentage.x) * (1 - percentage.y), 0.0, 0.0, 0.0));
+
+			float bottomRight = imageLoad(ImgOutput, cell + ivec2(1, 0)).x;
+			imageStore(ImgOutput, cell + ivec2(1, 0), vec4(bottomRight + amountToDeposit * percentage.x       * (1 - percentage.y), 0.0, 0.0, 0.0));
+			
+			float topLeft     = imageLoad(ImgOutput, cell + ivec2(0, 1)).x;
+			imageStore(ImgOutput, cell + ivec2(0, 1), vec4(topLeft     + amountToDeposit * (1 - percentage.x) * percentage.y,       0.0, 0.0, 0.0));
+			
+			float topRight    = imageLoad(ImgOutput, cell + ivec2(1, 1)).x;
+			imageStore(ImgOutput, cell + ivec2(1, 1), vec4(topRight    + amountToDeposit * percentage.x       * percentage.y,       0.0, 0.0, 0.0));
+		}
+		else
+		{
+			float amountToErode = min((sedimentCapacity - sediment) * ErodeSpeed, -heightDiff);
+
+			for (int dx = 0; dx < BrushWidth; dx++)
+			{
+				for (int dy = 0; dy < BrushWidth; dy++)
+				{
+				    vec4 brushDetails = ErosionBrush[dx * BrushWidth + dy];
+					ivec2 currentCell = cell + ivec2(brushDetails.xy);
+
+					float erosion = amountToErode * brushDetails.z;
+					float oldVal = imageLoad(ImgOutput, currentCell).x;
+					float deltaSediment = min(erosion, oldVal);
+					imageStore(ImgOutput, currentCell, vec4(oldVal - deltaSediment, 0.0, 0.0, 0.0));
+					sediment += deltaSediment;
+				}
+			}
+		}
+		
+		speed = sqrt(max(0.0, speed * speed + heightDiff * Gravity));
+		water *= (1 - EvaporateSpeed); 
+	}
+}

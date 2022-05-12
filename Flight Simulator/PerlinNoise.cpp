@@ -148,7 +148,7 @@ void PerlinNoise::CreateValuesBuffer()
 {
     glGenBuffers(1, &m_noiseValuesBuffer);
     glBindBuffer(GL_UNIFORM_BUFFER, m_noiseValuesBuffer);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(m_noiseValues), &m_noiseValues, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(m_noiseValues), m_noiseValues, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

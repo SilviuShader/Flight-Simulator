@@ -126,6 +126,9 @@
     <ClCompile Include="RenderSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HydraulicErosion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glad\glad.h">
@@ -213,6 +216,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HydraulicErosion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -444,6 +450,9 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="Assets\Models\Reeds\pxfuel.com.png">
       <Filter>Resource Files\Assets\Models\Reeds</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Shaders\HydraulicErosion.comp">
+      <Filter>Resource Files\Shaders</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

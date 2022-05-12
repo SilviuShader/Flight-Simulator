@@ -22,6 +22,12 @@ ShaderManager::~ShaderManager()
 		m_minShader = nullptr;
 	}
 
+	if (m_hydraulicErosionShader)
+	{
+		delete m_hydraulicErosionShader;
+		m_hydraulicErosionShader = nullptr;
+	}
+
 	if (m_texture3DNormalizeShader)
 	{
 		delete m_texture3DNormalizeShader;
@@ -194,6 +200,11 @@ Shader* ShaderManager::GetTexture3DNormalizeShader() const
 	return m_texture3DNormalizeShader;
 }
 
+Shader* ShaderManager::GetHydraulicErosionShader() const
+{
+	return m_hydraulicErosionShader;
+}
+
 Shader* ShaderManager::GetMinShader()                const
 {
 	return m_minShader;
@@ -233,6 +244,8 @@ ShaderManager::ShaderManager()
 	m_worleyNoiseShader        = new Shader("Shaders/WorleyNoise.comp");
 	m_texture2DNormalizeShader = new Shader("Shaders/Texture2DNormalize.comp");
 	m_texture3DNormalizeShader = new Shader("Shaders/Texture3DNormalize.comp");
+
+	m_hydraulicErosionShader   = new Shader("Shaders/HydraulicErosion.comp");
 
 	m_minShader                = new Shader("Shaders/MinMipMap.comp");
 	m_maxShader                = new Shader("Shaders/MaxMipMap.comp");

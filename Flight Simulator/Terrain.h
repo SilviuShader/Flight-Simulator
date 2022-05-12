@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include "Chunk.h"
+#include "HydraulicErosion.h"
 
 class Terrain
 {
@@ -67,6 +68,7 @@ private:
 	std::vector<Chunk*>                                       m_chunksList;
 												              
 	PerlinNoise*                                              m_noise;
+	HydraulicErosion*                                         m_hydraulicErosion;
 												              
 	std::vector<Material*>                                    m_terrainMaterials;
 	Texture*                                                  m_terrainBiomesData;
