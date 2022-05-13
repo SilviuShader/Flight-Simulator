@@ -14,6 +14,7 @@
 #include "Model.h"
 #include "Biome.h"
 #include "HydraulicErosion.h"
+#include "GaussianBlur.h"
 
 class Chunk
 {
@@ -72,7 +73,7 @@ private:
 
 public:
 
-    Chunk(PerlinNoise*, HydraulicErosion*, std::pair<int, int>);
+    Chunk(PerlinNoise*, HydraulicErosion*, GaussianBlur*, std::pair<int, int>);
     ~Chunk();
 
            void      Update(Camera*, float, bool);

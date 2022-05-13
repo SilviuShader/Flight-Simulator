@@ -52,6 +52,7 @@ void HydraulicErosion::ApplyErosion(Texture* heightMap)
 	erosionShader->SetFloat("ErodeSpeed",             0.4f);
 	erosionShader->SetFloat("Gravity",                4.0f);
 	erosionShader->SetFloat("Inertia",                0.7f);
+	erosionShader->SetInt("BorderSize",               10);
 
 	glDispatchCompute(Texture::GetComputeShaderGroupsCount(m_parameters.Iterations, THREADS_PER_BLOCK), 1, 1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

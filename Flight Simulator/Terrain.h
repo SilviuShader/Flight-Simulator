@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "Chunk.h"
 #include "HydraulicErosion.h"
+#include "GaussianBlur.h"
 
 class Terrain
 {
@@ -69,6 +70,7 @@ private:
 												              
 	PerlinNoise*                                              m_noise;
 	HydraulicErosion*                                         m_hydraulicErosion;
+	GaussianBlur*                                             m_gaussianBlur;
 												              
 	std::vector<Material*>                                    m_terrainMaterials;
 	Texture*                                                  m_terrainBiomesData;

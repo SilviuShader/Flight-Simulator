@@ -10,8 +10,8 @@ const float Terrain::CHUNK_WIDTH                                 = 64.0f;
 const float Terrain::TERRAIN_AMPLITUDE                           = 75.0f;
 const float Terrain::WATER_LEVEL                                 = 5.0f;
 const float Terrain::DISTANCE_FOR_DETAILS                        = 256.0f;
-const float Terrain::MAX_TESSELATION                             = 16.0f;
-const float Terrain::GAMMA                                       = 1.5f;
+const float Terrain::MAX_TESSELATION                             = 8.0f;
+const float Terrain::GAMMA                                       = 1.0f;
 
 const float Terrain::HEIGHT_FREQUENCY                            = 0.025f;
 const float Terrain::HEIGHT_FUDGE_FACTOR                         = 1.2f;
@@ -98,6 +98,7 @@ void Terrain::CreateTerrainObjects()
 {
 	          m_noise                    = new PerlinNoise();
 			  m_hydraulicErosion         = new HydraulicErosion( {102400, 0, 3} );
+			  m_gaussianBlur             = new GaussianBlur(2.0f);
 
 	Material* snow2                      = new Material("Assets/snow_02_diff_1k.png",             "Assets/snow_02_nor_gl_1k.png",             "Assets/snow_02_spec_1k.png");
 	Material* medievalBlocks             = new Material("Assets/medieval_blocks_02_diff_1k.png",  "Assets/medieval_blocks_02_nor_gl_1k.png",  "Assets/medieval_blocks_02_spec_1k.png");
@@ -249,7 +250,7 @@ void Terrain::UpdateChunksVisibility(Camera* camera, float deltaTime, int diffSi
 		{
 			if (additions < diffSize)
 			{
-				Chunk* chunk = new Chunk(m_noise, m_hydraulicErosion, targetChunk);
+				Chunk* chunk = new Chunk(m_noise, m_hydraulicErosion, m_gaussianBlur, targetChunk);
 				m_chunks[targetChunk] = chunk;
 
 				additions++;

@@ -4,6 +4,12 @@ ShaderManager* ShaderManager::g_instance = nullptr;
 
 ShaderManager::~ShaderManager()
 {
+	if (m_gaussianBlurShader)
+	{
+		delete m_gaussianBlurShader;
+		m_gaussianBlurShader = nullptr;
+	}
+
 	if (m_averageShader)
 	{
 		delete m_averageShader;
@@ -220,6 +226,11 @@ Shader* ShaderManager::GetAverageShader()            const
 	return m_averageShader;
 }
 
+Shader* ShaderManager::GetGaussianBlurShader()       const
+{
+	return m_gaussianBlurShader;
+}
+
 ShaderManager::ShaderManager()
 {
 	m_terrainShader            = new Shader("Shaders/Terrain.vert",          "Shaders/Terrain.frag",
@@ -250,5 +261,6 @@ ShaderManager::ShaderManager()
 	m_minShader                = new Shader("Shaders/MinMipMap.comp");
 	m_maxShader                = new Shader("Shaders/MaxMipMap.comp");
 	m_averageShader            = new Shader("Shaders/AverageMipMap.comp");
+	m_gaussianBlurShader       = new Shader("Shaders/GaussianBlur.comp");
 }
 

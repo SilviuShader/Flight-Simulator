@@ -1,0 +1,51 @@
+#version 430 core
+#define BLOCKS_COUNT 8
+#define SAMPLE_COUNT 15
+
+layout (local_size_x = BLOCKS_COUNT, local_size_y = BLOCKS_COUNT, local_size_z = 1) in;
+layout (r32f, binding = 0) uniform image2D ImgOutput;
+
+layout (std140, binding = 1) uniform OffsetsWeights
+{
+    vec4 Samples[SAMPLE_COUNT];
+};
+
+uniform int BorderSize;
+
+float BilinearSample(vec2 position)
+{
+    ivec2 cell = ivec2(position);
+    vec2 perc = position - cell;
+
+    float bottomLeft  = imageLoad(ImgOutput, cell).x;
+    float bottomRight = imageLoad(ImgOutput, cell + ivec2(1, 0)).x;
+    float topLeft     = imageLoad(ImgOutput, cell + ivec2(0, 1)).x;
+    float topRight    = imageLoad(ImgOutput, cell + ivec2(1, 1)).x;
+
+    return bottomLeft * (1.0 - perc.x) * (1.0 - perc.y) + bottomRight * perc.x * (1.0 - perc.y) + topLeft * (1.0 - perc.x) * perc.y + topRight * perc.x * perc.y;
+}
+
+void main()
+{
+    ivec2 pixelCoords    = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 imgSize        = imageSize(ImgOutput).xy;
+
+    if (pixelCoords.x >= imgSize.x || pixelCoords.y >= imgSize .y)
+        return;
+
+    float c = 0.0;
+
+    for (int i = 0; i < SAMPLE_COUNT; i++)
+        c += BilinearSample(pixelCoords + Samples[i].xy) * Samples[i].z;
+    
+    float borderDist = min(pixelCoords.x, pixelCoords.y);
+    borderDist = min(borderDist, imgSize.x - pixelCoords.x);
+    borderDist = min(borderDist, imgSize.y - pixelCoords.y);
+
+    c = min(max(c, 0.0), 1.0);
+    float initialColor = imageLoad(ImgOutput, pixelCoords).x;
+
+    c = mix(initialColor, c, clamp(borderDist / BorderSize, 0.0, 1.0));
+
+    imageStore(ImgOutput, pixelCoords, vec4(c, 0.0, 0.0, 0.0));
+}

@@ -38,6 +38,7 @@ public:
 		   Shader*        GetMinShader()                const;
 		   Shader*        GetMaxShader()                const;
 		   Shader*        GetAverageShader()            const;
+		   Shader*        GetGaussianBlurShader()       const;
 
 private:
 
@@ -69,6 +70,7 @@ private:
 	       Shader*        m_minShader;
 	       Shader*        m_maxShader;
 	       Shader*        m_averageShader;
+		   Shader*        m_gaussianBlurShader;
 
 	static ShaderManager* g_instance;
 };

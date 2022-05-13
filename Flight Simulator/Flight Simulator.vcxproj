@@ -147,6 +147,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Clouds.cpp" />
     <ClCompile Include="Cubemap.cpp" />
+    <ClCompile Include="GaussianBlur.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="HydraulicErosion.cpp" />
     <ClCompile Include="InputWrapper.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Clouds.h" />
     <ClInclude Include="Cubemap.h" />
+    <ClInclude Include="GaussianBlur.h" />
     <ClInclude Include="glad\glad.h" />
     <ClInclude Include="HydraulicErosion.h" />
     <ClInclude Include="InputWrapper.h" />
@@ -885,6 +887,15 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="Shaders\HydraulicErosion.comp">
+      <FileType>Document</FileType>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\Shaders</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\Shaders</DestinationFolders>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="Shaders\GaussianBlur.comp">
       <FileType>Document</FileType>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Shaders</DestinationFolders>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Shaders</DestinationFolders>

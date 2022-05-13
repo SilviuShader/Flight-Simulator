@@ -30,6 +30,7 @@ uniform float DepositSpeed;
 uniform float ErodeSpeed;
 uniform float Gravity;
 uniform float Inertia;
+uniform int   BorderSize;
 
 vec2 sampleGradient(vec2 pos)
 {
@@ -99,7 +100,7 @@ void main()
 
 		pos += dir;
 
-		if (length(dir) <= 0.01 || pos.x < 10 || pos.x > imgSize - 10 || pos.y < 10 || pos.y > imgSize - 10) {
+		if (length(dir) <= 0.01 || pos.x < BorderSize || pos.x > imgSize - BorderSize || pos.y < BorderSize || pos.y > imgSize - BorderSize) {
             break;
         }
 
