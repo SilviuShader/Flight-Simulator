@@ -25,7 +25,7 @@ void GaussianBlur::ApplyBlur(Texture* texture)
 	gaussianBlurShader->Use();
 
 	gaussianBlurShader->SetImage2D("ImgOutput", texture, 0, Texture::Format::R32F);
-	gaussianBlurShader->SetInt("BorderSize", 20);
+	gaussianBlurShader->SetInt("BorderSize", 5);
 
 	SetBlurShaderParameters(vec2(1.0f, 0.0f), gaussianBlurShader);
 	glDispatchCompute(Texture::GetComputeShaderGroupsCount(texture->GetWidth(), BLOCKS_COUNT), Texture::GetComputeShaderGroupsCount(texture->GetWidth(), BLOCKS_COUNT), 1);

@@ -42,7 +42,7 @@ void main()
     borderDist = min(borderDist, imgSize.x - pixelCoords.x);
     borderDist = min(borderDist, imgSize.y - pixelCoords.y);
 
-    borderDist = max(borderDist - borderDist, 0.0);
+    borderDist = max(borderDist - BorderSize, 0.0);
 
     c = min(max(c, 0.0), 1.0);
     float initialColor = imageLoad(ImgOutput, pixelCoords).x;

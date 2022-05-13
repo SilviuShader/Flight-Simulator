@@ -130,7 +130,7 @@ void Terrain::CreateTerrainObjects()
 		}, 1.0f);
 
 	forestBiome->AddTerrainLevel(forestLeaves, { grassModel }, { reedModel });
-	forestBiome->AddTerrainLevel(brownMudLeaves);
+	forestBiome->AddTerrainLevel(brownMudLeaves, { grassModel });
 	forestBiome->AddTerrainLevel(medievalBlocks);
 	forestBiome->AddTerrainLevel(snow3);
 
@@ -148,6 +148,12 @@ void Terrain::FreeTerrainObjects()
 	{
 		delete m_waterMaterial;
 		m_waterMaterial = nullptr;
+	}
+
+	if (m_gaussianBlur)
+	{
+		delete m_gaussianBlur;
+		m_gaussianBlur = nullptr;
 	}
 
 	if (m_hydraulicErosion)
