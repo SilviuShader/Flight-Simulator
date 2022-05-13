@@ -28,11 +28,11 @@ const float Terrain::FOLLIAGE_RANDOMNESS_FUDGE_FACTOR            = 1.0f;
 const float Terrain::FOLLIAGE_RANDOMNESS_EXPONENT                = 1.0f;
 const int   Terrain::FOLLIAGE_RANDOMNESS_OCTAVES_COUNT           = 20;
 													             
-const float Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD               = 0.6f;
+const float Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD               = 0.625f;
 
 const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FREQUENCY     = 0.9f;
-const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FUDGE_FACTOR  = 1.2f;
-const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_EXPONENT      = 3.0f;
+const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FUDGE_FACTOR  = 1.5f;
+const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_EXPONENT      = 4.0f;
 const int   Terrain::FOLLIAGE_SELECTION_RANDOMNESS_OCTAVES_COUNT = 20;
 
 const float Terrain::WATER_MOVE_SPEED                            = 0.01f;
@@ -107,15 +107,6 @@ void Terrain::CreateTerrainObjects()
 	Material* snowFieldAerial            = new Material("Assets/snow_field_aerial_col_1k.png",    "Assets/snow_field_aerial_nor_gl_1k.png");
 	Material* snow3                      = new Material("Assets/snow_03_diff_1k.png",             "Assets/snow_03_nor_gl_1k.png",             "Assets/snow_03_spec_1k.png");
 
-	Biome* iceBiome = Biome::CreateBiome();
-
-	iceBiome->AddTerrainLevel(snowFieldAerial);
-	iceBiome->AddTerrainLevel(snow3);
-	iceBiome->AddTerrainLevel(snow2);
-	iceBiome->AddTerrainLevel(snow2);
-
-	Biome* forestBiome = Biome::CreateBiome();
-
 	ShaderManager* shaderManager = ShaderManager::GetInstance();
 
 	Biome::FolliageModel grassModel = Biome::FolliageModel(
@@ -129,8 +120,27 @@ void Terrain::CreateTerrainObjects()
 			Biome::ModelLevelOfDetail(new Model("Assets/Models/Reeds/pxfuel.com.png", true), shaderManager->GetFolliageBilboardedShader(), 10.0f, 1.0f, true)
 		}, 1.0f);
 
-	forestBiome->AddTerrainLevel(forestLeaves, { grassModel }, { reedModel });
-	forestBiome->AddTerrainLevel(brownMudLeaves, { grassModel });
+	Biome::FolliageModel tree1Model = Biome::FolliageModel(
+		{
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/Tree/Tree01.png", true), shaderManager->GetFolliageBilboardedShader(), 10.0f, 1.0f, true)
+		}, 2.0f);
+
+	Biome::FolliageModel tree2Model = Biome::FolliageModel(
+		{
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/Tree/Tree02.png", true), shaderManager->GetFolliageBilboardedShader(), 10.0f, 1.0f, true)
+		}, 2.0f);
+
+	Biome* iceBiome = Biome::CreateBiome();
+
+	iceBiome->AddTerrainLevel(snowFieldAerial);
+	iceBiome->AddTerrainLevel(snow3);
+	iceBiome->AddTerrainLevel(snow2);
+	iceBiome->AddTerrainLevel(snow2);
+
+	Biome* forestBiome = Biome::CreateBiome();
+
+	forestBiome->AddTerrainLevel(forestLeaves, { grassModel, tree1Model, tree2Model }, { reedModel });
+	forestBiome->AddTerrainLevel(brownMudLeaves, { grassModel, tree1Model });
 	forestBiome->AddTerrainLevel(medievalBlocks);
 	forestBiome->AddTerrainLevel(snow3);
 

@@ -37,6 +37,9 @@
     <Filter Include="Resource Files\Assets\Models\Reeds">
       <UniqueIdentifier>{ab70dd37-eda7-494e-b30d-6b59761c6ffb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Assets\Models\Tree">
+      <UniqueIdentifier>{b58b8cff-3b6d-4665-9965-0eaa62803f0a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -462,6 +465,15 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="Shaders\GaussianBlur.comp">
       <Filter>Resource Files\Shaders</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Tree\Tree01.png">
+      <Filter>Resource Files\Assets\Models\Tree</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Tree\Tree02.png">
+      <Filter>Resource Files\Assets\Models\Tree</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Tree\Tree03.png">
+      <Filter>Resource Files\Assets\Models\Tree</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

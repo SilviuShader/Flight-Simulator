@@ -411,7 +411,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
                                                           
     waterShader->SetVec3("CameraPosition",                camera->GetPosition());
                                                           
-    waterShader->SetFloat("Tiling",                       100.0f);
+    waterShader->SetFloat("Tiling",                       50.0f);
                                                           
     waterShader->SetFloat("DistanceForDetails",           100.0f);
     waterShader->SetFloat("TessellationLevel",            2);

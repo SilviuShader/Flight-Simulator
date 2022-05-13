@@ -57,7 +57,7 @@ public:
     static const float CHUNK_CLOSE_BIAS;
 
 private:
-           const float FOLLIAGE_HEIGHT_BIAS  = 2.5f;
+           const float FOLLIAGE_HEIGHT_BIAS  = 10.0f;
 
            const float TEX_COORDS_MULTIPLIER = 0.2f;
 

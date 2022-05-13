@@ -1,5 +1,6 @@
 #version 430 core
 layout (location = 0) in vec3 VSInputPosition;
+layout (location = 1) in vec3 VSInputNormal;
 layout (location = 2) in vec2 VSInputTexCoords;
 
 layout (location = 5) in mat4 VSInputModelMatrix;
@@ -19,6 +20,7 @@ uniform vec4  ClipPlane;
 uniform sampler2D NoiseTexture;
 
 out vec3 FSInputWorldPosition;
+out vec3 FSInputNormal;
 out vec2 FSInputTexCoords;
 
 vec2 getUv(vec2 pos)
@@ -53,6 +55,7 @@ void main()
 
     mat3 normalWorldMat          = mat3(transpose(inverse(VSInputModelMatrix)));
 
+         FSInputNormal           = normalize(normalWorldMat * VSInputNormal);
 	     FSInputTexCoords        = VSInputTexCoords;
                              
 	     gl_Position             = Projection * View * vec4(FSInputWorldPosition, 1.0);

@@ -17,8 +17,9 @@ World::World(int windowWidth, int windowHeight) :
 	m_renderDebug(false)
 {
 	m_light = new Light();
-	m_light->SetAmbientColor(vec4(0.1f, 0.1f, 0.1f, 1.0f));
+	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.2f, 1.0f));
 	m_light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	m_light->SetLightDirection(normalize(vec3(1.0f, -1.0f, -1.0f)));
 	m_light->SetSpecularPower(32.0f);
 
 	m_camera  = new Camera(radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 1000.0f);
@@ -36,7 +37,7 @@ World::World(int windowWidth, int windowHeight) :
 	Clouds::CloudsProperties cloudsProperties;
 	cloudsProperties.OffsetVelocity = vec3(.01f, .02f, .03f);
 	cloudsProperties.DetailsOffsetVelocity = vec3(0.4f, 0.5f, 0.6f);
-	cloudsProperties.CloudBoxExtents = vec2(100.0f, 100.0f);
+	cloudsProperties.CloudBoxExtents = vec2(200.0f, 200.0f);
 	cloudsProperties.CloudsAltitude = 100.0f;
 
 	m_clouds = new Clouds(cloudsProperties);
