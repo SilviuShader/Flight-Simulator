@@ -95,7 +95,7 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetFloat("Near",                        camera->GetNear());
 	cloudsShader->SetFloat("Far",                         camera->GetFar());
 	cloudsShader->SetFloat("FovY",                        camera->GetFieldOfViewY());
-
+	
 	vec3 position = camera->GetPosition();
 	position = vec3(position.x, 0.0f, position.z);
 	vec3 extent = vec3(m_cloudsProperties.CloudBoxExtents.x, 0.0f, m_cloudsProperties.CloudBoxExtents.y);

@@ -17,7 +17,7 @@ World::World(int windowWidth, int windowHeight) :
 	m_renderDebug(false)
 {
 	m_light = new Light();
-	m_light->SetAmbientColor(vec4(0.1f, 0.1f, 0.1f, 1.0f));
+	m_light->SetAmbientColor(vec4(0.01f, 0.01f, 0.01f, 1.0f));
 	m_light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	m_light->SetSpecularPower(32.0f);
 
