@@ -127,10 +127,10 @@ void main()
         FSOutFragColor += lightIntensity * DiffuseColor;
 
     vec3 viewDir = normalize(CameraPosition - FSInputWorldPosition);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float specular = pow(max(dot(viewDir, reflectDir), 0.0), SpecularPower);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float specular = pow(max(dot(normal, halfwayDir), 0.0), SpecularPower);
     
-    FSOutFragColor = clamp(FSOutFragColor, 0.0f, 1.0f);
+    FSOutFragColor = clamp(FSOutFragColor, 0.0, 1.0f);
 
     FSOutFragColor = FSOutFragColor * textureColor;
 
