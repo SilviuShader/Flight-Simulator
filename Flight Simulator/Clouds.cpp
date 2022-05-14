@@ -75,7 +75,7 @@ void Clouds::Update(float deltaTime)
 	UpdateOffset(m_detailsOffset, m_cloudsProperties.DetailsOffsetVelocity, deltaTime);
 }
 
-void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* depthTexture)
+void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* depthTexture, bool useGammaCorrection)
 {
 	ShaderManager* shaderManager = ShaderManager::GetInstance();
 	Shader*        cloudsShader  = shaderManager->GetCloudsShader();
@@ -111,14 +111,14 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetVec3("CloudOffset",                  m_cloudsOffset);
 	cloudsShader->SetVec3("DetailsOffset",                m_detailsOffset);
 	cloudsShader->SetFloat("DensityMultiplier",           0.1f * 0.82f);
-	cloudsShader->SetFloat("DarknessThreshold",           0.28f);
+	cloudsShader->SetFloat("DarknessThreshold",           0.38f);
 	cloudsShader->SetFloat("DensityOffset",               -3.64 * 0.2f);
 	cloudsShader->SetVec4("PhaseParams",                  vec4(0.72f, 0.33f, 1.0f, 0.83f));
 	cloudsShader->SetInt("FocusedEyeSunExponent",         1);
 	cloudsShader->SetVec4("ShapeNoiseWeights",            vec4(1.0f, 0.5f, 0.25f, 0.0f));
 	cloudsShader->SetVec4("DetailNoiseWeights",           vec4(0.25f, 1.0f, 0.5f, 0.0f));
-	cloudsShader->SetFloat("LightAbsorbtionTowardSun",    0.6);
-	cloudsShader->SetFloat("LightAbsorptionThroughCloud", 1.05);
+	cloudsShader->SetFloat("LightAbsorbtionTowardSun",    1.0);
+	cloudsShader->SetFloat("LightAbsorptionThroughCloud", 2.05);
 	cloudsShader->SetFloat("DetailNoiseWeight",           20.0f);
 	cloudsShader->SetFloat("RayMarchStepSize",            11.0f);
 
@@ -126,6 +126,8 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetVec3("LightDirection",               light->GetLightDirection());
 												          
 	cloudsShader->SetInt("LightStepsCount",               10);
+
+	cloudsShader->SetBool("UseGammaCorrection",           useGammaCorrection);
 	
 	DebugHelper::GetInstance()->FullScreenQuadDrawCall();
 }

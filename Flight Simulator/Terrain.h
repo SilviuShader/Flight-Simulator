@@ -78,6 +78,7 @@ private:
 	Material*                                                 m_waterMaterial;
 												              
 	float                                                     m_accumulatedCurrentChunksTime;
+	float                                                     m_waterTime;
 												              
 	bool                                                      m_firstFrame;
 	float                                                     m_waterMoveFactor;

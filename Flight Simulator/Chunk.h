@@ -80,7 +80,7 @@ public:
            void      UpdateWater(Camera*, float, bool);
            void      DrawTerrain(Camera*, Light*, const std::vector<Material*>&, Texture*);
            void      DrawFolliage(Camera*, Light*);
-           void      DrawWater(Camera*, Light*, Texture*, Texture*, Texture*, Texture*, float, Material*);
+           void      DrawWater(Camera*, Light*, Texture*, Texture*, Texture*, Texture*, float, Material*, float);
 
            glm::vec3 GetTranslation() const;
 
@@ -169,6 +169,4 @@ private:
     Node*                                                                                        m_waterQuadTree;
                                                                                                  
     bool                                                                                         m_renderDebug;
-
-    float                                                                                        m_waterTime;
 };

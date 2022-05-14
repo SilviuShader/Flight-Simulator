@@ -40,6 +40,9 @@
     <Filter Include="Resource Files\Assets\Models\Tree">
       <UniqueIdentifier>{b58b8cff-3b6d-4665-9965-0eaa62803f0a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Assets\Models\Rock">
+      <UniqueIdentifier>{6c1386cb-6844-45d1-80c4-1a275d3f73f8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -474,6 +477,15 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="Assets\Models\Tree\Tree03.png">
       <Filter>Resource Files\Assets\Models\Tree</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Rock\Rock2.mtl">
+      <Filter>Resource Files\Assets\Models\Rock</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Rock\Rock2.obj">
+      <Filter>Resource Files\Assets\Models\Rock</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Assets\Models\Rock\Rock-Texture-Surface.jpg">
+      <Filter>Resource Files\Assets\Models\Rock</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

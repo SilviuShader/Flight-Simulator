@@ -23,7 +23,7 @@ public:
 	~Clouds();
 
 	void Update(float);
-	void Draw(Camera*, Light*, Texture*, Texture*);
+	void Draw(Camera*, Light*, Texture*, Texture*, bool);
 
 private:
 

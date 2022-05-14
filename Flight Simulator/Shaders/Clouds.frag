@@ -38,6 +38,8 @@ uniform vec3      LightDirection;
 
 uniform int       LightStepsCount;
 
+uniform int       UseGammaCorrection;
+
 out vec4 FSOutFragColor;
 
 float linearizeDepth(float d,float zNear,float zFar)
@@ -227,4 +229,10 @@ void main()
 	col = clamp(col, 0.0, 1.0) * (1 - sun) + DiffuseColor.xyz * sun;
 
 	FSOutFragColor = vec4(col, 1.0);
+
+	if (UseGammaCorrection != 0)
+	{
+		float gamma = 2.2;
+		FSOutFragColor.rgb = pow(FSOutFragColor.rgb, vec3(1.0/gamma));
+	}
 }

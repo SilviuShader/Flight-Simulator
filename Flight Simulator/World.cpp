@@ -17,7 +17,7 @@ World::World(int windowWidth, int windowHeight) :
 	m_renderDebug(false)
 {
 	m_light = new Light();
-	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.2f, 1.0f));
+	m_light->SetAmbientColor(vec4(0.062f, 0.156f, 0.266f, 1.0f));
 	m_light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	m_light->SetLightDirection(normalize(vec3(1.0f, -1.0f, -1.0f)));
 	m_light->SetSpecularPower(32.0f);
@@ -36,9 +36,9 @@ World::World(int windowWidth, int windowHeight) :
 
 	Clouds::CloudsProperties cloudsProperties;
 	cloudsProperties.OffsetVelocity = vec3(.01f, .02f, .03f);
-	cloudsProperties.DetailsOffsetVelocity = vec3(0.4f, 0.5f, 0.6f);
+	cloudsProperties.DetailsOffsetVelocity = vec3(0.04f, 0.05f, 0.06f);
 	cloudsProperties.CloudBoxExtents = vec2(200.0f, 200.0f);
-	cloudsProperties.CloudsAltitude = 100.0f;
+	cloudsProperties.CloudsAltitude = 125.0f;
 
 	m_clouds = new Clouds(cloudsProperties);
 }
@@ -184,7 +184,7 @@ void World::RenderScene(RenderTexture* auxiliaryRenderTexture, Camera* camera, b
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (renderClouds)
-		m_clouds->Draw(camera, m_light, auxiliaryRenderTexture->GetTexture(), auxiliaryRenderTexture->GetDepthTexture());
+		m_clouds->Draw(camera, m_light, auxiliaryRenderTexture->GetTexture(), auxiliaryRenderTexture->GetDepthTexture(), targetTexture = nullptr);
 	else
 		DebugHelper::GetInstance()->DrawFullscreenTexture(auxiliaryRenderTexture->GetTexture());
 }

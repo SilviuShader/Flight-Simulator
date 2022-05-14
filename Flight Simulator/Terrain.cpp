@@ -7,28 +7,28 @@ using namespace std;
 using namespace glm;
 
 const float Terrain::CHUNK_WIDTH                                 = 64.0f;
-const float Terrain::TERRAIN_AMPLITUDE                           = 75.0f;
-const float Terrain::WATER_LEVEL                                 = 5.0f;
+const float Terrain::TERRAIN_AMPLITUDE                           = 100.0f;
+const float Terrain::WATER_LEVEL                                 = 10.0f;
 const float Terrain::DISTANCE_FOR_DETAILS                        = 256.0f;
 const float Terrain::MAX_TESSELATION                             = 8.0f;
 const float Terrain::GAMMA                                       = 1.0f;
 
-const float Terrain::HEIGHT_FREQUENCY                            = 0.025f;
+const float Terrain::HEIGHT_FREQUENCY                            = 0.0125f;
 const float Terrain::HEIGHT_FUDGE_FACTOR                         = 1.2f;
 const float Terrain::HEIGHT_EXPONENT                             = 4.0f;
 const int   Terrain::HEIGHT_OCTAVES_COUNT                        = 20;
 										                         
-const float Terrain::BIOME_FREQUENCY                             = 0.01f;
+const float Terrain::BIOME_FREQUENCY                             = 0.005f;
 const float Terrain::BIOME_FUDGE_FACTOR                          = 1.0f;
 const float Terrain::BIOME_EXPONENT                              = 1.0f;
 const int   Terrain::BIOME_OCTAVES_COUNT                         = 10;
 													             
-const float Terrain::FOLLIAGE_RANDOMNESS_FREQUENCY               = 1.0f;
+const float Terrain::FOLLIAGE_RANDOMNESS_FREQUENCY               = 0.5f;
 const float Terrain::FOLLIAGE_RANDOMNESS_FUDGE_FACTOR            = 1.0f;
 const float Terrain::FOLLIAGE_RANDOMNESS_EXPONENT                = 1.0f;
 const int   Terrain::FOLLIAGE_RANDOMNESS_OCTAVES_COUNT           = 20;
 													             
-const float Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD               = 0.625f;
+const float Terrain::FOLLIAGE_RANDOMNESS_THRESHOLD               = 0.6f;
 
 const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FREQUENCY     = 0.9f;
 const float Terrain::FOLLIAGE_SELECTION_RANDOMNESS_FUDGE_FACTOR  = 1.5f;
@@ -40,7 +40,8 @@ const float Terrain::WATER_MOVE_SPEED                            = 0.01f;
 Terrain::Terrain() : 
 	m_accumulatedCurrentChunksTime(0.0f),
 	m_firstFrame(true),
-	m_waterMoveFactor(0.0f)
+	m_waterMoveFactor(0.0f),
+	m_waterTime(0.0f)
 {
 	CreateTerrainObjects();
 }
@@ -68,6 +69,8 @@ void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug)
 	for (auto& chunk : m_chunksList)
 		chunk->Update(camera, deltaTime, renderDebug);
 
+	m_waterTime += deltaTime;
+
 	m_firstFrame = false;
 }
 
@@ -88,7 +91,7 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 
 	if (refractionTexture && reflectionTexture && refractionDepthTexture && reflectionDepthTexture)
 		for (auto& chunk : m_chunksList)
-			chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterMaterial);
+			chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterMaterial, m_waterTime);
 	
 	for (auto& chunk : m_chunksList)
 		chunk->DrawFolliage(camera, light);
@@ -108,6 +111,11 @@ void Terrain::CreateTerrainObjects()
 	Material* snow3                      = new Material("Assets/snow_03_diff_1k.png",             "Assets/snow_03_nor_gl_1k.png",             "Assets/snow_03_spec_1k.png");
 
 	ShaderManager* shaderManager = ShaderManager::GetInstance();
+
+	Biome::FolliageModel rockModel = Biome::FolliageModel(
+		{
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/Rock/Rock2.obj", true), shaderManager->GetFolliageShader(), 0.25f, 1.0f)
+		}, 0.1f);
 
 	Biome::FolliageModel grassModel = Biome::FolliageModel(
 		{
@@ -130,19 +138,24 @@ void Terrain::CreateTerrainObjects()
 			Biome::ModelLevelOfDetail(new Model("Assets/Models/Tree/Tree02.png", true), shaderManager->GetFolliageBilboardedShader(), 10.0f, 1.0f, true)
 		}, 2.0f);
 
+	Biome::FolliageModel tree3Model = Biome::FolliageModel(
+		{
+			Biome::ModelLevelOfDetail(new Model("Assets/Models/Tree/Tree03.png", true), shaderManager->GetFolliageBilboardedShader(), 10.0f, 1.0f, true)
+		}, 1.0f);
+
 	Biome* iceBiome = Biome::CreateBiome();
 
-	iceBiome->AddTerrainLevel(snowFieldAerial);
-	iceBiome->AddTerrainLevel(snow3);
-	iceBiome->AddTerrainLevel(snow2);
-	iceBiome->AddTerrainLevel(snow2);
+	iceBiome->AddTerrainLevel(snowFieldAerial, { rockModel, tree3Model }, { rockModel });
+	iceBiome->AddTerrainLevel(snow3, { rockModel, tree3Model });
+	iceBiome->AddTerrainLevel(snow2, { rockModel, tree3Model });
+	iceBiome->AddTerrainLevel(snow2, { rockModel });
 
 	Biome* forestBiome = Biome::CreateBiome();
 
-	forestBiome->AddTerrainLevel(forestLeaves, { grassModel, tree1Model, tree2Model }, { reedModel });
-	forestBiome->AddTerrainLevel(brownMudLeaves, { grassModel, tree1Model });
-	forestBiome->AddTerrainLevel(medievalBlocks);
-	forestBiome->AddTerrainLevel(snow3);
+	forestBiome->AddTerrainLevel(forestLeaves, { rockModel, grassModel, tree1Model, tree2Model }, { rockModel, reedModel });
+	forestBiome->AddTerrainLevel(brownMudLeaves, { rockModel, grassModel, tree1Model });
+	forestBiome->AddTerrainLevel(medievalBlocks, { rockModel });
+	forestBiome->AddTerrainLevel(snow3, { rockModel });
 
 	m_terrainBiomesData = Biome::CreateBiomesTexture();
 	m_terrainMaterials  = Biome::GetBiomesMaterials();

@@ -13,7 +13,7 @@
 using namespace std;
 using namespace glm;
 
-const float Chunk::CHUNK_CLOSE_BIAS = 0.1f;
+const float Chunk::CHUNK_CLOSE_BIAS = 1.0f;
 
 Chunk::Node::Node()
 {
@@ -53,8 +53,7 @@ Chunk::Chunk(PerlinNoise* perlinNoise, HydraulicErosion* hydraulicErosion, Gauss
     m_hydraulicErosion(hydraulicErosion),
     m_chunkID(chunkID),
     m_quadTree(nullptr),
-    m_renderDebug(false),
-    m_waterTime(0.0f)
+    m_renderDebug(false)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     CreateTerrainBuffers();
@@ -300,8 +299,6 @@ void Chunk::UpdateWater(Camera* camera, float deltaTime, bool renderDebug)
 {
     m_renderDebug = renderDebug;
 
-    m_waterTime += deltaTime;
-
     m_waterZoneRangesIndex = 0;
 
     MathHelper::Frustum cameraFrustum = MathHelper::GetCameraFrustum(camera);
@@ -392,7 +389,7 @@ void Chunk::DrawFolliage(Camera* camera, Light* light)
     }
 }
 
-void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture, float waterMoveFactor, Material* waterMaterial)
+void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture, float waterMoveFactor, Material* waterMaterial, float waterTime)
 {
     ShaderManager* shaderManager = ShaderManager::GetInstance();
     Shader*        waterShader   = shaderManager->GetWaterShader();
@@ -426,7 +423,7 @@ void Chunk::DrawWater(Camera* camera, Light* light, Texture* refractionTexture, 
     waterShader->SetVec2("WaveCDirection",                vec2(-1.0f, 0.0f));
     waterShader->SetVec2("WaveDDirection",                vec2(0.0f, -1.0f));
                                                           
-    waterShader->SetFloat("Time",                         m_waterTime);
+    waterShader->SetFloat("Time",                         waterTime);
     waterShader->SetFloat("ScreenEdgeCorrectionDistance", 0.2f);
 
     waterShader->SetTexture("RefractionTexture",          refractionTexture,      0);
