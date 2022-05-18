@@ -17,9 +17,9 @@ World::World(int windowWidth, int windowHeight) :
 	m_renderDebug(false)
 {
 	m_light = new Light();
-	m_light->SetAmbientColor(vec4(0.062f, 0.156f, 0.266f, 1.0f));
+	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.2f, 1.0f));
 	m_light->SetDiffuseColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	m_light->SetLightDirection(normalize(vec3(1.0f, -1.0f, -1.0f)));
+	m_light->SetLightDirection(normalize(vec3(0.5f, -0.6f, 1.0f)));
 	m_light->SetSpecularPower(32.0f);
 
 	m_camera  = new Camera(radians(45.0f), (float)windowWidth, (float)windowHeight, 0.1f, 1000.0f);

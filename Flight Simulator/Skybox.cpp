@@ -35,7 +35,7 @@ Skybox::~Skybox()
 
 void Skybox::Draw(Camera* camera)
 {
-	mat4           model         = translate(mat4(1.0f), camera->GetPosition()) * rotate(mat4(1.0f), -half_pi<float>(), vec3(1.0f, 0.0f, 0.0f)) * scale(mat4(1.0f), vec3(500.0f, 500.0f, 500.0f));
+	mat4           model         = translate(mat4(1.0f), camera->GetPosition()) * rotate(mat4(1.0f), 0.0f, vec3(1.0f, 0.0f, 0.0f)) * scale(mat4(1.0f), vec3(500.0f, 500.0f, 500.0f));
 	mat4           view          = camera->GetViewMatrix();
 	mat4           projection    = camera->GetProjectionMatrix();
 
