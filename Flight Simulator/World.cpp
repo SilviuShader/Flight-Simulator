@@ -184,7 +184,7 @@ void World::RenderScene(RenderTexture* auxiliaryRenderTexture, Camera* camera, b
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (renderClouds)
-		m_clouds->Draw(camera, m_light, auxiliaryRenderTexture->GetTexture(), auxiliaryRenderTexture->GetDepthTexture(), targetTexture = nullptr);
+		m_clouds->Draw(camera, m_light, auxiliaryRenderTexture->GetTexture(), auxiliaryRenderTexture->GetDepthTexture(), targetTexture == nullptr);
 	else
 		DebugHelper::GetInstance()->DrawFullscreenTexture(auxiliaryRenderTexture->GetTexture());
 }
