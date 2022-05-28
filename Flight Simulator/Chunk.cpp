@@ -10,6 +10,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "ShaderManager.h"
 
+#include "BenchmarkHelper.h"
+
 using namespace std;
 using namespace glm;
 
@@ -89,10 +91,10 @@ Chunk::Chunk(PerlinNoise* perlinNoise, HydraulicErosion* hydraulicErosion, Gauss
             biomeParameters.TextureSize   = NOISE_TEXTURE_SIZE;
             
             m_biomesTexture               = m_perlinNoise->RenderPerlinNoise(biomeParameters);
-                                          
+         
     float** minValues                     = m_heightTexture->GetDownscaleValues({ shaderManager->GetMinShader(),     4, 8}, QUAD_TREE_DEPTH);
     float** maxValues                     = m_heightTexture->GetDownscaleValues({ shaderManager->GetMaxShader(),     4, 8}, QUAD_TREE_DEPTH);
-                                          
+
     float** heightValues                  = m_heightTexture->GetDownscaleValues({ shaderManager->GetAverageShader(), 4, 8}, HEIGHT_BIOME_DEPTH);
     float** biomeValues                   = m_biomesTexture->GetDownscaleValues({ shaderManager->GetAverageShader(), 4, 8 }, HEIGHT_BIOME_DEPTH);
                                           

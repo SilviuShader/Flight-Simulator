@@ -20,6 +20,7 @@
 #include "TextureLoadHelper.h"
 #include "ShaderManager.h"
 #include "RenderSettings.h"
+#include "BenchmarkHelper.h"
 
 using namespace std;
 using namespace glm;
@@ -137,6 +138,7 @@ int main(int argc, char const* argv[])
     InputWrapper::FreeInstance();
     DebugHelper::FreeInstance();
     ShaderManager::FreeInstance();
+    BenchmarkHelper::FreeInstance();
 
     if (g_world)
     {
