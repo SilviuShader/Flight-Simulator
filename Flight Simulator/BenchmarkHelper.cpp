@@ -1,6 +1,12 @@
 #include "BenchmarkHelper.h"
 #include <algorithm>
 
+#pragma comment(lib, "winmm.lib")
+
+#include <windows.h>
+#include <mmsystem.h>
+#include <iostream>
+
 using namespace std;
 using namespace std::chrono;
 
@@ -25,6 +31,38 @@ void BenchmarkHelper::FreeInstance()
     {
         delete g_benchmarkHelper;
         g_benchmarkHelper = nullptr;
+    }
+}
+
+void BenchmarkHelper::Update()
+{
+    m_count++;
+
+    if (timeGetTime() >= (m_startTime + 1000))
+    {
+        m_fps = m_count;
+        m_count = 0;
+        m_startTime = timeGetTime();
+
+        m_recordedFps.push_back(m_fps);
+
+        if (m_recordedFps.size() > FPS_AVERAGE_SAMPLES)
+            m_recordedFps.pop_front();
+
+        m_recordedSecondsCount++;
+    }
+
+    if (m_recordedSecondsCount >= FPS_AVERAGE_SAMPLES)
+    {
+        float totalFps = 0.0f;
+        for (auto& fps : m_recordedFps)
+            totalFps += fps;
+
+        float averageFps = totalFps / m_recordedFps.size();
+
+        cout << "Average FPS: " << averageFps << endl;
+
+        m_recordedSecondsCount = 0;
     }
 }
 
@@ -65,6 +103,10 @@ const BenchmarkHelper::TimeStats& BenchmarkHelper::GetTimeInfo(const string& key
     return m_info[key];
 }
 
-BenchmarkHelper::BenchmarkHelper()
+BenchmarkHelper::BenchmarkHelper() :
+    m_count(0),
+    m_fps(0),
+    m_startTime(timeGetTime()),
+    m_recordedSecondsCount(0)
 {
 }

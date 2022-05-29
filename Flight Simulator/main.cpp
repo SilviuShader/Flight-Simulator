@@ -110,6 +110,8 @@ int main(int argc, char const* argv[])
 
     while (!glfwWindowShouldClose(window))
     {
+        BenchmarkHelper::GetInstance()->Update();
+
         float currentTime = (float)glfwGetTime();
         float deltaTime = currentTime - previousTime;
 

@@ -8,6 +8,10 @@ class BenchmarkHelper
 {
 private:
 
+	const int FPS_AVERAGE_SAMPLES = 10;
+
+private:
+
 	struct TimeStats
 	{
 	public:
@@ -29,6 +33,8 @@ public:
 
 	static BenchmarkHelper*                      GetInstance();
 	static void                                  FreeInstance();
+
+	       void                                  Update();
 							                     
 	       void                                  AddTimeSample(const std::string&, const std::chrono::steady_clock::time_point&, const std::chrono::steady_clock::time_point&);
 	const  TimeStats&                            GetTimeInfo(const std::string&);
@@ -42,6 +48,13 @@ private:
 private:
 
 	       std::unordered_map<std::string, TimeStats> m_info;
+		   std::list<int>                             m_recordedFps;
+
+		   int                                        m_count;
+		   int                                        m_fps;
+
+		   unsigned long                              m_startTime;
+		   int                                        m_recordedSecondsCount;
 
 	static BenchmarkHelper*                           g_benchmarkHelper;
 };
