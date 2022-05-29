@@ -8,7 +8,7 @@ class BenchmarkHelper
 {
 private:
 
-	const int FPS_AVERAGE_SAMPLES = 10;
+	const int AVERAGE_SAMPLES = 10;
 
 private:
 
@@ -49,11 +49,13 @@ private:
 
 	       std::unordered_map<std::string, TimeStats> m_info;
 		   std::list<int>                             m_recordedFps;
+		   std::list<int>                             m_recordedMs;
 
 		   int                                        m_count;
 		   int                                        m_fps;
 
 		   unsigned long                              m_startTime;
+		   unsigned long                              m_previousMsTime;
 		   int                                        m_recordedSecondsCount;
 
 	static BenchmarkHelper*                           g_benchmarkHelper;

@@ -38,21 +38,31 @@ void BenchmarkHelper::Update()
 {
     m_count++;
 
-    if (timeGetTime() >= (m_startTime + 1000))
+    unsigned long currentTime = timeGetTime();
+
+    unsigned long ms = currentTime - m_previousMsTime;
+    m_previousMsTime = currentTime;
+
+    m_recordedMs.push_back(ms);
+
+    if (m_recordedMs.size() > AVERAGE_SAMPLES)
+        m_recordedMs.pop_front();
+
+    if (currentTime >= (m_startTime + 1000))
     {
         m_fps = m_count;
         m_count = 0;
-        m_startTime = timeGetTime();
+        m_startTime = currentTime;
 
         m_recordedFps.push_back(m_fps);
 
-        if (m_recordedFps.size() > FPS_AVERAGE_SAMPLES)
+        if (m_recordedFps.size() > AVERAGE_SAMPLES)
             m_recordedFps.pop_front();
 
         m_recordedSecondsCount++;
     }
 
-    if (m_recordedSecondsCount >= FPS_AVERAGE_SAMPLES)
+    if (m_recordedSecondsCount >= AVERAGE_SAMPLES)
     {
         float totalFps = 0.0f;
         for (auto& fps : m_recordedFps)
@@ -61,6 +71,14 @@ void BenchmarkHelper::Update()
         float averageFps = totalFps / m_recordedFps.size();
 
         cout << "Average FPS: " << averageFps << endl;
+
+        float totalMs = 0.0f;
+        for (auto& ms : m_recordedMs)
+            totalMs += ms;
+
+        float averageMs = totalMs / m_recordedMs.size();
+
+        cout << "Average MS: " << averageMs << endl;
 
         m_recordedSecondsCount = 0;
     }
@@ -107,6 +125,7 @@ BenchmarkHelper::BenchmarkHelper() :
     m_count(0),
     m_fps(0),
     m_startTime(timeGetTime()),
+    m_previousMsTime(timeGetTime()),
     m_recordedSecondsCount(0)
 {
 }
