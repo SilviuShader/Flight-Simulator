@@ -15,8 +15,8 @@ Camera::Camera()
 }
 
 Camera::Camera(float fieldOfViewY, float width, float height, float near, float far) :
-    m_position(vec3(0.0f, 10.0f, 0.0f)),
-    m_rotation(vec3(0.0f, 0.0f, 0.0f)),
+    m_position(vec3(0.0f, 60.0f, 0.0f)),
+    m_rotation(vec3(half_pi<float>() / 4.0f, 0.0f, 0.0f)),
     m_width(width),
     m_height(height),
     m_fieldOfViewY(fieldOfViewY),
