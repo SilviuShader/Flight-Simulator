@@ -74,7 +74,7 @@ void main()
 	vec4 refractionColor = texture(RefractionTexture, refractTexCoords);
 	vec4 reflectionColor = texture(ReflectionTexture, reflectTexCoords);
 
-	vec3 waterToCamera = normalize(FSInputWorldPosition.xyz - CameraPosition);
+	vec3 waterToCamera = normalize(CameraPosition - FSInputWorldPosition.xyz);
 	float reflectiveness = dot(waterToCamera, normal);
 
 	reflectiveness = pow(reflectiveness, ReflectivePower);
