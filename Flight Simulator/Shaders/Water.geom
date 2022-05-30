@@ -7,12 +7,10 @@ layout (triangle_strip, max_vertices = 3) out;
 in vec2 GSInputTexCoords[];
 in vec4 GSInputWorldPosition[];
 in vec4 GSInputReflectionPosition[];
-in vec3 GSInputWaterToCamera[];
 in vec4 GSInputRealClipCoords[];
 
 out vec2 FSInputTexCoords;
 out vec4 FSInputReflectionPosition;
-out vec3 FSInputWaterToCamera;
 out vec3 FSInputNormal;
 out vec3 FSInputTangent;
 out vec3 FSInputBinormal;
@@ -37,7 +35,6 @@ void main()
 	// instead of using a for loop, the 3 vertices are emitted manually so we can reduce the number of branch instructions.
 	FSInputTexCoords          = GSInputTexCoords[0];
 	FSInputReflectionPosition = GSInputReflectionPosition[0];
-	FSInputWaterToCamera      = GSInputWaterToCamera[0];
 	FSInputNormal             = normal;
 	FSInputTangent            = tangent;
 	FSInputBinormal           = binormal;
@@ -48,7 +45,6 @@ void main()
 
 	FSInputTexCoords          = GSInputTexCoords[1];
 	FSInputReflectionPosition = GSInputReflectionPosition[1];
-	FSInputWaterToCamera      = GSInputWaterToCamera[1];
 	FSInputNormal             = normal;
 	FSInputTangent            = tangent;
 	FSInputBinormal           = binormal;
@@ -59,7 +55,6 @@ void main()
 
 	FSInputTexCoords          = GSInputTexCoords[2];
 	FSInputReflectionPosition = GSInputReflectionPosition[2];
-	FSInputWaterToCamera      = GSInputWaterToCamera[2];
 	FSInputNormal             = normal;
 	FSInputTangent            = tangent;
 	FSInputBinormal           = binormal;

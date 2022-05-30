@@ -5,7 +5,6 @@ layout (triangles, fractional_odd_spacing, ccw) in;
 in vec2 TESInputTexCoords[];
 in vec4 TESInputWorldPosition[];
 in vec4 TESInputReflectionPosition[];
-in vec3 TESInputWaterToCamera[];
 
 uniform mediump mat4 View;
 uniform mediump mat4 Projection;
@@ -26,7 +25,6 @@ uniform vec2 WaveDDirection;
 out vec2 GSInputTexCoords;
 out vec4 GSInputWorldPosition;
 out vec4 GSInputReflectionPosition;
-out vec3 GSInputWaterToCamera;
 out vec4 GSInputRealClipCoords;
 
 vec2 interpolate2D(vec2 u, vec2 v, vec2 w)
@@ -90,7 +88,6 @@ void main()
 
 
     GSInputTexCoords          = interpolate2D(TESInputTexCoords[0],          TESInputTexCoords[1],          TESInputTexCoords[2]);
-    GSInputWaterToCamera      = interpolate3D(TESInputWaterToCamera[0],      TESInputWaterToCamera[1],      TESInputWaterToCamera[2]);
 
     GSInputRealClipCoords     = Projection * View * GSInputWorldPosition;
 

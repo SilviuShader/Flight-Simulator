@@ -3,7 +3,6 @@
 
 in vec2 FSInputTexCoords;
 in vec4 FSInputReflectionPosition;
-in vec3 FSInputWaterToCamera;
 in vec3 FSInputNormal;
 in vec3 FSInputTangent;
 in vec3 FSInputBinormal;
@@ -75,12 +74,12 @@ void main()
 	vec4 refractionColor = texture(RefractionTexture, refractTexCoords);
 	vec4 reflectionColor = texture(ReflectionTexture, reflectTexCoords);
 
-	vec3 waterToCamera = normalize(FSInputWaterToCamera);
+	vec3 waterToCamera = normalize(FSInputWorldPosition.xyz - CameraPosition);
 	float reflectiveness = dot(waterToCamera, normal);
 
 	reflectiveness = pow(reflectiveness, ReflectivePower);
 
-	vec4 albedo = mix(refractionColor, reflectionColor, 1.0 - reflectiveness);
+	vec4 albedo = mix(refractionColor, reflectionColor, clamp(1.0 - reflectiveness, 0.0, 1.0));
 	albedo = mix(albedo, texture(WaterTextures[0], displacedTexCoords), TextureMultiplier);
 
 	vec3 lightDir = normalize(-LightDirection);
