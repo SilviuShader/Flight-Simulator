@@ -1,4 +1,4 @@
-#include "glad/glad.h"
+﻿#include "glad/glad.h"
 
 #include <iostream>
 #include <fstream>
@@ -55,7 +55,7 @@ int main(int argc, char const* argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flight Simulator", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Stancioiu Silviu - Advanced rendering techniques for procedurally generated worlds", NULL, NULL);
 
     if (window == NULL)
     {
