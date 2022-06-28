@@ -62,12 +62,12 @@ Terrain::~Terrain()
 	FreeTerrainObjects();
 }
 
-void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug)
+void Terrain::Udpate(Camera* camera, float deltaTime, bool renderDebug, bool renderFoliage)
 {
 	UpdateCurrentChunks(camera, deltaTime);
 
 	for (auto& chunk : m_chunksList)
-		chunk->Update(camera, deltaTime, renderDebug);
+		chunk->Update(camera, deltaTime, renderDebug, renderFoliage);
 
 	m_waterTime += deltaTime;
 
@@ -84,7 +84,7 @@ void Terrain::UpdateWater(Camera* camera, float deltaTime, bool renderDebug)
 		m_waterMoveFactor -= 1.0f;
 }
 
-void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture)
+void Terrain::Draw(Camera* camera, Light* light, bool renderFoliage, Texture* refractionTexture, Texture* reflectionTexture, Texture* refractionDepthTexture, Texture* reflectionDepthTexture)
 {
 	for (auto& chunk : m_chunksList)
 		chunk->DrawTerrain(camera, light, m_terrainMaterials, m_terrainBiomesData);
@@ -93,8 +93,9 @@ void Terrain::Draw(Camera* camera, Light* light, Texture* refractionTexture, Tex
 		for (auto& chunk : m_chunksList)
 			chunk->DrawWater(camera, light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture, m_waterMoveFactor, m_waterMaterial, m_waterTime);
 	
-	for (auto& chunk : m_chunksList)
-		chunk->DrawFolliage(camera, light);
+	if (renderFoliage)
+		for (auto& chunk : m_chunksList)
+			chunk->DrawFolliage(camera, light);
 }
 
 void Terrain::CreateTerrainObjects()

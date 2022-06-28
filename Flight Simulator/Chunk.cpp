@@ -269,7 +269,7 @@ Chunk::~Chunk()
     FreeTerrainBuffers();
 }
 
-void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
+void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug, bool renderFoliage)
 {
     m_renderDebug = renderDebug;
 
@@ -280,20 +280,23 @@ void Chunk::Update(Camera* camera, float deltaTime, bool renderDebug)
     FillZoneRanges(cameraFrustum, m_quadTree);
     UpdateZoneRangesBuffer();
 
-    for (auto& folliageModel : m_folliageModelsInstances)
-        m_folliageModelsInstances[folliageModel.first].clear();
-    
-    FillFolliageInstances(camera, cameraFrustum, m_quadTree);
-    
-    for (auto& model : m_folliageModelsInstances)
+    if (renderFoliage)
     {
-        sort(model.second.begin(), model.second.end(), [&](const mat4& a, const mat4& b)
-            {
-                const float* valsA = value_ptr(a);
-                const float* valsB = value_ptr(b);
+        for (auto& folliageModel : m_folliageModelsInstances)
+            m_folliageModelsInstances[folliageModel.first].clear();
 
-                return distance(vec3(valsA[12], valsA[13], valsA[14]), camera->GetPosition()) > distance(vec3(valsB[12], valsB[13], valsB[14]), camera->GetPosition());
-            });
+        FillFolliageInstances(camera, cameraFrustum, m_quadTree);
+
+        for (auto& model : m_folliageModelsInstances)
+        {
+            sort(model.second.begin(), model.second.end(), [&](const mat4& a, const mat4& b)
+                {
+                    const float* valsA = value_ptr(a);
+                    const float* valsB = value_ptr(b);
+
+                    return distance(vec3(valsA[12], valsA[13], valsA[14]), camera->GetPosition()) > distance(vec3(valsB[12], valsB[13], valsB[14]), camera->GetPosition());
+                });
+        }
     }
 }
 

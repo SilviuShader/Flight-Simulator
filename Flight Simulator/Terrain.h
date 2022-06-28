@@ -50,9 +50,9 @@ public:
 	Terrain();
 	~Terrain();
 
-	void Udpate(Camera*, float, bool);
+	void Udpate(Camera*, float, bool, bool);
 	void UpdateWater(Camera*, float, bool);
-	void Draw(Camera*, Light*, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr);
+	void Draw(Camera*, Light*, bool, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr, Texture* = nullptr);
 
 private:
 

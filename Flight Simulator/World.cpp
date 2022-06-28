@@ -14,7 +14,8 @@ using namespace std;
 using namespace glm;
 
 World::World(int windowWidth, int windowHeight) :
-	m_renderDebug(false)
+	m_renderDebug(false),
+	m_renderFoliage(true)
 {
 	m_light = new Light();
 	m_light->SetAmbientColor(vec4(0.2f, 0.2f, 0.2f, 1.0f));
@@ -132,16 +133,19 @@ void World::Update(float deltaTime)
 	if (InputWrapper::GetInstance()->GetKeyUp(InputWrapper::Keys::Debug))
 		m_renderDebug = !m_renderDebug;
 
+	if (InputWrapper::GetInstance()->GetKeyUp(InputWrapper::Keys::Foliage))
+		m_renderFoliage = !m_renderFoliage;
+
 	if (m_renderDebug)
 		DebugHelper::GetInstance()->ResetInstances();
 
 	RenderSettings* renderSettings = RenderSettings::GetInstance();
 
-	m_terrain->Udpate(m_reflectionCamera, 0.0f, m_renderDebug);
+	m_terrain->Udpate(m_reflectionCamera, 0.0f, m_renderDebug, m_renderFoliage);
 	renderSettings->EnablePlaneClipping(vec4(0.0f, 1.0f, 0.0f, -Terrain::WATER_LEVEL));
 	RenderScene(m_auxilliaryRenderTexture, m_reflectionCamera, true, m_reflectionRenderTexture);
 	
-	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug);
+	m_terrain->Udpate(m_camera, deltaTime, m_renderDebug, m_renderFoliage);
 
 	renderSettings->EnablePlaneClipping(vec4(0.0f, 1.0f, 0.0f, -Terrain::WATER_LEVEL));
 	RenderScene(m_aboveRefractionAuxiliaryRenderTexture, m_camera, false, m_aboveRefractionRenderTexture);
@@ -173,7 +177,7 @@ void World::RenderScene(RenderTexture* auxiliaryRenderTexture, Camera* camera, b
 
 	m_skybox->Draw(camera);
 
-	m_terrain->Draw(camera, m_light, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture);
+	m_terrain->Draw(camera, m_light, m_renderFoliage, refractionTexture, reflectionTexture, refractionDepthTexture, reflectionDepthTexture);
 
 	if (m_renderDebug)
 		DebugHelper::GetInstance()->DrawRectangles(camera);

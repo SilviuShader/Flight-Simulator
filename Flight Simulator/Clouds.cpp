@@ -110,7 +110,7 @@ void Clouds::Draw(Camera* camera, Light* light, Texture* sceneTexture, Texture* 
 	cloudsShader->SetFloat("DetailNoiseScale",            4.0f);
 	cloudsShader->SetVec3("CloudOffset",                  m_cloudsOffset);
 	cloudsShader->SetVec3("DetailsOffset",                m_detailsOffset);
-	cloudsShader->SetFloat("DensityMultiplier",           0.1f * 0.82f);
+	cloudsShader->SetFloat("DensityMultiplier",           0.5f * 0.82f);
 	cloudsShader->SetFloat("DarknessThreshold",           0.38f);
 	cloudsShader->SetFloat("DensityOffset",               -3.64 * 0.2f);
 	cloudsShader->SetVec4("PhaseParams",                  vec4(0.72f, 0.33f, 1.0f, 0.83f));

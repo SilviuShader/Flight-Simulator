@@ -76,7 +76,7 @@ public:
     Chunk(PerlinNoise*, HydraulicErosion*, GaussianBlur*, std::pair<int, int>);
     ~Chunk();
 
-           void      Update(Camera*, float, bool);
+           void      Update(Camera*, float, bool, bool);
            void      UpdateWater(Camera*, float, bool);
            void      DrawTerrain(Camera*, Light*, const std::vector<Material*>&, Texture*);
            void      DrawFolliage(Camera*, Light*);

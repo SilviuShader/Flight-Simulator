@@ -51,4 +51,5 @@ private:
 	RenderTexture*    m_aboveRefractionRenderTexture;
 				      
 	bool              m_renderDebug;
+	bool              m_renderFoliage;
 };

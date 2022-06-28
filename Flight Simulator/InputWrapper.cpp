@@ -97,11 +97,12 @@ InputWrapper::InputWrapper() :
 	memset(m_getKeysDown,        false, sizeof(bool) * (int)Keys::Last);
 	memset(m_getKeysUp,          false, sizeof(bool) * (int)Keys::Last);
 
-	m_glfwToKeysMapping[GLFW_KEY_W     ] = { Keys::Up    };
-	m_glfwToKeysMapping[GLFW_KEY_A     ] = { Keys::Left  };
-	m_glfwToKeysMapping[GLFW_KEY_S     ] = { Keys::Down  };
-	m_glfwToKeysMapping[GLFW_KEY_D     ] = { Keys::Right };
+	m_glfwToKeysMapping[GLFW_KEY_W     ] = { Keys::Up      };
+	m_glfwToKeysMapping[GLFW_KEY_A     ] = { Keys::Left    };
+	m_glfwToKeysMapping[GLFW_KEY_S     ] = { Keys::Down    };
+	m_glfwToKeysMapping[GLFW_KEY_D     ] = { Keys::Right   };
 
-	m_glfwToKeysMapping[GLFW_KEY_T     ] = { Keys::Debug };
-	m_glfwToKeysMapping[GLFW_KEY_ESCAPE] = { Keys::Exit  };
+	m_glfwToKeysMapping[GLFW_KEY_T     ] = { Keys::Debug   };
+	m_glfwToKeysMapping[GLFW_KEY_Y     ] = { Keys::Foliage };
+	m_glfwToKeysMapping[GLFW_KEY_ESCAPE] = { Keys::Exit    };
 }

@@ -15,6 +15,7 @@ public:
 		Right,
 
 		Debug,
+		Foliage,
 		Exit,
 
 		Last
